@@ -1,11 +1,9 @@
-// ======================== Точка входа приложения ========================
+// ======================== Инициализация игры 2048 ========================
 
 import Game from './game.js';
 
-/**
- * Инициализация игры при загрузке страницы
- */
 document.addEventListener('DOMContentLoaded', () => {
+    // Получаем элементы DOM
     const boardElement = document.getElementById('board');
     const scoreDisplay = document.getElementById('score');
     const restartBtn = document.getElementById('restart-btn');
@@ -16,10 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
-    // Создаём экземпляр игры
+    // Инициализируем игру
     const game = new Game(boardElement, scoreDisplay, restartBtn);
     
-    console.log('🎮 Игра инициализирована успешно!');
+    console.log('🏴‍☠️ Пиратская версия 2048 загружена и готова к игре!');
+    console.log('Используйте стрелки для движения плиток.');
 });
-
-export default {};
