@@ -1,197 +1,304 @@
-// ======================== Основная логика игры ========================
+// ======================== Класс основной логики игры 2048 ========================
 
-import CONFIG from './config.js';
-import {
-    generateBoard,
-    findAllMatches,
-    removeMatches,
-    applyGravity,
-    refillBoard,
-    hasValidMoves,
-    shuffleBoard,
-} from './board.js';
-import {
-    swapInGrid,
-    isAdjacent,
-    delay,
-} from './utils.js';
-import {
-    getCellElement,
-    highlightCell,
-    renderBoard,
-    updateScore,
-    addTileAnimation,
-} from './ui.js';
-
-/**
- * Класс главной игры
- */
-export class Game {
+export default class Game {
     constructor(boardElement, scoreDisplay, restartBtn) {
         this.boardElement = boardElement;
         this.scoreDisplay = scoreDisplay;
         this.restartBtn = restartBtn;
         
-        this.grid = [];
+        this.size = 4; // 4x4 сетка
+        this.tiles = [];
         this.score = 0;
-        this.selectedCell = null;
-        this.isAnimating = false;
+        this.won = false;
+        this.gameOver = false;
         
-        this.setupEventListeners();
         this.init();
+        this.attachEventListeners();
     }
-    
-    /**
-     * Инициализация обработчиков событий
-     */
-    setupEventListeners() {
-        this.restartBtn.addEventListener('click', () => this.restart());
-        
-        this.boardElement.addEventListener('cellClick', (e) => {
-            const { row, col } = e.detail;
-            this.handleCellClick(row, col);
-        });
-    }
-    
+
     /**
      * Инициализация новой игры
      */
     init() {
-        this.selectedCell = null;
-        this.isAnimating = false;
+        this.tiles = [];
         this.score = 0;
-        updateScore(this.scoreDisplay, this.score);
+        this.won = false;
+        this.gameOver = false;
         
-        this.grid = generateBoard();
-        
-        if (!hasValidMoves(this.grid)) {
-            shuffleBoard(this.grid);
+        // Создаём пустую сетку
+        for (let i = 0; i < this.size * this.size; i++) {
+            this.tiles.push(null);
         }
         
-        renderBoard(this.boardElement, this.grid);
-    }
-    
-    /**
-     * Перезагрузка игры
-     */
-    restart() {
-        if (this.isAnimating) return;
-        this.init();
-    }
-    
-    /**
-     * Обработка клика по ячейке
-     * @param {number} row - строка
-     * @param {number} col - колонка
-     */
-    handleCellClick(row, col) {
-        if (this.isAnimating) return;
+        // Добавляем две начальные плитки
+        this.addNewTile();
+        this.addNewTile();
         
-        if (this.selectedCell === null) {
-            // Выбираем первую фишку
-            this.selectedCell = { row, col };
-            highlightCell(this.boardElement, row, col, true);
-        } else {
-            const sr = this.selectedCell.row;
-            const sc = this.selectedCell.col;
+        this.render();
+    }
+
+    /**
+     * Присоединяет обработчики событий
+     */
+    attachEventListeners() {
+        // Кнопка перезагрузки
+        this.restartBtn.addEventListener('click', () => this.init());
+        
+        // Клавиатура
+        document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+    }
+
+    /**
+     * Обработка нажатия клавиш
+     */
+    handleKeyPress(e) {
+        if (this.gameOver || this.won) return;
+        
+        let moved = false;
+        
+        switch (e.key) {
+            case 'ArrowUp':
+                e.preventDefault();
+                moved = this.move('up');
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                moved = this.move('down');
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                moved = this.move('left');
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                moved = this.move('right');
+                break;
+        }
+        
+        if (moved) {
+            this.addNewTile();
+            this.render();
             
-            // Если кликнули на ту же ячейку — снимаем выделение
-            if (sr === row && sc === col) {
-                highlightCell(this.boardElement, sr, sc, false);
-                this.selectedCell = null;
-                return;
+            // Проверяем win/lose
+            if (this.checkWin()) {
+                this.won = true;
+                setTimeout(() => alert('🎉 Поздравляем! Вы достигли 2048!'), 300);
+            } else if (this.checkGameOver()) {
+                this.gameOver = true;
+                setTimeout(() => alert('💀 Игра окончена! Нет возможных ходов.'), 300);
+            }
+        }
+    }
+
+    /**
+     * Движение плиток в заданном направлении
+     */
+    move(direction) {
+        const oldTiles = JSON.stringify(this.tiles);
+        
+        switch (direction) {
+            case 'left':
+                this.moveLeft();
+                break;
+            case 'right':
+                this.moveRight();
+                break;
+            case 'up':
+                this.moveUp();
+                break;
+            case 'down':
+                this.moveDown();
+                break;
+        }
+        
+        // Проверяем, изменилась ли сетка
+        return oldTiles !== JSON.stringify(this.tiles);
+    }
+
+    /**
+     * Движение влево
+     */
+    moveLeft() {
+        for (let r = 0; r < this.size; r++) {
+            const row = this.getRow(r);
+            this.mergeLine(row);
+            this.setRow(r, row);
+        }
+    }
+
+    /**
+     * Движение вправо
+     */
+    moveRight() {
+        for (let r = 0; r < this.size; r++) {
+            const row = this.getRow(r).reverse();
+            this.mergeLine(row);
+            this.setRow(r, row.reverse());
+        }
+    }
+
+    /**
+     * Движение вверх
+     */
+    moveUp() {
+        for (let c = 0; c < this.size; c++) {
+            const col = this.getColumn(c);
+            this.mergeLine(col);
+            this.setColumn(c, col);
+        }
+    }
+
+    /**
+     * Движение вниз
+     */
+    moveDown() {
+        for (let c = 0; c < this.size; c++) {
+            const col = this.getColumn(c).reverse();
+            this.mergeLine(col);
+            this.setColumn(c, col.reverse());
+        }
+    }
+
+    /**
+     * Объединяет линию плиток (движение + слияние)
+     */
+    mergeLine(line) {
+        // Сдвигаем все ненулевые элементы влево
+        const non_null = line.filter(val => val !== null);
+        const zeros = Array(line.length - non_null.length).fill(null);
+        
+        // Объединяем одинаковые соседние плитки
+        for (let i = 0; i < non_null.length - 1; i++) {
+            if (non_null[i] === non_null[i + 1]) {
+                non_null[i] *= 2;
+                this.score += non_null[i];
+                non_null.splice(i + 1, 1);
+                zeros.push(null);
+            }
+        }
+        
+        // Возвращаем нули в конец
+        const result = non_null.concat(zeros);
+        for (let i = 0; i < line.length; i++) {
+            line[i] = result[i];
+        }
+    }
+
+    /**
+     * Получить строку
+     */
+    getRow(r) {
+        const row = [];
+        for (let c = 0; c < this.size; c++) {
+            row.push(this.tiles[r * this.size + c]);
+        }
+        return row;
+    }
+
+    /**
+     * Установить строку
+     */
+    setRow(r, row) {
+        for (let c = 0; c < this.size; c++) {
+            this.tiles[r * this.size + c] = row[c];
+        }
+    }
+
+    /**
+     * Получить колонку
+     */
+    getColumn(c) {
+        const col = [];
+        for (let r = 0; r < this.size; r++) {
+            col.push(this.tiles[r * this.size + c]);
+        }
+        return col;
+    }
+
+    /**
+     * Установить колонку
+     */
+    setColumn(c, col) {
+        for (let r = 0; r < this.size; r++) {
+            this.tiles[r * this.size + c] = col[r];
+        }
+    }
+
+    /**
+     * Добавляет новую плитку (2 или 4) в случайное пустое место
+     */
+    addNewTile() {
+        const emptyIndices = [];
+        for (let i = 0; i < this.tiles.length; i++) {
+            if (this.tiles[i] === null) {
+                emptyIndices.push(i);
+            }
+        }
+        
+        if (emptyIndices.length === 0) return;
+        
+        const randomIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+        this.tiles[randomIndex] = Math.random() < 0.9 ? 2 : 4;
+    }
+
+    /**
+     * Проверка победы (достижение 2048)
+     */
+    checkWin() {
+        return this.tiles.some(tile => tile === 2048);
+    }
+
+    /**
+     * Проверка конца игры (нет пустых ячеек и нет возможных ходов)
+     */
+    checkGameOver() {
+        // Если есть пустые ячейки, ещё можно играть
+        if (this.tiles.some(tile => tile === null)) {
+            return false;
+        }
+        
+        // Проверяем, возможно ли объединить какие-то плитки
+        for (let r = 0; r < this.size; r++) {
+            for (let c = 0; c < this.size; c++) {
+                const current = this.tiles[r * this.size + c];
+                
+                // Проверяем соседей
+                if (c + 1 < this.size && this.tiles[r * this.size + c + 1] === current) {
+                    return false; // Возможно слияние вправо
+                }
+                if (r + 1 < this.size && this.tiles[(r + 1) * this.size + c] === current) {
+                    return false; // Возможно слияние вниз
+                }
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Отрисовка доски
+     */
+    render() {
+        this.boardElement.innerHTML = '';
+        this.scoreDisplay.textContent = this.score;
+        
+        for (let i = 0; i < this.tiles.length; i++) {
+            const cell = document.createElement('div');
+            
+            if (this.tiles[i] !== null) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.textContent = this.tiles[i];
+                tile.dataset.value = this.tiles[i];
+                cell.appendChild(tile);
             }
             
-            // Проверяем соседство
-            if (isAdjacent(sr, sc, row, col)) {
-                this.performSwap(sr, sc, row, col);
-            } else {
-                // Клик не на соседнюю — выбираем новую фишку
-                highlightCell(this.boardElement, sr, sc, false);
-                this.selectedCell = { row, col };
-                highlightCell(this.boardElement, row, col, true);
-            }
-        }
-    }
-    
-    /**
-     * Выполнение обмена фишек
-     * @param {number} r1 - строка первой фишки
-     * @param {number} c1 - колонка первой фишки
-     * @param {number} r2 - строка второй фишки
-     * @param {number} c2 - колонка второй фишки
-     */
-    performSwap(r1, c1, r2, c2) {
-        this.isAnimating = true;
-        highlightCell(this.boardElement, r1, c1, false);
-        this.selectedCell = null;
-        
-        // Выполняем обмен в сетке
-        swapInGrid(this.grid, r1, c1, r2, c2);
-        renderBoard(this.boardElement, this.grid);
-        
-        // Проверяем совпадения
-        const matches = findAllMatches(this.grid);
-        
-        if (matches.length > 0) {
-            // Успешный обмен — запускаем каскад
-            this.processCascade();
-        } else {
-            // Неудачный обмен — откатываем
-            swapInGrid(this.grid, r1, c1, r2, c2);
-            renderBoard(this.boardElement, this.grid);
-            this.isAnimating = false;
-        }
-    }
-    
-    /**
-     * Основной игровой цикл каскада
-     */
-    async processCascade() {
-        let matches = findAllMatches(this.grid);
-        
-        if (matches.length === 0) {
-            // Нет совпадений — проверяем deadlock
-            if (!hasValidMoves(this.grid)) {
-                shuffleBoard(this.grid);
-                renderBoard(this.boardElement, this.grid);
-            }
-            
-            this.isAnimating = false;
-            return;
+            this.boardElement.appendChild(cell);
         }
         
-        // Обновляем счёт
-        this.score += matches.length * CONFIG.BASE_SCORE;
-        updateScore(this.scoreDisplay, this.score);
-        
-        // Удаляем совпадения из сетки
-        removeMatches(this.grid, matches);
-        
-        // Добавляем анимацию исчезновения
-        addTileAnimation(this.boardElement, matches, 'removing');
-        
-        // Ждём анимации исчезновения
-        await delay(CONFIG.ANIMATION_REMOVE);
-        
-        // Применяем гравитацию
-        applyGravity(this.grid);
-        
-        // Заполняем пустоты
-        const newTiles = refillBoard(this.grid);
-        
-        // Перерисовываем доску
-        renderBoard(this.boardElement, this.grid);
-        
-        // Добавляем анимацию падения новых фишек
-        addTileAnimation(this.boardElement, newTiles, 'dropping');
-        
-        // Ждём анимации падения
-        await delay(CONFIG.ANIMATION_DROP);
-        
-        // Рекурсивно проверяем новые совпадения
-        await this.processCascade();
+        // Добавляем визуальные эффекты
+        if (this.won) {
+            this.boardElement.classList.add('won');
+        }
     }
 }
-
-export default Game;
