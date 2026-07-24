@@ -1,0 +1,47 @@
+/* ======================== Пиратская палитра и переменные ======================== */
+
+:root {
+    /* Цвета фона */
+    --bg-primary: linear-gradient(135deg, #0a1a2e 0%, #1c3b5a 100%);
+    --bg-secondary: linear-gradient(180deg, #3e2c1a 0%, #5a3a20 100%);
+    --bg-board: #2a1f0e;
+    --bg-cell: rgba(255, 255, 255, 0.05);
+    --bg-cell-hover: rgba(255, 215, 0, 0.15);
+    --bg-cell-selected: rgba(255, 215, 0, 0.35);
+
+    /* Цвета текста */
+    --color-gold: #f5d742;
+    --color-border: #b8860b;
+    --color-text-dark: #fff;
+
+    /* Цвета фишек (пиратские мотивы) */
+    --tile-red: #b22222;     /* череп */
+    --tile-brown: #8b4513;   /* сундук */
+    --tile-green: #2e8b57;   /* карта */
+    --tile-blue: #4682b4;    /* якорь */
+    --tile-gold: #daa520;    /* компас */
+    --tile-gray: #708090;    /* монета */
+
+    /* Размеры */
+    --container-max-width: 500px;
+    --border-radius-lg: 24px;
+    --border-radius-md: 16px;
+    --border-radius-sm: 8px;
+    --border-radius-xs: 6px;
+
+    /* Тени */
+    --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.6);
+    --shadow-inset: inset 0 0 20px rgba(255, 215, 0, 0.2);
+    --shadow-board: inset 0 0 30px rgba(0, 0, 0, 0.7);
+
+    /* Переходы */
+    --transition-fast: 0.15s;
+    --transition-normal: 0.25s;
+    --transition-slow: 0.3s;
+
+    /* Сетка */
+    --grid-rows: 8;
+    --grid-cols: 8;
+    --grid-gap: 2px;
+    --grid-padding: 4px;
+}
