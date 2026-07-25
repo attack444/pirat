@@ -285,12 +285,11 @@ export default class Game {
         for (let i = 0; i < this.tiles.length; i++) {
             const cell = document.createElement('div');
             
+            // Если плитка имеет значение, добавляем классы и атрибуты
             if (this.tiles[i] !== null) {
-                const tile = document.createElement('div');
-                tile.className = 'tile';
-                tile.textContent = this.tiles[i];
-                tile.dataset.value = this.tiles[i];
-                cell.appendChild(tile);
+                cell.className = 'tile';
+                cell.textContent = this.tiles[i];
+                cell.dataset.value = this.tiles[i];
             }
             
             this.boardElement.appendChild(cell);
