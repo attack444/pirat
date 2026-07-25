@@ -135,6 +135,9 @@ main {
     border-radius: 8px;
     animation: tileAppear 0.3s ease;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    /* Базовый стиль для всех плиток */
+    background: linear-gradient(135deg, #d4af37 0%, #8b6914 100%);
+    color: #f9f6f2;
 }
 
 @keyframes tileAppear {
@@ -166,18 +169,78 @@ main {
 }
 
 /* Цвета плиток (2048 классический стиль с пиратским оттенком) */
-.tile[data-value="2"] { background: linear-gradient(135deg, #eee4da 0%, #ede0c8 100%); color: #776e65; }
-.tile[data-value="4"] { background: linear-gradient(135deg, #ede0c8 0%, #f2b179 100%); color: #776e65; }
-.tile[data-value="8"] { background: linear-gradient(135deg, #f2b179 0%, #f59563 100%); color: #f9f6f2; }
-.tile[data-value="16"] { background: linear-gradient(135deg, #f59563 0%, #f67c5f 100%); color: #f9f6f2; }
-.tile[data-value="32"] { background: linear-gradient(135deg, #f67c5f 0%, #f65e3b 100%); color: #f9f6f2; }
-.tile[data-value="64"] { background: linear-gradient(135deg, #f65e3b 0%, #edcf72 100%); color: #f9f6f2; }
-.tile[data-value="128"] { background: linear-gradient(135deg, #edcf72 0%, #edcc61 100%); color: #776e65; font-size: 2rem; }
-.tile[data-value="256"] { background: linear-gradient(135deg, #edcc61 0%, #edc850 100%); color: #776e65; font-size: 2rem; }
-.tile[data-value="512"] { background: linear-gradient(135deg, #edc850 0%, #edc53f 100%); color: #776e65; font-size: 2rem; }
-.tile[data-value="1024"] { background: linear-gradient(135deg, #edc53f 0%, #eee4da 100%); color: #776e65; font-size: 1.5rem; }
-.tile[data-value="2048"] { background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%); color: #f9f6f2; font-size: 1.5rem; font-weight: 900; }
-.tile[data-value="4096"] { background: linear-gradient(135deg, #b8860b 0%, #8b6914 100%); color: #f9f6f2; font-size: 1.3rem; }
+.tile[data-value="2"] { 
+    background: linear-gradient(135deg, #eee4da 0%, #ede0c8 100%); 
+    color: #776e65; 
+}
+
+.tile[data-value="4"] { 
+    background: linear-gradient(135deg, #ede0c8 0%, #f2b179 100%); 
+    color: #776e65; 
+}
+
+.tile[data-value="8"] { 
+    background: linear-gradient(135deg, #f2b179 0%, #f59563 100%); 
+    color: #f9f6f2; 
+}
+
+.tile[data-value="16"] { 
+    background: linear-gradient(135deg, #f59563 0%, #f67c5f 100%); 
+    color: #f9f6f2; 
+}
+
+.tile[data-value="32"] { 
+    background: linear-gradient(135deg, #f67c5f 0%, #f65e3b 100%); 
+    color: #f9f6f2; 
+}
+
+.tile[data-value="64"] { 
+    background: linear-gradient(135deg, #f65e3b 0%, #edcf72 100%); 
+    color: #f9f6f2; 
+}
+
+.tile[data-value="128"] { 
+    background: linear-gradient(135deg, #edcf72 0%, #edcc61 100%); 
+    color: #776e65; 
+    font-size: 2rem; 
+}
+
+.tile[data-value="256"] { 
+    background: linear-gradient(135deg, #edcc61 0%, #edc850 100%); 
+    color: #776e65; 
+    font-size: 2rem; 
+}
+
+.tile[data-value="512"] { 
+    background: linear-gradient(135deg, #edc850 0%, #edc53f 100%); 
+    color: #776e65; 
+    font-size: 2rem; 
+}
+
+.tile[data-value="1024"] { 
+    background: linear-gradient(135deg, #edc53f 0%, #b8860b 100%); 
+    color: #f9f6f2; 
+    font-size: 1.5rem; 
+}
+
+.tile[data-value="2048"] { 
+    background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%); 
+    color: #f9f6f2; 
+    font-size: 1.5rem; 
+    font-weight: 900; 
+}
+
+.tile[data-value="4096"] { 
+    background: linear-gradient(135deg, #b8860b 0%, #8b6914 100%); 
+    color: #f9f6f2; 
+    font-size: 1.3rem; 
+}
+
+.tile[data-value="8192"] { 
+    background: linear-gradient(135deg, #8b6914 0%, #5c4609 100%); 
+    color: #ffd700; 
+    font-size: 1.3rem; 
+}
 
 /* ======================== Контролы (кнопки) ======================== */
 .controls {
