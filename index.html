@@ -2,38 +2,83 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2048 - Пиратская версия</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <!-- PWA / App Store -->
+    <meta name="theme-color" content="#b8860b">
+    <meta name="description" content="Пиратская версия 2048 — объединяй плитки, проходи 7 уровней и стань Пиратским Королём!">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Пират 2048">
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+
+    <title>2048 — Пиратская версия</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="container">
+
+        <!-- ── Шапка ──────────────────────────────────────── -->
         <header>
-            <h1>🏴‍☠️ 2048 Пиратская версия</h1>
+            <div class="header-top">
+                <h1>🏴‍☠️ 2048 Пиратская версия</h1>
+                <button id="fullscreen-btn" class="btn btn-icon" title="Полный экран" aria-label="Полный экран">⛶</button>
+            </div>
+
             <div class="stats">
                 <div class="stat">
-                    <span class="label">Очки:</span>
+                    <span class="label">Уровень</span>
+                    <span id="level-display" class="value">1</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Очки</span>
                     <span id="score" class="value">0</span>
                 </div>
+                <div class="stat">
+                    <span class="label">Рекорд</span>
+                    <span id="best-score" class="value">0</span>
+                </div>
+            </div>
+
+            <div class="level-info">
+                <span id="level-name" class="level-name">⚓ Юнга</span>
+                <span class="level-target-wrap">Цель: <strong id="level-target">256</strong></span>
             </div>
         </header>
 
+        <!-- ── Игровое поле ────────────────────────────────── -->
         <main>
-            <div id="board" class="board">
-                <!-- Плитки будут добавлены здесь JavaScript -->
+            <div id="board" class="board size-4"></div>
+
+            <!-- D-pad — видим только на тач-устройствах -->
+            <div class="dpad" aria-label="Управление">
+                <button class="dpad-btn" id="dpad-up"    aria-label="Вверх">▲</button>
+                <div class="dpad-row">
+                    <button class="dpad-btn" id="dpad-left"  aria-label="Влево">◄</button>
+                    <div class="dpad-center">☠️</div>
+                    <button class="dpad-btn" id="dpad-right" aria-label="Вправо">►</button>
+                </div>
+                <button class="dpad-btn" id="dpad-down"  aria-label="Вниз">▼</button>
             </div>
 
+            <!-- Кнопки управления -->
             <div class="controls">
-                <button id="restart-btn" class="btn btn-primary">🔄 Новая игра</button>
+                <button id="restart-btn"     class="btn btn-primary">🔄 Новая игра</button>
+                <button id="level-select-btn" class="btn btn-secondary">📜 Уровни</button>
             </div>
 
+            <!-- Инструкция -->
             <div class="instructions">
-                <h2>Как играть:</h2>
+                <h2>Как играть</h2>
                 <ul>
-                    <li>Используйте стрелки на клавиатуре для движения плиток</li>
-                    <li>Объединяйте одинаковые числа, чтобы получить 2048</li>
-                    <li>Каждый ход добавляется новая плитка (2 или 4)</li>
-                    <li>Игра заканчивается, когда нет возможных ходов</li>
+                    <li>Свайп пальцем или стрелки клавиатуры — двигай плитки</li>
+                    <li>Одинаковые плитки сливаются в одну с удвоенным значением</li>
+                    <li>Достигни целевого числа и переходи на следующий уровень</li>
+                    <li>Пройди все 7 уровней и стань Пиратским Королём! 👑</li>
                 </ul>
             </div>
         </main>
@@ -41,6 +86,28 @@
         <footer>
             <p>🏴‍☠️ Пиратская версия 2048 | Сделано с ❤️</p>
         </footer>
+    </div>
+
+    <!-- ── Модальное окно: победа / конец игры ──────────────── -->
+    <div id="game-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-icon" id="modal-icon">🎉</div>
+            <h2 class="modal-title" id="modal-title">Победа!</h2>
+            <p  class="modal-message" id="modal-message">Ты достиг цели!</p>
+            <div class="modal-score">
+                Очки: <strong id="modal-score-value">0</strong>
+            </div>
+            <div class="modal-actions" id="modal-actions"></div>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: выбор уровня ──────────────────────── -->
+    <div id="level-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal level-modal">
+            <h2>🗺️ Карта уровней</h2>
+            <div class="levels-grid" id="levels-grid"></div>
+            <button class="btn btn-ghost" id="close-level-modal">✕ Закрыть</button>
+        </div>
     </div>
 
     <script type="module" src="js/main.js"></script>

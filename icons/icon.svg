@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- $>= -->
+  <rect width="512" height="512" rx="80" fill="#1c3b5a"/>
+  <!-- >;>B0O @0<:0 -->
+  <rect x="14" y="14" width="484" height="484" rx="68" fill="none" stroke="#b8860b" stroke-width="18"/>
+  <!-- 5@52O==K9 2=CB@5==89 D>= -->
+  <rect x="32" y="32" width="448" height="448" rx="56" fill="#3e2c1a"/>
+
+  <!-- '5@5?: 3>;>20 -->
+  <ellipse cx="256" cy="210" rx="105" ry="100" fill="#f5d742"/>
+  <!-- 86=OO G5;NABL -->
+  <rect x="200" y="272" width="112" height="52" rx="12" fill="#f5d742"/>
+
+  <!-- ;07=8FK -->
+  <circle cx="216" cy="196" r="30" fill="#1c3b5a"/>
+  <circle cx="296" cy="196" r="30" fill="#1c3b5a"/>
+  <!-- ;8: 2 3;070E -->
+  <circle cx="225" cy="187" r="10" fill="#b8860b" opacity=".5"/>
+  <circle cx="305" cy="187" r="10" fill="#b8860b" opacity=".5"/>
+
+  <!-- >A -->
+  <path d="M244 228 Q256 248 268 228 Q264 252 256 256 Q248 252 244 228Z" fill="#d4af37"/>
+
+  <!-- C1K -->
+  <rect x="209" y="284" width="19" height="24" rx="4" fill="#fffde7"/>
+  <rect x="234" y="284" width="19" height="24" rx="4" fill="#fffde7"/>
+  <rect x="259" y="284" width="19" height="24" rx="4" fill="#fffde7"/>
+  <rect x="284" y="284" width="19" height="24" rx="4" fill="#fffde7"/>
+
+  <!-- >AB8 :@5AB-=0:@5AB -->
+  <line x1="80"  y1="368" x2="432" y2="456" stroke="#f5d742" stroke-width="30" stroke-linecap="round"/>
+  <line x1="80"  y1="456" x2="432" y2="368" stroke="#f5d742" stroke-width="30" stroke-linecap="round"/>
+
+  <!-- >=FK :>AB59 -->
+  <circle cx="75"  cy="362" r="24" fill="#f5d742"/>
+  <circle cx="75"  cy="462" r="24" fill="#f5d742"/>
+  <circle cx="437" cy="362" r="24" fill="#f5d742"/>
+  <circle cx="437" cy="462" r="24" fill="#f5d742"/>
+
+  <!-- 04?8AL 2048 -->
+  <text x="256" y="498" font-family="Arial,Helvetica,sans-serif" font-size="52" font-weight="900"
+        fill="#f5d742" text-anchor="middle" letter-spacing="2">2048</text>
+</svg>
