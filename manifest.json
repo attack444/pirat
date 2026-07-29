@@ -1,0 +1,70 @@
+{
+    "name": "2048 Пиратская версия",
+    "short_name": "Пират 2048",
+    "description": "Пиратская версия 2048 — 7 уровней сложности, сенсорное управление, играй офлайн!",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#1c3b5a",
+    "theme_color": "#b8860b",
+    "lang": "ru",
+    "dir": "ltr",
+    "categories": ["games", "entertainment"],
+    "icons": [
+        {
+            "src": "icons/icon-32.png",
+            "sizes": "32x32",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "icons/screenshot-mobile.png",
+            "sizes": "390x844",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Игровой экран"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Новая игра",
+            "short_name": "Играть",
+            "description": "Начать новую игру",
+            "url": "./?new=1",
+            "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+        }
+    ]
+}
