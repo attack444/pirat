@@ -1,6 +1,7 @@
 // ======================== Инициализация и управление игрой ========================
 
 import Game from './game.js';
+import { applyPlatform, hapticLight } from './platform.js';
 
 // ──────────────────────────────────────────────────────────
 // Уровни: ранг, размер поля, целевое значение плитки
@@ -48,7 +49,9 @@ function hideModal(el) {
 // ──────────────────────────────────────────────────────────
 // Запуск приложения
 // ──────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    const platform = await applyPlatform();
+
     // DOM-элементы
     const boardEl        = $('board');
     const scoreEl        = $('score');
@@ -78,6 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let state = loadState();
     let game  = null;
+    let lastScore = 0;
+
+    // На нативных приложениях кнопка fullscreen не нужна — уже полный экран
+    if (platform.isNative && fullscreenBtn) {
+        fullscreenBtn.hidden = true;
+    }
 
     // ── Helpers ──────────────────────────────────────────────
 
@@ -99,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (game) game.detachEventListeners();
 
         state.currentLevel = levelId;
+        lastScore = 0;
         saveState(state);
         updateHeader();
 
@@ -109,12 +119,16 @@ document.addEventListener('DOMContentLoaded', () => {
             size:          lv.size,
             target:        lv.target,
             onScoreUpdate: (score) => {
+                const prev = lastScore;
+                lastScore = score;
                 scoreEl.textContent = score.toLocaleString('ru');
                 if (score > (state.bestTotal || 0)) {
                     state.bestTotal = score;
                     bestEl.textContent = score.toLocaleString('ru');
                     saveState(state);
                 }
+                // Вибрация только при слиянии (рост очков) — iOS/Android
+                if (platform.isNative && score > prev) hapticLight();
             },
             onWin: (score) => {
                 // Разблокируем следующий уровень
@@ -275,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Кнопки управления ────────────────────────────────────
 
     restartBtn.addEventListener('click', () => {
-        if (game) { game.init(); scoreEl.textContent = '0'; }
+        if (game) { lastScore = 0; game.init(); scoreEl.textContent = '0'; }
     });
 
     levelSelectBtn.addEventListener('click', openLevelModal);
@@ -302,9 +316,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: false });
     });
 
-    // ── Service Worker (PWA) ─────────────────────────────────
+    // ── Service Worker (только веб / PWA) ────────────────────
 
-    if ('serviceWorker' in navigator) {
+    if (platform.isWeb && 'serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
 
@@ -313,5 +327,5 @@ document.addEventListener('DOMContentLoaded', () => {
     updateHeader();
     startLevel(state.currentLevel);
 
-    console.log('🏴‍☠️ Пиратская версия 2048 — готова к игре!');
+    console.log(`🏴‍☠️ Пират 2048 — платформа: ${platform.name}`);
 });

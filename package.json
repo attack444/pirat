@@ -1,0 +1,29 @@
+{
+  "name": "pirate-2048",
+  "version": "1.0.0",
+  "description": "Пиратская версия 2048 — веб, iOS и Android",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:www": "node scripts/build-www.js",
+    "sync": "npm run build:www && npx cap sync",
+    "android": "npm run sync && npx cap open android",
+    "ios": "npm run sync && npx cap open ios",
+    "android:add": "npm run build:www && npx cap add android",
+    "ios:add": "npm run build:www && npx cap add ios",
+    "serve": "npx --yes serve . -p 4173"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.2",
+    "@capacitor/app": "^7.0.2",
+    "@capacitor/core": "^7.4.2",
+    "@capacitor/haptics": "^7.0.2",
+    "@capacitor/ios": "^7.4.2",
+    "@capacitor/splash-screen": "^7.0.2",
+    "@capacitor/status-bar": "^7.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.2",
+    "esbuild": "^0.28.1"
+  }
+}

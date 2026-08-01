@@ -392,6 +392,16 @@ footer {
     font-size: .85rem;
 }
 
+.footer-links {
+    margin-top: 8px;
+}
+
+.footer-links a {
+    color: var(--gold-light);
+    text-decoration: underline;
+    font-size: .8rem;
+}
+
 /* ======================== Модальные окна ======================== */
 .modal-overlay {
     position: fixed;
@@ -591,4 +601,110 @@ body.is-fullscreen .board {
     .tile     { font-size: 1.3rem; }
     .dpad-btn { width: 50px; height: 50px; }
     .instructions li { font-size: .85rem; }
+}
+
+/* ==================================================================
+   НАТИВНЫЕ СБОРКИ (iOS / Android) — без «окошка» вокруг поля
+   ================================================================== */
+
+/* Safe area (вырез / Dynamic Island / жестовая панель) */
+body.is-native {
+    padding:
+        max(8px, env(safe-area-inset-top))
+        max(8px, env(safe-area-inset-right))
+        max(8px, env(safe-area-inset-bottom))
+        max(8px, env(safe-area-inset-left));
+    align-items: stretch;
+    min-height: 100dvh;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(184,134,11,.18) 0%, transparent 55%),
+        linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 55%, #163049 100%);
+}
+
+/* Убираем деревянную рамку-окошко вокруг всего UI */
+body.is-native .container {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    max-width: 100%;
+    width: 100%;
+    min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);
+    padding: 12px 14px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Поле без «окошка»: нет золотой рамки, теней и скруглений-карточки */
+body.is-native .board {
+    border: none;
+    border-radius: 12px;
+    box-shadow: none;
+    background: rgba(0, 0, 0, .35);
+    max-width: min(92vw, 520px);
+    margin: 0 auto;
+}
+
+body.is-native header {
+    border-bottom-color: rgba(184, 134, 11, .45);
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+}
+
+body.is-native header h1 {
+    font-size: 1.45rem;
+}
+
+body.is-native #fullscreen-btn,
+body.is-native .btn-icon[hidden] {
+    display: none !important;
+}
+
+/* На нативе D-pad всегда видим */
+body.is-native .dpad,
+body.force-dpad .dpad {
+    display: flex;
+}
+
+/* Инструкция и футер компактнее — больше места полю */
+body.is-native .instructions {
+    padding: 12px 14px;
+    border-width: 1px;
+    background: rgba(0, 0, 0, .22);
+}
+
+body.is-native .instructions h2 { font-size: 1rem; }
+body.is-native .instructions li { font-size: .88rem; margin-bottom: 4px; }
+
+body.is-native footer {
+    border-top-color: rgba(184, 134, 11, .35);
+    margin-top: 12px;
+    padding-top: 10px;
+    font-size: .78rem;
+}
+
+body.is-native .stat {
+    background: rgba(0, 0, 0, .28);
+    border-width: 1px;
+}
+
+body.is-native .modal {
+    border-width: 2px;
+}
+
+/* iOS: чуть больше отступ сверху под статус-бар / Dynamic Island */
+body.is-ios .container {
+    padding-top: max(16px, env(safe-area-inset-top));
+}
+
+/* Android: жестовая панель снизу */
+body.is-android .dpad {
+    margin-bottom: max(4px, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 480px) {
+    body.is-native .container { padding: 8px 10px; }
+    body.is-native header h1 { font-size: 1.25rem; }
+    body.is-native .board { max-width: min(96vw, 480px); }
 }
