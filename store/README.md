@@ -19,7 +19,8 @@
    - [GOOGLE_PLAY.md](./GOOGLE_PLAY.md) — Data safety, IARC, listing
    - [APP_STORE.md](./APP_STORE.md) — App Privacy, Age Rating, Review notes
 4. Сделайте **реальные скриншоты** с эмулятора/устройства (не оставляйте заглушки).
-5. Замените контакт `privacy@pirat2048.example` на свой e-mail в `privacy-policy.html`.
+5. Privacy Policy URL: `https://pirat-eta.vercel.app/privacy-policy.html`  
+   Контакт: `slavasundukov887@gmail.com`
 
 ## Графика
 Сгенерированные ассеты лежат в `store/assets/`:

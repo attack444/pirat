@@ -66,7 +66,7 @@ Privacy Policy URL: HTTPS-страница `privacy-policy.html` (обязате
 Пират 2048 — офлайн-головоломка без аккаунта, рекламы и покупок.
 Управление: свайп по полю или кнопки-стрелки.
 Прогресс хранится только на устройстве.
-Privacy Policy: <ВАШ_HTTPS_URL>/privacy-policy.html
+Privacy Policy: https://pirat-eta.vercel.app/privacy-policy.html
 Демо-аккаунт не требуется.
 ```
 

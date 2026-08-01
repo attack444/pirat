@@ -70,7 +70,7 @@ pirat/
 
 1. Залейте сайт и `privacy-policy.html` на **HTTPS**
 2. Укажите URL политики в консолях магазинов
-3. Замените e-mail `privacy@pirat2048.example` на свой
+3. Privacy Policy: https://pirat-eta.vercel.app/privacy-policy.html (`slavasundukov887@gmail.com`)
 4. Сделайте реальные скриншоты с устройств
 5. Заполните Data safety / App Privacy как «данные не собираются»
 
