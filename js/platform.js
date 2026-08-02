@@ -1,7 +1,7 @@
 // ======================== Определение платформы (web / ios / android) ========================
 
 function cap() {
-    return window.__cap || null;
+    return globalThis.__cap || null;
 }
 
 /**
@@ -21,7 +21,7 @@ export function detectPlatform() {
         };
     }
 
-    const Cap = cap()?.Capacitor || window.Capacitor;
+    const Cap = cap()?.Capacitor || globalThis.Capacitor;
     if (Cap?.isNativePlatform?.()) {
         const name = (Cap.getPlatform?.() || 'android').toLowerCase();
         return { name, isNative: true, isWeb: false };
