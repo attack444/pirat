@@ -11,7 +11,8 @@
     "ios": "npm run sync && npx cap open ios",
     "android:add": "npm run build:www && npx cap add android",
     "ios:add": "npm run build:www && npx cap add ios",
-    "serve": "npx --yes serve . -p 4173"
+    "serve": "npx --yes serve . -p 4173",
+    "test": "node --test js/*.test.js"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",
