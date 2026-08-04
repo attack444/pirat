@@ -9,6 +9,7 @@ import { cpSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync } fr
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
+import { markHtmlAsNative } from './native-html.js';
 
 const require = createRequire(import.meta.url);
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -34,17 +35,7 @@ for (const [from, to] of [
 }
 
 // HTML под натив
-let html = readFileSync(join(root, 'index.html'), 'utf8');
-html = html
-    .replace(/<link rel="manifest"[^>]*>\s*/i, '')
-    .replace(
-        '<script type="module" src="js/main.js"></script>',
-        '<script type="module" src="js/app.js"></script>'
-    )
-    .replace(
-        '<body>',
-        '<body class="is-native" data-build="native">'
-    );
+const html = markHtmlAsNative(readFileSync(join(root, 'index.html'), 'utf8'));
 writeFileSync(join(www, 'index.html'), html);
 
 // Бандл с Capacitor
