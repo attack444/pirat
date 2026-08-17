@@ -2,36 +2,14 @@
 
 import Game from './game.js';
 import { applyPlatform, hapticLight } from './platform.js';
-
-// ──────────────────────────────────────────────────────────
-// Уровни: ранг, размер поля, целевое значение плитки
-// ──────────────────────────────────────────────────────────
-const LEVELS = [
-    { id: 1, name: 'Юнга',             rank: '⚓',    size: 4, target: 256  },
-    { id: 2, name: 'Матрос',            rank: '🗺️',   size: 4, target: 512  },
-    { id: 3, name: 'Буканьер',          rank: '⚔️',   size: 4, target: 1024 },
-    { id: 4, name: 'Корсар',            rank: '🦜',    size: 4, target: 2048 },
-    { id: 5, name: 'Капитан',           rank: '🚢',    size: 5, target: 2048 },
-    { id: 6, name: 'Адмирал',           rank: '🏴‍☠️', size: 5, target: 4096 },
-    { id: 7, name: 'Пиратский Король',  rank: '👑',    size: 6, target: 4096 },
-];
-
-const STORAGE_KEY = 'pirate2048_v1';
-
-// ──────────────────────────────────────────────────────────
-// Хранилище прогресса
-// ──────────────────────────────────────────────────────────
-function loadState() {
-    try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) return JSON.parse(raw);
-    } catch (_) {}
-    return { currentLevel: 1, unlockedLevels: [1], bestScores: {}, bestTotal: 0 };
-}
-
-function saveState(state) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
-}
+import {
+    LEVELS,
+    loadState,
+    saveState,
+    applyLevelWin,
+    applyLevelGameOver,
+    isLevelUnlocked,
+} from './progress.js';
 
 // ──────────────────────────────────────────────────────────
 // Вспомогательные функции DOM
@@ -131,20 +109,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (platform.isNative && score > prev) hapticLight();
             },
             onWin: (score) => {
-                // Разблокируем следующий уровень
-                const next = state.currentLevel + 1;
-                if (next <= LEVELS.length && !state.unlockedLevels.includes(next)) {
-                    state.unlockedLevels.push(next);
-                }
-                if (!state.bestScores[state.currentLevel] || score > state.bestScores[state.currentLevel]) {
-                    state.bestScores[state.currentLevel] = score;
-                }
+                state = applyLevelWin(state, score);
                 saveState(state);
                 showWinModal(score, state.currentLevel === LEVELS.length);
             },
             onGameOver: (score) => {
-                if (!state.bestScores[state.currentLevel] || score > state.bestScores[state.currentLevel]) {
-                    state.bestScores[state.currentLevel] = score;
+                const next = applyLevelGameOver(state, score);
+                if (next !== state) {
+                    state = next;
                     saveState(state);
                 }
                 showGameOverModal(score);
@@ -228,7 +200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         levelsGrid.innerHTML = '';
 
         LEVELS.forEach(lv => {
-            const unlocked  = state.unlockedLevels.includes(lv.id);
+            const unlocked  = isLevelUnlocked(state, lv.id);
             const best      = state.bestScores[lv.id];
             const completed = best !== undefined;
             const isCurrent = lv.id === state.currentLevel;
