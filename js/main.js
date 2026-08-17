@@ -5,6 +5,7 @@ import { applyPlatform, hapticLight } from './platform.js';
 import { playMove, playMerge, playWin, playGameOver } from './sound.js';
 import sdk from './platform-sdk.js';
 import { applyLevelWin, applyLevelGameOver, isLevelUnlocked } from './progress.js';
+import { resolveConflict, mergeBoardSaves } from './cloud-sync.js';
 
 // ──────────────────────────────────────────────────────────
 // Уровни: ранг, размер поля, целевое значение плитки
@@ -67,6 +68,8 @@ function loadState() {
         dailyCounters: { moves: 0, merges: 0, wins: 0, hints: 0 },
         // Реклама: кулдаун interstitial
         lastAdTime: 0,
+        // Метка последнего изменения — для разрешения конфликтов облако/локально
+        updatedAt: 0,
     };
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -76,6 +79,7 @@ function loadState() {
 }
 
 function saveState(state) {
+    state.updatedAt = Date.now();
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
 }
 
@@ -197,7 +201,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     sdk.setLoadingProgress(40);
     if (sdk.isPlatform()) {
         const cloud = await sdk.loadCloud();
-        if (cloud && cloud.state) mergeCloudState(cloud.state);
+        if (cloud) {
+            // Единая стратегия: локальное ∪ облачное, настройки — последняя запись.
+            // Результат сохраняем локально и возвращаем обратно в облако (сходимость).
+            state = resolveConflict(state, cloud.state);
+            saveState(state);
+            const mergedSaves = mergeBoardSaves(loadSaves(), cloud.saves);
+            try { localStorage.setItem(SAVE_KEY, JSON.stringify(mergedSaves)); } catch (_) {}
+            pushCloudSave();
+        }
     }
     if (loadingHint) loadingHint.textContent = 'Готовим корабль к плаванию…';
     if (loadingBarFill) loadingBarFill.style.width = '70%';
@@ -312,32 +324,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return [...set];
     }
 
-    function mergeCloudState(cloud) {
-        if (!cloud || typeof cloud !== 'object') return;
-        const merged = { ...cloud };
-        // Локальные данные имеют приоритет при большем прогрессе
-        if (state.gamesPlayed > (cloud.gamesPlayed || 0)) merged.gamesPlayed = state.gamesPlayed;
-        if ((state.bestTotal || 0) >= (cloud.bestTotal || 0)) {
-            merged.bestTotal = state.bestTotal;
-            merged.bestTile  = Math.max(state.bestTile || 0, cloud.bestTile || 0);
-        }
-        merged.bestScores     = { ...(cloud.bestScores || {}), ...(state.bestScores || {}) };
-        merged.unlockedLevels = mergeArr(cloud.unlockedLevels, state.unlockedLevels, [1]).sort((x, y) => x - y);
-        merged.achievements   = { ...(cloud.achievements || {}), ...(state.achievements || {}) };
-        merged.doubloons      = Math.max(cloud.doubloons || 0, state.doubloons || 0);
-        merged.unlockedSkins  = mergeArr(cloud.unlockedSkins, state.unlockedSkins, ['gold']);
-        merged.unlockedThemes = mergeArr(cloud.unlockedThemes, state.unlockedThemes, ['dark']);
-        state = { ...loadState(), ...merged };
-        saveState(state);
-        if (cloud.saves) {
-            const local = loadSaves();
-            let changed = false;
-            for (const [k, v] of Object.entries(cloud.saves)) {
-                if (!local[k] || (v.ts || 0) > (local[k].ts || 0)) { local[k] = v; changed = true; }
-            }
-            if (changed) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(local)); } catch (_) {} }
-        }
-    }
 
     function escapeHtml(str) {
         return String(str).replace(/[&<>"']/g, (c) => {
