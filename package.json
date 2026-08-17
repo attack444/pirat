@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test 'scripts/**/*.test.js' 'js/**/*.test.js'",
     "build:www": "node scripts/build-www.js",
     "sync": "npm run build:www && npx cap sync",
     "android": "npm run sync && npx cap open android",
