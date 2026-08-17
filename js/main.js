@@ -4,6 +4,7 @@ import Game from './game.js';
 import { applyPlatform, hapticLight } from './platform.js';
 import { playMove, playMerge, playWin, playGameOver } from './sound.js';
 import sdk from './platform-sdk.js';
+import { applyLevelWin, applyLevelGameOver, isLevelUnlocked } from './progress.js';
 
 // ──────────────────────────────────────────────────────────
 // Уровни: ранг, размер поля, целевое значение плитки
@@ -621,13 +622,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 showToast(`Цель достигнута! Очки: ${score.toLocaleString('ru')}`, '🎉');
             },
             onWin: (score) => {
-                // Разблокируем следующий уровень
-                const next = state.currentLevel + 1;
-                if (next <= LEVELS.length && !state.unlockedLevels.includes(next)) {
-                    state.unlockedLevels.push(next);
-                }
                 const isNewBest = !state.bestScores[state.currentLevel] || score > state.bestScores[state.currentLevel];
-                if (isNewBest) state.bestScores[state.currentLevel] = score;
+                state = applyLevelWin(state, score);
                 // Дублоны за победу
                 addDoubloons(100, 'победа');
                 if (isNewBest) addDoubloons(200, 'новый рекорд уровня', '🏆');
@@ -642,8 +638,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 showWinModal(score, state.currentLevel === LEVELS.length);
             },
             onGameOver: (score) => {
-                if (!state.bestScores[state.currentLevel] || score > state.bestScores[state.currentLevel]) {
-                    state.bestScores[state.currentLevel] = score;
+                const next = applyLevelGameOver(state, score);
+                if (next !== state) {
+                    state = next;
                     saveState(state);
                 }
                 checkAchievements();
@@ -767,7 +764,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         levelsGrid.innerHTML = '';
 
         LEVELS.forEach(lv => {
-            const unlocked  = state.unlockedLevels.includes(lv.id);
+            const unlocked  = isLevelUnlocked(state, lv.id);
             const best      = state.bestScores[lv.id];
             const completed = best !== undefined;
             const isCurrent = lv.id === state.currentLevel;
