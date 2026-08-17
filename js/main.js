@@ -6,6 +6,7 @@ import { playMove, playMerge, playWin, playGameOver } from './sound.js';
 import sdk from './platform-sdk.js';
 import { applyLevelWin, applyLevelGameOver, isLevelUnlocked } from './progress.js';
 import { resolveConflict, mergeBoardSaves } from './cloud-sync.js';
+import { canRevive } from './rewards.js';
 
 // ──────────────────────────────────────────────────────────
 // Уровни: ранг, размер поля, целевое значение плитки
@@ -191,6 +192,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     let game  = null;
     let lastScore = 0;
     let cloudSaveTimer = null;
+    // «Спасение» после game over: счётчик использований в текущей партии,
+    // защита от двойного нажатия и отложенный interstitial (отменяется при спасении)
+    let reviveCount = 0;
+    let reviveBusy = false;
+    let pendingInterstitial = null;
 
     // ── SDK площадок: инициализация + загрузочный экран ──────
     if (loadingBarFill) loadingBarFill.style.width = '10%';
@@ -563,6 +569,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         state.currentLevel = levelId;
         lastScore = 0;
+        reviveCount = 0;
+        reviveBusy = false;
         saveState(state);
         updateHeader();
 
@@ -640,7 +648,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (sdk.isPlatform() && now - (state.lastAdTime || 0) > 4 * 60 * 1000) {
                     state.lastAdTime = now;
                     saveState(state);
-                    setTimeout(() => sdk.showInterstitial(), 1200);
+                    pendingInterstitial = setTimeout(() => sdk.showInterstitial(), 1200);
                 }
             },
         });
@@ -661,6 +669,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!game) return;
         clearBoardSave(state.currentLevel);
         lastScore = 0;
+        reviveCount = 0;
+        reviveBusy = false;
         game.init();
         scoreEl.textContent = '0';
         state.gamesPlayed = (state.gamesPlayed || 0) + 1;
@@ -728,6 +738,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         modalScore.textContent   = score.toLocaleString('ru');
 
         clearModalActions();
+
+        // Награда: после game over на площадках — rewarded-ролик, дающий ОДИН шанс
+        // продолжить партию с предыдущей позиции (game.undo()).
+        if (canRevive({
+            platform:   sdk.isPlatform(),
+            canUndo:    !!(game && game.canUndo()),
+            reviveCount,
+            gameOver:   !!(game && game.gameOver),
+            won:        !!(game && game.won),
+        })) {
+            addModalBtn('🎬 Шанс на спасение', 'btn-primary', async () => {
+                if (reviveBusy) return;
+                reviveBusy = true;
+                // Отменяем отложенный interstitial, чтобы не было двух роликов подряд
+                clearTimeout(pendingInterstitial);
+                const ok = await sdk.showRewarded();
+                if (!ok) {
+                    reviveBusy = false;
+                    showToast('Реклама не показана — попробуй ещё', '⚠️');
+                    return;
+                }
+                reviveCount += 1;
+                hideModal(gameModal);
+                if (game.undo()) {
+                    updateUndoState();
+                    updateMoves();
+                    showToast('Шанс использован — продолжаем плавание!', '🎬');
+                } else {
+                    // Крайний случай: история опустела — начинаем партию заново
+                    resetCurrentGame();
+                }
+                reviveBusy = false;
+            });
+        }
 
         addModalBtn('🔄 Попробовать снова', 'btn-primary', () => {
             hideModal(gameModal);
