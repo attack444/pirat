@@ -20,6 +20,58 @@
     --text-muted:  #e0e0e0;
 }
 
+/* ======================== Скины плиток (палитры) ======================== */
+:root, body.skin-gold {
+    --t0-bg:   linear-gradient(135deg, #d4af37, #8b6914);   --t0-c:   var(--white);
+    --t2-bg:   linear-gradient(135deg, #eee4da, #ede0c8);   --t2-c:   #776e65;
+    --t4-bg:   linear-gradient(135deg, #ede0c8, #f2b179);   --t4-c:   #776e65;
+    --t8-bg:   linear-gradient(135deg, #f2b179, #f59563);   --t8-c:   var(--white);
+    --t16-bg:  linear-gradient(135deg, #f59563, #f67c5f);   --t16-c:  var(--white);
+    --t32-bg:  linear-gradient(135deg, #f67c5f, #f65e3b);   --t32-c:  var(--white);
+    --t64-bg:  linear-gradient(135deg, #f65e3b, #edcf72);   --t64-c:  var(--white);
+    --t128-bg: linear-gradient(135deg, #edcf72, #edcc61);   --t128-c: #776e65;
+    --t256-bg: linear-gradient(135deg, #edcc61, #edc850);   --t256-c: #776e65;
+    --t512-bg: linear-gradient(135deg, #edc850, #edc53f);   --t512-c: #776e65;
+    --t1024-bg: linear-gradient(135deg, #edc53f, #b8860b);  --t1024-c: var(--white);
+    --t2048-bg: linear-gradient(135deg, #ffd700, #b8860b);  --t2048-c: var(--white);
+    --t4096-bg: linear-gradient(135deg, #b8860b, #8b6914);  --t4096-c: var(--white);
+    --t8192-bg: linear-gradient(135deg, #8b6914, #5c4609);  --t8192-c: var(--gold-bright);
+}
+
+body.skin-wood {
+    --t0-bg:   linear-gradient(135deg, #8a5a2b, #4e3118);   --t0-c:   var(--white);
+    --t2-bg:   linear-gradient(135deg, #f6e3c5, #e8c99a);   --t2-c:   #4a2f15;
+    --t4-bg:   linear-gradient(135deg, #e8c99a, #d4a373);   --t4-c:   #3c2410;
+    --t8-bg:   linear-gradient(135deg, #d4a373, #b5793b);   --t8-c:   var(--white);
+    --t16-bg:  linear-gradient(135deg, #b5793b, #9c6427);   --t16-c:  var(--white);
+    --t32-bg:  linear-gradient(135deg, #9c6427, #7a4a1b);   --t32-c:  var(--white);
+    --t64-bg:  linear-gradient(135deg, #7a4a1b, #8b5a2b);   --t64-c:  var(--white);
+    --t128-bg: linear-gradient(135deg, #8b5a2b, #6e3d12);   --t128-c: var(--white);
+    --t256-bg: linear-gradient(135deg, #6e3d12, #57300e);   --t256-c: var(--white);
+    --t512-bg: linear-gradient(135deg, #57300e, #42240a);   --t512-c: var(--white);
+    --t1024-bg: linear-gradient(135deg, #42240a, #2f1807);  --t1024-c: var(--gold-light);
+    --t2048-bg: linear-gradient(135deg, #5a3a20, #2f1807);  --t2048-c: var(--gold-bright);
+    --t4096-bg: linear-gradient(135deg, #3a2410, #1f1005);  --t4096-c: var(--gold-light);
+    --t8192-bg: linear-gradient(135deg, #2a1605, #120a02);  --t8192-c: var(--gold-bright);
+}
+
+body.skin-gem {
+    --t0-bg:   linear-gradient(135deg, #2e8b8b, #1b4d4d);   --t0-c:   var(--white);
+    --t2-bg:   linear-gradient(135deg, #a8f0d4, #57c99e);   --t2-c:   #0b4b34;
+    --t4-bg:   linear-gradient(135deg, #57c99e, #2ea36f);   --t4-c:   #063522;
+    --t8-bg:   linear-gradient(135deg, #2ea36f, #1e7a52);   --t8-c:   var(--white);
+    --t16-bg:  linear-gradient(135deg, #1e7a52, #155f40);   --t16-c:  var(--white);
+    --t32-bg:  linear-gradient(135deg, #155f40, #0e4730);   --t32-c:  var(--white);
+    --t64-bg:  linear-gradient(135deg, #0e4730, #1b4d7a);   --t64-c:  var(--white);
+    --t128-bg: linear-gradient(135deg, #1b4d7a, #143a66);   --t128-c: var(--white);
+    --t256-bg: linear-gradient(135deg, #143a66, #0f2c52);   --t256-c: var(--white);
+    --t512-bg: linear-gradient(135deg, #0f2c52, #7a1b3a);   --t512-c: var(--white);
+    --t1024-bg: linear-gradient(135deg, #7a1b3a, #5c122c);  --t1024-c: var(--white);
+    --t2048-bg: linear-gradient(135deg, #5c122c, #7a2b1b);  --t2048-c: var(--gold-bright);
+    --t4096-bg: linear-gradient(135deg, #3a0e2e, #200717);  --t4096-c: var(--gold-light);
+    --t8192-bg: linear-gradient(135deg, #200717, #0d0208);  --t8192-c: var(--gold-bright);
+}
+
 html, body {
     height: 100%;
     overscroll-behavior: none;
@@ -61,6 +113,12 @@ header {
     justify-content: center;
     gap: 10px;
     margin-bottom: 14px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 header h1 {
@@ -174,7 +232,7 @@ main {
 .board.size-5 { grid-template-columns: repeat(5,1fr); grid-template-rows: repeat(5,1fr); gap: 6px; }
 .board.size-6 { grid-template-columns: repeat(6,1fr); grid-template-rows: repeat(6,1fr); gap: 5px; }
 
-.board > div {
+.board .cell {
     background: rgba(255,255,255,.05);
     border-radius: 6px;
     display: flex;
@@ -187,16 +245,21 @@ main {
 
 /* ======================== Плитки ======================== */
 .tile {
-    width: 100%; height: 100%;
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 1;
     display: flex; align-items: center; justify-content: center;
     font-size: 2.2rem;
     font-weight: bold;
     border-radius: 6px;
-    animation: tileAppear .25s ease;
     text-shadow: 1px 1px 3px rgba(0,0,0,.5);
-    background: linear-gradient(135deg, #d4af37, #8b6914);
-    color: var(--white);
+    background: var(--t0-bg, linear-gradient(135deg, #d4af37, #8b6914));
+    color: var(--t0-c, var(--white));
+    will-change: transform, opacity;
+    transform: translate(var(--tx, 0), var(--ty, 0));
 }
+
+.tile.new { animation: tileAppear .22s ease; }
 
 /* Размер шрифта для 5×5 */
 .board.size-5 .tile           { font-size: 1.6rem; }
@@ -216,24 +279,24 @@ main {
 .board.size-6 .tile[data-value="8192"] { font-size: .85rem; }
 
 @keyframes tileAppear {
-    from { opacity: 0; transform: scale(.7); }
-    to   { opacity: 1; transform: scale(1); }
+    from { opacity: 0; transform: translate(var(--tx,0), var(--ty,0)) scale(.5); }
+    to   { opacity: 1; transform: translate(var(--tx,0), var(--ty,0)) scale(1); }
 }
 
-/* Цвета плиток */
-.tile[data-value="2"]    { background: linear-gradient(135deg,#eee4da,#ede0c8); color: #776e65; }
-.tile[data-value="4"]    { background: linear-gradient(135deg,#ede0c8,#f2b179); color: #776e65; }
-.tile[data-value="8"]    { background: linear-gradient(135deg,#f2b179,#f59563); color: var(--white); }
-.tile[data-value="16"]   { background: linear-gradient(135deg,#f59563,#f67c5f); color: var(--white); }
-.tile[data-value="32"]   { background: linear-gradient(135deg,#f67c5f,#f65e3b); color: var(--white); }
-.tile[data-value="64"]   { background: linear-gradient(135deg,#f65e3b,#edcf72); color: var(--white); }
-.tile[data-value="128"]  { background: linear-gradient(135deg,#edcf72,#edcc61); color: #776e65; }
-.tile[data-value="256"]  { background: linear-gradient(135deg,#edcc61,#edc850); color: #776e65; }
-.tile[data-value="512"]  { background: linear-gradient(135deg,#edc850,#edc53f); color: #776e65; }
-.tile[data-value="1024"] { background: linear-gradient(135deg,#edc53f,#b8860b); color: var(--white); }
-.tile[data-value="2048"] { background: linear-gradient(135deg,#ffd700,#b8860b); color: var(--white); font-weight: 900; }
-.tile[data-value="4096"] { background: linear-gradient(135deg,#b8860b,#8b6914); color: var(--white); }
-.tile[data-value="8192"] { background: linear-gradient(135deg,#8b6914,#5c4609); color: var(--gold-bright); }
+/* Цвета плиток (берутся из переменных выбранного скина) */
+.tile[data-value="2"]    { background: var(--t2-bg);    color: var(--t2-c); }
+.tile[data-value="4"]    { background: var(--t4-bg);    color: var(--t4-c); }
+.tile[data-value="8"]    { background: var(--t8-bg);    color: var(--t8-c); }
+.tile[data-value="16"]   { background: var(--t16-bg);   color: var(--t16-c); }
+.tile[data-value="32"]   { background: var(--t32-bg);   color: var(--t32-c); }
+.tile[data-value="64"]   { background: var(--t64-bg);   color: var(--t64-c); }
+.tile[data-value="128"]  { background: var(--t128-bg);  color: var(--t128-c); }
+.tile[data-value="256"]  { background: var(--t256-bg);  color: var(--t256-c); }
+.tile[data-value="512"]  { background: var(--t512-bg);  color: var(--t512-c); }
+.tile[data-value="1024"] { background: var(--t1024-bg); color: var(--t1024-c); }
+.tile[data-value="2048"] { background: var(--t2048-bg); color: var(--t2048-c); font-weight: 900; }
+.tile[data-value="4096"] { background: var(--t4096-bg); color: var(--t4096-c); }
+.tile[data-value="8192"] { background: var(--t8192-bg); color: var(--t8192-c); }
 
 /* ======================== Анимации доски ======================== */
 @keyframes pulse {
@@ -316,6 +379,13 @@ main {
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: .8px;
+}
+
+.btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 .btn-primary {
@@ -708,3 +778,464 @@ body.is-android .dpad {
     body.is-native header h1 { font-size: 1.25rem; }
     body.is-native .board { max-width: min(96vw, 480px); }
 }
+
+/* ==================================================================
+   СВЕТЛАЯ ТЕМА (body.theme-light)
+   ================================================================== */
+body.theme-light {
+    background: linear-gradient(135deg, #f3e5c9 0%, #e3c98f 100%);
+    color: #3a2a14;
+}
+body.theme-light .container {
+    background: linear-gradient(180deg, #fdf3d8 0%, #f0dfb4 100%);
+    border-color: #b8860b;
+    box-shadow: 0 20px 40px rgba(0,0,0,.3), inset 0 0 20px rgba(255,215,0,.2);
+}
+body.theme-light header              { border-bottom-color: #b8860b; }
+body.theme-light header h1           { color: #8b6914; text-shadow: 1px 1px 3px rgba(255,255,255,.4); }
+body.theme-light .stat               { background: rgba(0,0,0,.06); border-color: #b8860b; }
+body.theme-light .stat .label        { color: #8b6914; }
+body.theme-light .stat .value        { color: #8b6914; }
+body.theme-light .level-name         { color: #8b6914; }
+body.theme-light .level-target-wrap  { color: #5a4326; }
+body.theme-light .level-target-wrap strong { color: #8b6914; }
+body.theme-light .btn-icon           { background: rgba(0,0,0,.06); border-color: #b8860b; color: #8b6914; }
+body.theme-light .btn-icon:hover     { background: rgba(184,134,11,.15); }
+body.theme-light .btn-secondary      { background: rgba(0,0,0,.06); color: #8b6914; border-color: #b8860b; }
+body.theme-light .btn-secondary:hover { background: rgba(184,134,11,.12); }
+body.theme-light .btn-ghost          { color: #5a4326; border-color: rgba(0,0,0,.25); }
+body.theme-light .btn-ghost:hover    { background: rgba(0,0,0,.06); }
+body.theme-light .board              { border-color: #b8860b; background: #e8d5a8; box-shadow: inset 0 0 30px rgba(0,0,0,.25), 0 8px 20px rgba(0,0,0,.2); }
+body.theme-light .board .cell        { background: rgba(0,0,0,.07); }
+body.theme-light .instructions       { background: rgba(0,0,0,.05); border-color: #b8860b; }
+body.theme-light .instructions h2    { color: #8b6914; }
+body.theme-light .instructions li    { color: #5a4326; }
+body.theme-light footer              { border-top-color: #b8860b; color: #8b6914; }
+body.theme-light .footer-links a     { color: #6b4a10; }
+body.theme-light .modal              { background: linear-gradient(180deg, #fdf3d8, #f0dfb4); }
+body.theme-light .modal-title        { color: #8b6914; }
+body.theme-light .modal-message      { color: #5a4326; }
+body.theme-light .modal-score        { background: rgba(0,0,0,.06); border-color: #b8860b; color: #8b6914; }
+body.theme-light .level-card         { background: rgba(0,0,0,.05); }
+body.theme-light .level-card.unlocked:hover { background: rgba(184,134,11,.15); }
+body.theme-light .lc-num,
+body.theme-light .lc-target          { color: #8b6914; }
+body.theme-light .lc-name            { color: #6b4a10; }
+body.theme-light .lc-grid            { color: rgba(0,0,0,.5); }
+body.theme-light .setting-option,
+body.theme-light .achievement        { background: rgba(0,0,0,.05); }
+
+/* ==================================================================
+   КОНФЕТТИ (победа / достижения)
+   ================================================================== */
+.confetti-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10000;
+    overflow: hidden;
+}
+.confetti-piece {
+    position: absolute;
+    top: -16px;
+    width: 8px;
+    height: 14px;
+    border-radius: 2px;
+    opacity: .95;
+    animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+    0%   { transform: translate3d(0, -20px, 0) rotate(0deg); opacity: 1; }
+    90%  { opacity: 1; }
+    100% { transform: translate3d(var(--sway, 40px), 110vh, 0) rotate(720deg); opacity: 0; }
+}
+
+/* ==================================================================
+   ТОСТЫ (уведомления о достижениях)
+   ================================================================== */
+.toast-container {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 12000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    width: min(92vw, 420px);
+}
+.toast {
+    background: linear-gradient(180deg, var(--wood-dark), var(--wood-mid));
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 10px 16px;
+    color: var(--gold-light);
+    font-weight: bold;
+    font-size: .95rem;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,.6);
+    opacity: 0;
+    transform: translateY(14px) scale(.96);
+    transition: opacity .25s, transform .25s;
+    max-width: 100%;
+}
+.toast.show { opacity: 1; transform: translateY(0) scale(1); }
+body.theme-light .toast { background: linear-gradient(180deg, #fdf3d8, #f0dfb4); color: #8b6914; }
+
+/* ==================================================================
+   МОДАЛКА НАСТРОЕК
+   ================================================================== */
+.settings-modal {
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    text-align: left;
+    padding: 28px 24px;
+}
+.settings-modal h2 {
+    color: var(--gold-light);
+    font-size: 1.4rem;
+    text-align: center;
+    margin-bottom: 20px;
+}
+.setting-group { margin-bottom: 22px; }
+.setting-group > h3,
+.setting-label {
+    color: var(--gold-light);
+    font-size: 1rem;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(184,134,11,.4);
+    padding-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.setting-options {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.setting-btn {
+    background: rgba(0,0,0,.25);
+    border: 2px solid rgba(255,255,255,.18);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-size: .9rem;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, transform .12s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.setting-btn:hover { background: rgba(184,134,11,.2); transform: translateY(-1px); }
+.setting-btn.active {
+    border-color: var(--gold-bright);
+    background: rgba(184,134,11,.28);
+    color: var(--gold-light);
+    box-shadow: 0 0 0 2px rgba(255,215,0,.25);
+}
+.setting-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.setting-toggle span { color: var(--text-muted); font-size: .95rem; }
+.setting-toggle input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--gold);
+    cursor: pointer;
+    transform: scale(1.15);
+}
+.settings-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+.settings-actions .btn { flex: 1; min-width: 140px; }
+#install-btn { display: none; }
+#install-btn[data-available="1"] { display: inline-flex; }
+body.theme-light .settings-modal h2,
+body.theme-light .setting-group > h3,
+body.theme-light .setting-label { color: #8b6914; }
+body.theme-light .setting-btn { background: rgba(0,0,0,.05); color: #5a4326; border-color: rgba(0,0,0,.2); }
+body.theme-light .setting-btn.active { border-color: #b8860b; background: rgba(184,134,11,.2); color: #6b4a10; }
+body.theme-light .setting-toggle span { color: #5a4326; }
+
+/* ==================================================================
+   ДОСТИЖЕНИЯ
+   ================================================================== */
+.achievements-section { margin-top: 6px; }
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+}
+.achievement {
+    background: rgba(0,0,0,.25);
+    border: 2px solid rgba(255,255,255,.15);
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align: center;
+    transition: background .2s, border-color .2s, transform .15s;
+}
+.achievement.unlocked {
+    border-color: var(--gold-bright);
+    background: rgba(184,134,11,.18);
+}
+.achievement.locked { opacity: .5; }
+.achievement .ach-icon { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+.achievement .ach-name { color: var(--gold-light); font-size: .8rem; font-weight: bold; margin-bottom: 4px; line-height: 1.25; }
+.achievement .ach-desc { color: var(--text-muted); font-size: .72rem; line-height: 1.35; }
+.achievement.locked .ach-name { color: var(--text-muted); }
+body.theme-light .achievement { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.18); }
+body.theme-light .achievement.unlocked { border-color: #b8860b; background: rgba(184,134,11,.15); }
+body.theme-light .achievement .ach-name { color: #6b4a10; }
+body.theme-light .achievement .ach-desc { color: #5a4326; }
+
+/* ==================================================================
+   ПОДСВЕТКА ПОДСКАЗКИ (лучший ход)
+   ================================================================== */
+.tile.hint-flash {
+    animation: hintFlash .5s ease 2;
+}
+@keyframes hintFlash {
+    50% {
+        box-shadow: 0 0 0 5px rgba(255,215,0,.95), 0 0 24px rgba(255,215,0,.7);
+        transform: translate(var(--tx,0), var(--ty,0)) scale(1.12);
+        z-index: 5;
+    }
+}
+
+/* ==================================================================
+   ЗАГРУЗОЧНЫЙ ЭКРАН (VK / Yandex LoadingAPI)
+   ================================================================== */
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    background:
+        radial-gradient(ellipse at 50% 30%, rgba(184,134,11,.25) 0%, transparent 60%),
+        linear-gradient(160deg, #0a1a2e 0%, #1c3b5a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    transition: opacity .4s, visibility .4s;
+}
+.loading-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+.loading-inner {
+    text-align: center;
+    width: min(80vw, 340px);
+}
+.loading-emoji {
+    font-size: 4.5rem;
+    animation: loadingBob 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 8px 18px rgba(255,215,0,.35));
+}
+.loading-title {
+    color: var(--gold-light);
+    font-size: 1.6rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin: 14px 0 20px;
+    text-shadow: 0 2px 8px rgba(0,0,0,.5);
+}
+.loading-bar {
+    height: 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(184,134,11,.5);
+    overflow: hidden;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.4);
+}
+.loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+    border-radius: 8px;
+    transition: width .3s ease;
+    box-shadow: 0 0 12px rgba(255,215,0,.6);
+}
+.loading-hint {
+    color: rgba(255,255,255,.6);
+    font-size: .85rem;
+    margin-top: 12px;
+    min-height: 1.2em;
+}
+@keyframes loadingBob {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50%      { transform: translateY(-10px) rotate(3deg); }
+}
+
+/* ==================================================================
+   ДУБЛОНЫ И ЦЕНЫ В НАСТРОЙКАХ
+   ================================================================== */
+.setting-price {
+    color: var(--gold-bright);
+    font-weight: bold;
+    font-size: .85rem;
+}
+.setting-btn.locked {
+    opacity: .6;
+    cursor: pointer;
+    border-style: dashed;
+    border-color: rgba(255,255,255,.3);
+}
+.setting-btn.locked:hover {
+    border-color: var(--gold);
+    background: rgba(184,134,11,.12);
+}
+body.theme-light .setting-price { color: #8b6914; }
+body.theme-light .setting-btn.locked { border-color: rgba(0,0,0,.25); }
+
+/* ==================================================================
+   ЕЖЕДНЕВНЫЕ ЗАДАНИЯ
+   ================================================================== */
+.daily-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.daily-task {
+    background: rgba(0,0,0,.22);
+    border: 2px solid rgba(255,255,255,.14);
+    border-radius: 12px;
+    padding: 10px 12px;
+    transition: border-color .2s, background .2s;
+}
+.daily-task.done {
+    border-color: rgba(76,175,80,.7);
+    background: rgba(76,175,80,.12);
+}
+.daily-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.daily-icon { font-size: 1.15rem; }
+.daily-name {
+    color: var(--gold-light);
+    font-size: .9rem;
+    font-weight: bold;
+    flex: 1;
+    text-align: left;
+}
+.daily-reward { color: var(--gold-bright); font-size: .8rem; font-weight: bold; white-space: nowrap; }
+.daily-desc { color: var(--text-muted); font-size: .78rem; margin-bottom: 8px; text-align: left; }
+.daily-progress {
+    height: 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,.12);
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+.daily-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+    border-radius: 6px;
+    transition: width .3s ease;
+}
+.daily-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.daily-count { color: var(--text-muted); font-size: .78rem; }
+.daily-claim {
+    background: linear-gradient(180deg, var(--gold), #8b6914);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: .85rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform .12s, box-shadow .12s;
+}
+.daily-claim:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255,215,0,.4);
+}
+.daily-claimed { color: #4caf50; font-size: .8rem; font-weight: bold; }
+body.theme-light .daily-task { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.18); }
+body.theme-light .daily-task.done { border-color: rgba(76,175,80,.6); background: rgba(76,175,80,.12); }
+body.theme-light .daily-name { color: #6b4a10; }
+body.theme-light .daily-desc,
+body.theme-light .daily-count { color: #5a4326; }
+
+/* ==================================================================
+   ТАБЛИЦА ЛИДЕРОВ
+   ================================================================== */
+.leaderboard-modal { max-width: 520px; }
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 55vh;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    text-align: left;
+}
+.leaderboard-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px;
+    padding: 8px 12px;
+}
+.leaderboard-row.me {
+    border-color: var(--gold-bright);
+    background: rgba(184,134,11,.18);
+    box-shadow: 0 0 0 2px rgba(255,215,0,.25);
+}
+.lb-pos {
+    width: 30px;
+    height: 30px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(255,255,255,.08);
+    color: var(--gold-light);
+    font-weight: bold;
+    font-size: .9rem;
+}
+.leaderboard-row:nth-child(1) .lb-pos { background: linear-gradient(180deg, #ffd700, #b8860b); color: #3a2a14; }
+.leaderboard-row:nth-child(2) .lb-pos { background: linear-gradient(180deg, #e0e0e0, #9e9e9e); color: #333; }
+.leaderboard-row:nth-child(3) .lb-pos { background: linear-gradient(180deg, #e6a866, #a4682e); color: #fff; }
+.lb-name {
+    flex: 1;
+    color: var(--text-muted);
+    font-size: .92rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.leaderboard-row.me .lb-name { color: var(--gold-light); font-weight: bold; }
+.lb-score { color: var(--gold-bright); font-weight: bold; font-size: .95rem; white-space: nowrap; }
+.lb-loading, .lb-empty {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 24px 8px;
+    font-size: .9rem;
+}
+body.theme-light .leaderboard-row { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.15); }
+body.theme-light .leaderboard-row.me { border-color: #b8860b; background: rgba(184,134,11,.15); }
+body.theme-light .lb-name { color: #5a4326; }

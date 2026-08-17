@@ -22,13 +22,28 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <!-- ── Загрузочный экран (требование VK / Yandex) ─────────── -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-inner">
+            <div class="loading-emoji">🏴‍☠️</div>
+            <div class="loading-title">Пират 2048</div>
+            <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar-fill"></div></div>
+            <div class="loading-hint" id="loading-hint">Грузим карту сокровищ…</div>
+        </div>
+    </div>
+
     <div class="container">
 
         <!-- ── Шапка ──────────────────────────────────────── -->
         <header>
             <div class="header-top">
                 <h1>🏴‍☠️ 2048 Пиратская версия</h1>
-                <button id="fullscreen-btn" class="btn btn-icon" title="Полный экран" aria-label="Полный экран">⛶</button>
+                <div class="header-actions">
+                    <button id="pause-btn" class="btn btn-icon" title="Пауза" aria-label="Пауза">⏸️</button>
+                    <button id="sound-btn" class="btn btn-icon" title="Звук вкл/выкл" aria-label="Звук вкл/выкл">🔊</button>
+                    <button id="settings-btn" class="btn btn-icon" title="Настройки и достижения" aria-label="Настройки">⚙️</button>
+                    <button id="fullscreen-btn" class="btn btn-icon" title="Полный экран" aria-label="Полный экран">⛶</button>
+                </div>
             </div>
 
             <div class="stats">
@@ -43,6 +58,22 @@
                 <div class="stat">
                     <span class="label">Рекорд</span>
                     <span id="best-score" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Партий</span>
+                    <span id="games-played" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Плитка</span>
+                    <span id="best-tile" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Ходы</span>
+                    <span id="moves" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Дублоны</span>
+                    <span id="doubloons" class="value">0</span>
                 </div>
             </div>
 
@@ -70,6 +101,8 @@
             <!-- Кнопки управления -->
             <div class="controls">
                 <button id="restart-btn"     class="btn btn-primary">🔄 Новая игра</button>
+                <button id="undo-btn"        class="btn btn-ghost" disabled>↩ Отменить</button>
+                <button id="hint-btn"        class="btn btn-ghost" title="Подсветить лучший ход">💡 Подсказка</button>
                 <button id="level-select-btn" class="btn btn-secondary">📜 Уровни</button>
             </div>
 
@@ -91,6 +124,10 @@
         </footer>
     </div>
 
+    <!-- ── Конфетти и уведомления ──────────────────────────── -->
+    <div id="confetti" class="confetti-layer" aria-hidden="true"></div>
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
     <!-- ── Модальное окно: победа / конец игры ──────────────── -->
     <div id="game-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal">
@@ -110,6 +147,94 @@
             <h2>🗺️ Карта уровней</h2>
             <div class="levels-grid" id="levels-grid"></div>
             <button class="btn btn-ghost" id="close-level-modal">✕ Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: настройки ────────────────────────── -->
+    <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal settings-modal">
+            <h2>⚙️ Настройки</h2>
+
+            <div class="setting-group">
+                <div class="setting-label">Тема <span class="setting-price" id="theme-price-hint"></span></div>
+                <div class="setting-options" id="theme-options">
+                    <button class="btn btn-ghost setting-btn" data-theme="dark" data-price="0">🌙 Тёмная</button>
+                    <button class="btn btn-ghost setting-btn" data-theme="light" data-price="250">☀️ Светлая</button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">Скин плиток <span class="setting-price" id="skin-price-hint"></span></div>
+                <div class="setting-options" id="skin-options">
+                    <button class="btn btn-ghost setting-btn" data-skin="gold" data-price="0">🥇 Золото</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="wood" data-price="300">🪵 Дерево</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="gem" data-price="600">💎 Камни</button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-toggle">
+                    <input type="checkbox" id="settings-sound">
+                    <span>🔊 Звук</span>
+                </label>
+                <label class="setting-toggle">
+                    <input type="checkbox" id="settings-infinity">
+                    <span>♾ Бесконечный режим — играть дальше после цели</span>
+                </label>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">Сохранения</div>
+                <div class="setting-options">
+                    <button class="btn btn-ghost" id="export-btn">💾 Экспорт</button>
+                    <button class="btn btn-ghost" id="import-btn">📂 Импорт</button>
+                    <button class="btn btn-ghost" id="install-btn" hidden>⬇️ Установить</button>
+                </div>
+                <input type="file" id="import-file" accept="application/json,.json" hidden>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">📅 Ежедневные задания</div>
+                <div class="daily-list" id="daily-list"></div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">🌐 Сообщество</div>
+                <div class="setting-options">
+                    <button class="btn btn-ghost" id="leaderboard-btn">🏆 Таблица лидеров</button>
+                    <button class="btn btn-ghost" id="share-btn">📣 Поделиться</button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">🏆 Достижения</div>
+                <div class="achievements-grid" id="achievements-grid"></div>
+            </div>
+
+            <button class="btn btn-ghost" id="close-settings-btn">✕ Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: таблица лидеров ────────────────────── -->
+    <div id="leaderboard-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal leaderboard-modal">
+            <h2>🏆 Таблица лидеров</h2>
+            <p class="modal-message">Лучшие пираты на просторах этого моря</p>
+            <div class="leaderboard-list" id="leaderboard-list"></div>
+            <button class="btn btn-ghost" id="close-leaderboard-btn">✕ Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: пауза ─────────────────────────────── -->
+    <div id="pause-overlay" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-icon">⏸️</div>
+            <h2 class="modal-title">Пауза</h2>
+            <p class="modal-message">Передохни, капитан!</p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="resume-btn">▶ Продолжить</button>
+                <button class="btn btn-ghost" id="pause-restart-btn">🔄 Заново</button>
+            </div>
         </div>
     </div>
 

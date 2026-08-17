@@ -17,3 +17,6 @@ ios/DerivedData/
 !debug.keystore
 .env
 .env.*
+
+# Contains SSH credentials + GitHub token — never commit
+DEPLOY-NOTES.md
