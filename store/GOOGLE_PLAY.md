@@ -68,7 +68,7 @@
 ## Технические требования
 - Target SDK: **34+** (Capacitor 7 использует актуальный)
 - 64-bit ARM (`arm64-v8a`) — обязательно
-- Privacy policy URL: `https://pirat-eta.vercel.app/privacy-policy.html`
+- Privacy policy URL: `https://5mb2.ru/static/games/pirate-2048/privacy-policy.html`
 - App signing: используйте Play App Signing
 
 ## Сборка AAB

@@ -78,9 +78,9 @@ pirat/
 
 ## Важно до отправки в Google Play / App Store
 
-1. Залейте сайт и `privacy-policy.html` на **HTTPS**
+1. Залейте сайт и `privacy-policy.html` на **HTTPS** (например, на `5mb2.ru`)
 2. Укажите URL политики в консолях магазинов
-3. Privacy Policy: https://pirat-eta.vercel.app/privacy-policy.html (`slavasundukov887@gmail.com`)
+3. Privacy Policy: `https://5mb2.ru/static/games/pirate-2048/privacy-policy.html` (`slavasundukov887@gmail.com`)
 4. Сделайте реальные скриншоты с устройств
 5. Заполните Data safety / App Privacy как «данные не собираются»
 

@@ -26,8 +26,8 @@
 - [x] `privacy-policy.html` — полная политика (RU): сбор данных отсутствует,
   локальное хранение, удаление, дети, разрешения, контакты
 - [x] `privacy-policy.html` не попадает в PWA-кэш (network-first в `sw.js`)
-- [ ] Задеплоить `privacy-policy.html` на HTTPS:
-  `https://pirat-eta.vercel.app/privacy-policy.html`
+- [ ] Задеплоить `privacy-policy.html` на HTTPS (5mb2.ru):
+  `https://5mb2.ru/static/games/pirate-2048/privacy-policy.html`
 - [ ] Play Console → Data safety: **«No data collected»** (все ответы из GOOGLE_PLAY.md)
 - [ ] App Store Connect → App Privacy: **«Data Not Collected»** (все пункты No)
 - [ ] Указать URL политики в обеих консолях
@@ -96,6 +96,7 @@
 
 ## Ключевые ссылки
 
-- Политика приватности: `https://pirat-eta.vercel.app/privacy-policy.html`
+- Политика приватности: `https://5mb2.ru/static/games/pirate-2048/privacy-policy.html`
+  (URL зависит от финального `slug` игры на 5mb2.ru)
 - Контакт: `slavasundukov887@gmail.com`
 - Репозиторий: `attack444/pirat`
