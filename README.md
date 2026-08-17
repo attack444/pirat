@@ -50,19 +50,29 @@ Package / Bundle ID: `com.pirat.game2048`
 ```
 pirat/
 ├── index.html              # Веб-вход
-├── privacy-policy.html
+├── privacy-policy.html     # Политика конфиденциальности (для магазинов)
 ├── manifest.json / sw.js   # PWA (только веб)
 ├── css/styles.css          # Веб + нативные стили (body.is-native)
 ├── js/
-│   ├── main.js             # Игра, уровни, UI
+│   ├── main.js             # Оркестрация: DOM, UI, игровой цикл
 │   ├── game.js             # Логика 2048
+│   ├── levels.js           # Уровни (данные + levelById/isLastLevel)
+│   ├── achievements.js     # Достижения (данные + evaluateAchievements)
+│   ├── daily.js            # Ежедневные задания (roll/ensure/metric/check)
+│   ├── rewards.js          # Наградная реклама (rewarded revive)
+│   ├── combo.js            # Серии/комбо (streak/combo)
+│   ├── cloud-sync.js       # Конфликт облачных/локальных сохранений
+│   ├── progress.js         # Разблокировка уровней/рекорды
 │   ├── platform.js         # web / ios / android
+│   ├── platform-sdk.js     # Адаптер VK Mini Apps / Яндекс Игры / Web
+│   ├── sound.js            # Звуки (Web Audio)
 │   ├── native-entry.js     # Бандл для Capacitor
 │   └── native-plugins.js
+├── js/*.test.js            # Юнит-тесты (node:test): 128/128
 ├── scripts/build-www.js    # Сборка www/
 ├── android/                # Capacitor Android
 ├── ios/                    # Capacitor iOS (сборка на Mac)
-├── store/                  # Гайды и графика для магазинов
+├── store/                  # Чеклист, гайды и графика для магазинов
 └── capacitor.config.json
 ```
 

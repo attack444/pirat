@@ -1,6 +1,6 @@
 // ======================== Service Worker — Пиратская 2048 ========================
 // Версию кэша меняй при каждом релизе (принудительно обновит файлы у пользователей)
-const CACHE = 'pirate-2048-v1';
+const CACHE = 'pirate-2048-v2';
 
 const ASSETS = [
     './',
@@ -8,6 +8,16 @@ const ASSETS = [
     './css/styles.css',
     './js/main.js',
     './js/game.js',
+    './js/platform.js',
+    './js/sound.js',
+    './js/platform-sdk.js',
+    './js/progress.js',
+    './js/cloud-sync.js',
+    './js/rewards.js',
+    './js/combo.js',
+    './js/levels.js',
+    './js/achievements.js',
+    './js/daily.js',
     './manifest.json',
     './icons/icon.svg',
     './icons/icon-192.png',
@@ -40,6 +50,15 @@ self.addEventListener('fetch', (event) => {
     // Только GET-запросы, не трогаем chrome-extension и прочее
     if (event.request.method !== 'GET') return;
     if (!event.request.url.startsWith('http')) return;
+
+    // Privacy Policy НЕ кэшируем: всегда network-first (юридический документ
+    // должен быть актуальным; при офлайне — фолбэк на кэш)
+    if (event.request.url.includes('privacy-policy')) {
+        event.respondWith(
+            fetch(event.request).catch(() => caches.match(event.request))
+        );
+        return;
+    }
 
     event.respondWith(
         caches.match(event.request).then((cached) => {
