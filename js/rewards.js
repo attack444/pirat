@@ -23,9 +23,11 @@ export function canRevive(opts = {}) {
         gameOver = false,
         won = false,
     } = opts;
-    return Boolean(platform)
-        && Boolean(canUndo)
-        && Boolean(gameOver)
-        && !Boolean(won)
-        && (Number(reviveCount) || 0) < REVIVE_MAX_PER_GAME;
+    return Boolean(
+        platform
+        && canUndo
+        && gameOver
+        && !won
+        && (Number(reviveCount) || 0) < REVIVE_MAX_PER_GAME,
+    );
 }

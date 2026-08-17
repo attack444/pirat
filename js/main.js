@@ -8,40 +8,12 @@ import { applyLevelWin, applyLevelGameOver, isLevelUnlocked } from './progress.j
 import { resolveConflict, mergeBoardSaves } from './cloud-sync.js';
 import { canRevive } from './rewards.js';
 import { comboReward, STREAK_THRESHOLD } from './combo.js';
-
-// ──────────────────────────────────────────────────────────
-// Уровни: ранг, размер поля, целевое значение плитки
-// ──────────────────────────────────────────────────────────
-const LEVELS = [
-    { id: 1, name: 'Юнга',             rank: '⚓',    size: 4, target: 256  },
-    { id: 2, name: 'Матрос',            rank: '🗺️',   size: 4, target: 512  },
-    { id: 3, name: 'Буканьер',          rank: '⚔️',   size: 4, target: 1024 },
-    { id: 4, name: 'Корсар',            rank: '🦜',    size: 4, target: 2048 },
-    { id: 5, name: 'Капитан',           rank: '🚢',    size: 5, target: 2048 },
-    { id: 6, name: 'Адмирал',           rank: '🏴‍☠️', size: 5, target: 4096 },
-    { id: 7, name: 'Пиратский Король',  rank: '👑',    size: 6, target: 4096 },
-];
+import { LEVELS, levelById, isLastLevel } from './levels.js';
+import { ACHIEVEMENTS, evaluateAchievements } from './achievements.js';
+import { DAILY_TASKS, ensureDaily as ensureDailyState, dailyMetric as dailyMetricState, checkDaily as checkDailyState } from './daily.js';
 
 const STORAGE_KEY = 'pirate2048_v1';
 const SAVE_KEY    = 'pirate2048_saves';
-
-// ──────────────────────────────────────────────────────────
-// Достижения (ачивки)
-// ──────────────────────────────────────────────────────────
-const ACHIEVEMENTS = [
-    { id: 'first_merge', icon: '✨', name: 'Первый клад',         desc: 'Слить плитки впервые',                 check: (s, p) => (p.gs && p.gs.merges >= 1) },
-    { id: 'tile_64',     icon: '🗝️', name: 'Сундук',             desc: 'Собрать плитку 64',                    check: (s) => s.bestTile >= 64 },
-    { id: 'tile_512',    icon: '💼', name: 'Сокровищница',       desc: 'Собрать плитку 512',                   check: (s) => s.bestTile >= 512 },
-    { id: 'tile_2048',   icon: '🏆', name: 'Легендарный трофей', desc: 'Собрать плитку 2048',                  check: (s) => s.bestTile >= 2048 },
-    { id: 'big_merge',   icon: '💥', name: 'Взрыв бочки',        desc: 'Слить две плитки 512 в одну',          check: (s, p) => (p.gs && p.gs.maxMerge >= 1024) },
-    { id: 'score_1000',  icon: '💰', name: 'Набей карманы',      desc: 'Набрать 1000 очков за партию',         check: (s) => s.bestTotal >= 1000 },
-    { id: 'moves_100',   icon: '⏳', name: 'Сто морских миль',   desc: 'Сделать 100 ходов за партию',          check: (s, p) => (p.gs && p.gs.moves >= 100) },
-    { id: 'win_first',   icon: '⚓', name: 'Первый рейс',         desc: 'Пройти первый уровень',                check: (s) => !!s.bestScores[1] },
-    { id: 'win_all',     icon: '👑', name: 'Пиратский Король',   desc: 'Пройди все 7 уровней',                 check: (s) => LEVELS.every(l => s.bestScores[l.id]) },
-    { id: 'undo_1',      icon: '↩️', name: 'Штурманская правка', desc: 'Отменить ход',                         check: (s) => (s.undoCount || 0) >= 1 },
-    { id: 'hint_1',      icon: '💡', name: 'Карта капитана',     desc: 'Воспользоваться подсказкой',           check: (s) => (s.hintsUsed || 0) >= 1 },
-    { id: 'games_10',    icon: '🎲', name: 'Морской волк',       desc: 'Сыграть 10 партий',                    check: (s) => (s.gamesPlayed || 0) >= 10 },
-];
 
 // ──────────────────────────────────────────────────────────
 // Хранилище прогресса
@@ -83,32 +55,6 @@ function loadState() {
 function saveState(state) {
     state.updatedAt = Date.now();
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
-}
-
-// Сохранение текущей партии (доска + очки) — отдельно для каждого уровня
-function loadSaves() {
-    try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch (_) { return {}; }
-}
-
-function saveBoard() {
-    if (!game) return;
-    const saves = loadSaves();
-    saves[state.currentLevel] = { board: game.getState(), ts: Date.now() };
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(saves)); } catch (_) {}
-}
-
-function clearBoardSave(levelId) {
-    const saves = loadSaves();
-    delete saves[levelId];
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(saves)); } catch (_) {}
-}
-
-function restoreBoardIfAny() {
-    const saves = loadSaves();
-    const saved = saves[state.currentLevel];
-    if (!saved || !saved.board || !saved.board.tiles) return false;
-    game.loadState(saved.board);
-    return true;
 }
 
 // ──────────────────────────────────────────────────────────
@@ -200,6 +146,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     let reviveBusy = false;
     let pendingInterstitial = null;
 
+    // Сохранение текущей партии (доска + очки) — отдельно для каждого уровня.
+    // Живут здесь, т.к. используют game/state из замыкания.
+    function loadSaves() {
+        try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch (_) { return {}; }
+    }
+
+    function saveBoard() {
+        if (!game) return;
+        const saves = loadSaves();
+        saves[state.currentLevel] = { board: game.getState(), ts: Date.now() };
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(saves)); } catch (_) {}
+    }
+
+    function clearBoardSave(levelId) {
+        const saves = loadSaves();
+        delete saves[levelId];
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(saves)); } catch (_) {}
+    }
+
+    function restoreBoardIfAny() {
+        const saves = loadSaves();
+        const saved = saves[state.currentLevel];
+        if (!saved || !saved.board || !saved.board.tiles) return false;
+        game.loadState(saved.board);
+        return true;
+    }
+
     // ── SDK площадок: инициализация + загрузочный экран ──────
     if (loadingBarFill) loadingBarFill.style.width = '10%';
     sdk.setLoadingProgress(10);
@@ -231,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ── Helpers ──────────────────────────────────────────────
 
     function currentLevelDef() {
-        return LEVELS.find(l => l.id === state.currentLevel) || LEVELS[0];
+        return levelById(state.currentLevel);
     }
 
     function updateStats() {
@@ -352,61 +325,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ── Ежедневные задания ───────────────────────────────────
-    const DAILY_TASKS = [
-        { id: 'moves30',   icon: '🦶', name: 'Сто морских миль', desc: 'Сделай 30 ходов за день',     goal: 30,   metric: 'moves', reward: 100 },
-        { id: 'tile256',   icon: '🔑', name: 'Ключ от сундука',  desc: 'Собери плитку 256',           goal: 256,  metric: 'tile',  reward: 120 },
-        { id: 'score5000', icon: '💰', name: 'Полная казна',     desc: 'Набери 5000 очков за партию', goal: 5000, metric: 'score', reward: 150 },
-        { id: 'merges10',  icon: '✨', name: 'Десять слияний',   desc: 'Слей плитки 10 раз за день',  goal: 10,   metric: 'merges', reward: 120 },
-        { id: 'winlevel',  icon: '⚓', name: 'Победа',           desc: 'Пройди уровень',              goal: 1,    metric: 'wins',  reward: 150 },
-        { id: 'hint2',     icon: '💡', name: 'Карта капитана',  desc: 'Используй 2 подсказки',       goal: 2,    metric: 'hints', reward: 80 },
-        { id: 'max512',    icon: '💎', name: 'Сокровище глубин', desc: 'Собери плитку 512',           goal: 512,  metric: 'tile',  reward: 180 },
-    ];
-
-    function dailyDateStr() {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
-
+    // Чистая логика (выдача, счётчики, прогресс) — в daily.js.
     function ensureDaily() {
-        const today = dailyDateStr();
-        state.daily = state.daily || { date: '', tasks: [], claimed: {} };
-        state.dailyCounters = state.dailyCounters || { moves: 0, merges: 0, wins: 0, hints: 0 };
-        if (state.daily.date === today) return;
-        // Новый день: сброс счётчиков + 3 случайных задания (детерминированно по дате)
-        state.daily = { date: today, tasks: [], claimed: {} };
-        state.dailyCounters = { moves: 0, merges: 0, wins: 0, hints: 0 };
-        let seed = 0;
-        for (const ch of today) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
-        const rnd = () => { seed = (seed * 1103515245 + 12345) >>> 0; return seed / 0xFFFFFFFF; };
-        const pool = [...DAILY_TASKS];
-        for (let i = pool.length - 1; i > 0; i--) {
-            const j = Math.floor(rnd() * (i + 1));
-            [pool[i], pool[j]] = [pool[j], pool[i]];
-        }
-        state.daily.tasks = pool.slice(0, 3).map(t => ({ id: t.id, done: false, claimed: false }));
-        saveState(state);
-    }
-
-    function dailyMetric() {
-        ensureDaily();
-        return {
-            moves:  state.dailyCounters.moves,
-            merges: state.dailyCounters.merges,
-            wins:   state.dailyCounters.wins,
-            hints:  state.dailyCounters.hints,
-            tile:   state.bestTile || 0,
-            score:  state.bestTotal || 0,
-        };
+        if (ensureDailyState(state)) saveState(state);
     }
 
     function checkDaily() {
         ensureDaily();
-        const metrics = dailyMetric();
-        for (const t of state.daily.tasks) {
-            if (t.done) continue;
-            const def = DAILY_TASKS.find(d => d.id === t.id);
-            if (def && metrics[def.metric] >= def.goal) t.done = true;
-        }
+        checkDailyState(state);
         saveState(state);
         renderDaily();
     }
@@ -415,7 +341,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!dailyList) return;
         ensureDaily();
         dailyList.innerHTML = '';
-        const metrics = dailyMetric();
+        const metrics = dailyMetricState(state);
         for (const t of state.daily.tasks) {
             const def = DAILY_TASKS.find(d => d.id === t.id);
             if (!def) continue;
@@ -515,18 +441,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function checkAchievements() {
         const gs = game ? game.getStats() : null;
-        let unlockedAny = false;
-        for (const a of ACHIEVEMENTS) {
-            if (state.achievements[a.id]) continue;
-            if (a.check(state, { gs })) {
-                state.achievements[a.id] = Date.now();
-                unlockedAny = true;
-                saveState(state);
-                showToast(`${a.name} — ${a.desc}`, a.icon);
-                refreshAchievements();
-            }
-        }
-        if (unlockedAny && state.sound !== false) playWin();
+        const newly = evaluateAchievements(state, gs);
+        if (!newly.length) return;
+        saveState(state);
+        for (const a of newly) showToast(`${a.name} — ${a.desc}`, a.icon);
+        refreshAchievements();
+        if (state.sound !== false) playWin();
     }
 
     // ── Экспорт / импорт сохранений ──────────────────────────
@@ -647,8 +567,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 pushCloudSave();
                 if (sdk.isPlatform()) sdk.submitScore(score);
                 if (state.sound !== false) playWin();
-                spawnConfetti(state.currentLevel === LEVELS.length ? 140 : 80, true);
-                showWinModal(score, state.currentLevel === LEVELS.length);
+                const isLast = isLastLevel(state.currentLevel);
+                spawnConfetti(isLast ? 140 : 80, true);
+                showWinModal(score, isLast);
             },
             onGameOver: (score) => {
                 const next = applyLevelGameOver(state, score);
