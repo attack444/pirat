@@ -222,3 +222,74 @@ describe('Game swipe threshold', () => {
         assert.deepEqual(moves, ['right', 'up']);
     });
 });
+
+describe('Game streak & addScore', () => {
+    it('increments the streak on a merging move and resets on a plain move', () => {
+        const g = makeGame();
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 2 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        g.handleMove('left');
+        assert.equal(g.streak, 1);
+
+        // Ход без слияния, но с перемещением — серия сбрасывается
+        g.tiles = [
+            null, { id: 3, value: 2 }, null, { id: 4, value: 4 },
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        g.handleMove('left');
+        assert.equal(g.streak, 0);
+    });
+
+    it('undo restores the streak of the previous position', () => {
+        const g = makeGame();
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 2 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        g.handleMove('left');
+        assert.equal(g.streak, 1);
+        g.undo();
+        assert.equal(g.streak, 0);
+    });
+
+    it('addScore adds bonus points and notifies the score callback', () => {
+        const g = makeGame();
+        let notified = null;
+        g.onScoreUpdate = (s) => { notified = s; };
+        g.score = 100;
+        const added = g.addScore(50);
+        assert.equal(added, 50);
+        assert.equal(g.score, 150);
+        assert.equal(notified, 150);
+    });
+
+    it('addScore ignores non-positive amounts', () => {
+        const g = makeGame();
+        g.score = 10;
+        assert.equal(g.addScore(0), 0);
+        assert.equal(g.addScore(-5), 0);
+        assert.equal(g.score, 10);
+    });
+
+    it('tracks the streak in getStats', () => {
+        const g = makeGame();
+        g.streak = 4;
+        assert.equal(g.getStats().streak, 4);
+    });
+});

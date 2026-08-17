@@ -162,6 +162,17 @@ header h1 {
     line-height: 1.2;
 }
 
+/* Активная серия комбо — золотое свечение с импульсом */
+.stat .value.active {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, .9);
+    animation: combo-pulse .6s ease;
+}
+@keyframes combo-pulse {
+    0%   { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
 .level-info {
     display: flex;
     justify-content: center;
@@ -796,6 +807,7 @@ body.theme-light header h1           { color: #8b6914; text-shadow: 1px 1px 3px 
 body.theme-light .stat               { background: rgba(0,0,0,.06); border-color: #b8860b; }
 body.theme-light .stat .label        { color: #8b6914; }
 body.theme-light .stat .value        { color: #8b6914; }
+body.theme-light .stat .value.active { color: #ff8c00; text-shadow: 0 0 8px rgba(255, 140, 0, .7); }
 body.theme-light .level-name         { color: #8b6914; }
 body.theme-light .level-target-wrap  { color: #5a4326; }
 body.theme-light .level-target-wrap strong { color: #8b6914; }

@@ -7,6 +7,7 @@ import sdk from './platform-sdk.js';
 import { applyLevelWin, applyLevelGameOver, isLevelUnlocked } from './progress.js';
 import { resolveConflict, mergeBoardSaves } from './cloud-sync.js';
 import { canRevive } from './rewards.js';
+import { comboReward, STREAK_THRESHOLD } from './combo.js';
 
 // ──────────────────────────────────────────────────────────
 // Уровни: ранг, размер поля, целевое значение плитки
@@ -171,6 +172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const pauseRestartBtn  = $('pause-restart-btn');
     // Дублоны / ежедневные задания / сообщество
     const doubloonsEl      = $('doubloons');
+    const comboEl          = $('combo');
     const themePriceHint   = $('theme-price-hint');
     const skinPriceHint    = $('skin-price-hint');
     const dailyList        = $('daily-list');
@@ -240,8 +242,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateDoubloons();
     }
 
+    function renderCombo() {
+        if (!comboEl) return;
+        const s = game ? (game.streak || 0) : 0;
+        comboEl.textContent = s.toLocaleString('ru');
+        comboEl.classList.toggle('active', s >= STREAK_THRESHOLD);
+    }
+
     function updateMoves() {
         if (movesEl) movesEl.textContent = (game ? game.getMoves() : 0).toLocaleString('ru');
+        renderCombo();
     }
 
     function updateHeader() {
@@ -607,6 +617,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             onMerge: (n) => {
                 if (state.sound !== false) playMerge();
                 state.dailyCounters.merges = (state.dailyCounters.merges || 0) + (n || 1);
+                // Серии и комбо: бонус за множественные слияния в ходе и ходы подряд
+                const reward = comboReward({ merges: n, streak: game.streak });
+                if (reward.score > 0) {
+                    game.addScore(reward.score);
+                    showToast(`Комбо ×${reward.mult}! +${reward.score} очков`, '⚡');
+                }
+                if (reward.doubloons > 0) {
+                    addDoubloons(reward.doubloons, reward.mult > 1 ? `комбо ×${reward.mult}` : 'серия');
+                }
             },
             onSave:  () => { saveBoard(); saveState(state); updateUndoState(); updateMoves(); checkAchievements(); checkDaily(); pushCloudSave(); },
             onTarget: (score) => {

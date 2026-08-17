@@ -37,6 +37,8 @@ export default class Game {
         this.totalMerges       = 0;
         this.maxMerge          = 0;
         this.movesWithoutMerge = 0;
+        // Серия: ходы подряд, каждый из которых содержит хотя бы одно слияние
+        this.streak            = 0;
 
         // Рендер (абсолютное позиционирование плиток)
         this._tileEls      = new Map();
@@ -75,6 +77,7 @@ export default class Game {
         this.totalMerges       = 0;
         this.maxMerge          = 0;
         this.movesWithoutMerge = 0;
+        this.streak            = 0;
 
         this._addNewTile();
         this._addNewTile();
@@ -101,6 +104,7 @@ export default class Game {
         const prev = {
             tiles: this.tiles.map(t => (t ? { id: t.id, value: t.value } : null)),
             score: this.score,
+            streak: this.streak,
         };
 
         const { moved, moves, merges } = this._move(direction);
@@ -109,6 +113,7 @@ export default class Game {
         this.movesCount++;
         if (merges === 0) this.movesWithoutMerge++;
         else this.movesWithoutMerge = 0;
+        this.streak = merges > 0 ? this.streak + 1 : 0;
         this.totalMerges += merges;
         for (const m of moves) if (m.merge && m.value > this.maxMerge) this.maxMerge = m.value;
 
@@ -148,6 +153,7 @@ export default class Game {
 
         this.tiles         = prev.tiles;
         this.score         = prev.score;
+        this.streak        = prev.streak || 0;
         this.won           = false;
         this.gameOver      = false;
         this.winCelebrated = false;
@@ -186,6 +192,7 @@ export default class Game {
             return;
         }
         this.score         = state.score || 0;
+        this.streak        = 0;
         this.won           = false;
         this.gameOver      = false;
         this.winCelebrated = false;
@@ -208,6 +215,15 @@ export default class Game {
     /** Количество сделанных ходов в текущей партии. */
     getMoves() { return this.movesCount; }
 
+    /** Начислить бонусные очки (комбо/серия) поверх счёта партии. */
+    addScore(n) {
+        if (!n || n <= 0) return 0;
+        this.score += n;
+        this.onScoreUpdate(this.score);
+        if (this.onSave) this.onSave();
+        return n;
+    }
+
     /** Статистика партии для достижений. */
     getStats() {
         return {
@@ -215,6 +231,7 @@ export default class Game {
             merges:      this.totalMerges,
             maxMerge:    this.maxMerge,
             movesWithoutMerge: this.movesWithoutMerge,
+            streak:      this.streak,
         };
     }
 
