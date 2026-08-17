@@ -242,6 +242,35 @@
         </div>
     </div>
 
+    <!-- ── Модальное окно: подтверждение перезапуска ─────────── -->
+    <div id="confirm-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-icon">⚠️</div>
+            <h2 class="modal-title">Начать заново?</h2>
+            <p class="modal-message">Текущий прогресс партии будет потерян. Ты уверен, капитан?</p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="confirm-restart-yes">🔄 Да, заново</button>
+                <button class="btn btn-ghost" id="confirm-restart-no">✕ Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: онбординг (первый запуск) ─────────── -->
+    <div id="tutorial-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal tutorial-modal">
+            <div class="modal-icon">🏴‍☠️</div>
+            <h2 class="modal-title">Добро пожаловать, капитан!</h2>
+            <ul class="tutorial-list">
+                <li><span class="t-ico">👆</span><span>Свайпай пальцем по доске или жми стрелки на клавиатуре, чтобы двигать плитки</span></li>
+                <li><span class="t-ico">🔗</span><span>Одинаковые плитки сливаются в одну — значение удваивается</span></li>
+                <li><span class="t-ico">🎯</span><span>Собери целевую плитку и переходи на следующий уровень</span></li>
+            </ul>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="tutorial-ok">Понятно, в путь! ⛵</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

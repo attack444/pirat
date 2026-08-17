@@ -40,10 +40,10 @@ export function rollDailyTasks(dateStr, pool = DAILY_TASKS, count = 3) {
  */
 export function ensureDaily(state, date = dailyDateStr()) {
     state.daily = state.daily || { date: '', tasks: [], claimed: {} };
-    state.dailyCounters = state.dailyCounters || { moves: 0, merges: 0, wins: 0, hints: 0 };
+    state.dailyCounters = state.dailyCounters || { moves: 0, merges: 0, wins: 0, hints: 0, undos: 0 };
     if (state.daily.date === date) return false;
     state.daily = { date, tasks: rollDailyTasks(date), claimed: {} };
-    state.dailyCounters = { moves: 0, merges: 0, wins: 0, hints: 0 };
+    state.dailyCounters = { moves: 0, merges: 0, wins: 0, hints: 0, undos: 0 };
     return true;
 }
 

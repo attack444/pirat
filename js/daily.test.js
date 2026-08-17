@@ -4,7 +4,7 @@ import { DAILY_TASKS, dailyDateStr, rollDailyTasks, ensureDaily, dailyMetric, ch
 
 function baseState() {
     return {
-        dailyCounters: { moves: 0, merges: 0, wins: 0, hints: 0 },
+        dailyCounters: { moves: 0, merges: 0, wins: 0, hints: 0, undos: 0 },
         bestTile: 0,
         bestTotal: 0,
     };
@@ -41,7 +41,7 @@ test('ensureDaily выдаёт задания в новый день и обну
     assert.equal(ensureDaily(state, '2026-08-17'), true);
     assert.equal(state.daily.date, '2026-08-17');
     assert.equal(state.daily.tasks.length, 3);
-    assert.deepEqual(state.dailyCounters, { moves: 0, merges: 0, wins: 0, hints: 0 });
+    assert.deepEqual(state.dailyCounters, { moves: 0, merges: 0, wins: 0, hints: 0, undos: 0 });
     // Тот же день — без изменений
     assert.equal(ensureDaily(state, '2026-08-17'), false);
     assert.equal(state.daily.tasks.length, 3);

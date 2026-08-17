@@ -546,6 +546,33 @@ footer {
 
 .modal-actions .btn { width: 100%; }
 
+/* ======================== Онбординг (первый запуск) ======================== */
+.tutorial-modal {
+    max-width: 460px;
+}
+.tutorial-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    text-align: left;
+}
+.tutorial-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(184,134,11,.25);
+    color: var(--text-muted);
+    line-height: 1.5;
+    font-size: .95rem;
+}
+.tutorial-list li:last-child { border-bottom: none; }
+.tutorial-list .t-ico {
+    font-size: 1.35rem;
+    flex-shrink: 0;
+    line-height: 1.3;
+}
+
 /* ======================== Уровни (карты) ======================== */
 .level-modal {
     max-width: 560px;
@@ -1251,3 +1278,19 @@ body.theme-light .daily-count { color: #5a4326; }
 body.theme-light .leaderboard-row { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.15); }
 body.theme-light .leaderboard-row.me { border-color: #b8860b; background: rgba(184,134,11,.15); }
 body.theme-light .lb-name { color: #5a4326; }
+
+/* ==================================================================
+   ДОСТУПНОСТЬ: уменьшение анимаций (prefers-reduced-motion)
+   ================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+/* Дополнительная защита через JS-класс (спавн конфетти отключён в коде) */
+body.reduce-motion .confetti-layer { display: none; }
+body.reduce-motion .board.shake { animation: none; }
+body.reduce-motion .stat .value.active { animation: none; }

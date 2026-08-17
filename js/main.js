@@ -39,11 +39,13 @@ function loadState() {
         unlockedThemes: ['dark'],
         // Ежедневные задания
         daily: { date: '', tasks: [], claimed: {} },
-        dailyCounters: { moves: 0, merges: 0, wins: 0, hints: 0 },
+        dailyCounters: { moves: 0, merges: 0, wins: 0, hints: 0, undos: 0 },
         // Реклама: кулдаун interstitial
         lastAdTime: 0,
         // Метка последнего изменения — для разрешения конфликтов облако/локально
         updatedAt: 0,
+        // Онбординг уже показан
+        tutorialSeen: false,
     };
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -116,6 +118,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const pauseOverlay     = $('pause-overlay');
     const resumeBtn        = $('resume-btn');
     const pauseRestartBtn  = $('pause-restart-btn');
+    // Подтверждение перезапуска
+    const confirmModal       = $('confirm-modal');
+    const confirmRestartYes  = $('confirm-restart-yes');
+    const confirmRestartNo   = $('confirm-restart-no');
+    // Онбординг
+    const tutorialModal      = $('tutorial-modal');
+    const tutorialOk         = $('tutorial-ok');
     // Дублоны / ежедневные задания / сообщество
     const doubloonsEl      = $('doubloons');
     const comboEl          = $('combo');
@@ -145,6 +154,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     let reviveCount = 0;
     let reviveBusy = false;
     let pendingInterstitial = null;
+
+    // Веб-версия: лимит бесплатных отмен хода в день, дальше — дублоны
+    const WEB_UNDO_LIMIT = 3;
+    const UNDO_COST = 50;
+
+    // Доступность: пользователь просит меньше анимаций
+    const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+    // Подтверждение перезапуска: откуда вызвано (из паузы или с кнопки «Новая игра»)
+    let confirmRestartFromPause = false;
 
     // Сохранение текущей партии (доска + очки) — отдельно для каждого уровня.
     // Живут здесь, т.к. используют game/state из замыкания.
@@ -399,7 +418,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ── Конфетти (победа / праздник) ─────────────────────────
 
     function spawnConfetti(count = 80, isBig = false) {
-        if (!confettiEl) return;
+        if (!confettiEl || reduceMotion) return;
         confettiEl.innerHTML = '';
         const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#ffe66d', '#ff9f43', '#54a0ff', '#f368e0', '#fffa65'];
         const frag = document.createDocumentFragment();
@@ -821,7 +840,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ── Кнопки управления ────────────────────────────────────
 
-    restartBtn.addEventListener('click', resetCurrentGame);
+    restartBtn.addEventListener('click', () => openRestartConfirm(false));
 
     levelSelectBtn.addEventListener('click', openLevelModal);
     fullscreenBtn.addEventListener('click',  toggleFullscreen);
@@ -957,11 +976,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     undoBtn.addEventListener('click', async () => {
         if (!game) return;
-        // На площадках отмена хода — за рекламу
+        // На площадках отмена хода — за rewarded-рекламу
         if (sdk.isPlatform()) {
             showToast('За отмену хода — реклама', '🎬');
             const ok = await sdk.showRewarded();
             if (!ok) { showToast('Реклама не показана', '⚠️'); return; }
+        } else {
+            // Веб: N бесплатных отмен в день, дальше — дублоны
+            // (защита от «прочитывания» партии бесконечными отменами)
+            ensureDaily();
+            const used = state.dailyCounters.undos || 0;
+            if (used >= WEB_UNDO_LIMIT) {
+                if ((state.doubloons || 0) < UNDO_COST) {
+                    showToast(`Лимит бесплатных отмен: ${WEB_UNDO_LIMIT}/день. Дальше — ${UNDO_COST} 🪙`, '⚠️');
+                    return;
+                }
+                state.doubloons -= UNDO_COST;
+                updateDoubloons();
+                showToast(`Отмена за ${UNDO_COST} 🪙`, '🪙');
+            } else {
+                state.dailyCounters.undos = used + 1;
+            }
         }
         if (game.undo()) {
             state.undoCount = (state.undoCount || 0) + 1;
@@ -1046,10 +1081,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     resumeBtn.addEventListener('click', () => setPaused(false));
 
-    pauseRestartBtn.addEventListener('click', () => {
-        setPaused(false);
-        resetCurrentGame();
-    });
+    pauseRestartBtn.addEventListener('click', () => openRestartConfirm(true));
 
     // Авто-пауза при скрытии вкладки / переключении приложения
     document.addEventListener('visibilitychange', () => {
@@ -1061,9 +1093,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Esc — выход из паузы
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && pauseOverlay && pauseOverlay.classList.contains('visible')) {
+        if (e.key !== 'Escape') return;
+        if (confirmModal && confirmModal.classList.contains('visible')) {
+            confirmRestartNo.click();
+            return;
+        }
+        if (pauseOverlay && pauseOverlay.classList.contains('visible')) {
             setPaused(false);
         }
+    });
+
+    // ── Подтверждение перезапуска ────────────────────────────
+    function openRestartConfirm(fromPause) {
+        confirmRestartFromPause = !!fromPause;
+        if (!game) return;
+        game.setPaused(true);
+        showModal(confirmModal);
+    }
+
+    confirmRestartYes.addEventListener('click', () => {
+        hideModal(confirmModal);
+        if (pauseOverlay) pauseOverlay.classList.remove('visible');
+        if (game) game.setPaused(false);
+        resetCurrentGame();
+    });
+
+    confirmRestartNo.addEventListener('click', () => {
+        hideModal(confirmModal);
+        if (!confirmRestartFromPause && game) game.setPaused(false);
+    });
+
+    confirmModal.addEventListener('click', (e) => {
+        if (e.target === confirmModal) confirmRestartNo.click();
+    });
+
+    // ── Онбординг (первый запуск) ────────────────────────────
+    function showTutorial() {
+        if (!tutorialModal) return;
+        if (game) game.setPaused(true);
+        showModal(tutorialModal);
+    }
+
+    tutorialOk.addEventListener('click', () => {
+        hideModal(tutorialModal);
+        if (game) game.setPaused(false);
     });
 
     // ── D-pad (кнопки-стрелки на экране) ────────────────────
@@ -1106,6 +1179,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     sdk.setLoadingProgress(100);
     if (loadingScreen) loadingScreen.classList.add('hidden');
     sdk.loadingReady();
+
+    // Доступность: убираем анимации, если пользователь запросил это
+    if (reduceMotion) document.body.classList.add('reduce-motion');
+
+    // Онбординг при первом запуске — после загрузочного экрана
+    if (!state.tutorialSeen) {
+        state.tutorialSeen = true;
+        saveState(state);
+        showTutorial();
+    }
 
     console.log(`🏴‍☠️ Пират 2048 — платформа: ${platform.name}, SDK: ${sdk.host}`);
 });
