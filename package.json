@@ -5,15 +5,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test 'scripts/**/*.test.js' 'js/**/*.test.js'",
+    "test": "node --test js/*.test.js scripts/*.test.js",
     "build:www": "node scripts/build-www.js",
     "sync": "npm run build:www && npx cap sync",
     "android": "npm run sync && npx cap open android",
     "ios": "npm run sync && npx cap open ios",
     "android:add": "npm run build:www && npx cap add android",
     "ios:add": "npm run build:www && npx cap add ios",
-    "serve": "npx --yes serve . -p 4173",
-    "test": "node --test js/*.test.js"
+    "serve": "npx --yes serve . -p 4173"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",
