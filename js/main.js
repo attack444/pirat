@@ -1370,9 +1370,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, { passive: false });
     });
 
-    // ── Service Worker (только веб / PWA) ────────────────────
+    // ── Service Worker (только standalone-веб / PWA) ─────────
+    // На площадках (VK / Яндекс) SW не регистрируем: там свой кэш/подгрузка,
+    // и service worker в iframe не нужен.
 
-    if (platform.isWeb && 'serviceWorker' in navigator) {
+    if (platform.isWeb && sdk.host === 'web' && 'serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
 

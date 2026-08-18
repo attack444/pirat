@@ -136,17 +136,17 @@ body {
     align-items: flex-start;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #f5f5f5;
-    padding: 16px 8px;
+    padding: 8px 6px;
 }
 
 /* ======================== Контейнер ======================== */
 .container {
-    background: linear-gradient(180deg, var(--wood-dark) 0%, var(--wood-mid) 100%);
-    border: 4px solid var(--gold);
-    border-radius: 24px;
-    padding: 28px 24px;
-    box-shadow: 0 20px 40px rgba(0,0,0,.6), inset 0 0 20px rgba(255,215,0,.15);
-    max-width: 580px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 12px 12px 8px;
+    box-shadow: none;
+    max-width: 100%;
     width: 100%;
 }
 
@@ -271,14 +271,14 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
 }
 
 .board {
     position: relative;
     width: 100%;
     aspect-ratio: 1 / 1;
-    max-width: 480px;
+    max-width: min(96vw, 560px);
     background: var(--board-bg);
     border: 3px solid var(--gold);
     border-radius: 14px;
@@ -479,60 +479,11 @@ main {
 .btn-ghost:hover  { background: rgba(255,255,255,.08); }
 .btn-ghost:active { background: rgba(255,255,255,.04); }
 
-/* ======================== Инструкция ======================== */
-.instructions {
-    background: rgba(0,0,0,.3);
-    padding: 16px 20px;
-    border-radius: 12px;
-    border: 2px solid var(--gold);
-    width: 100%;
-}
+/* ======================== Инструкция (скрыта — поле на весь экран) ======================== */
+.instructions { display: none; }
 
-.instructions h2 {
-    color: var(--gold-light);
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-    text-shadow: 1px 1px 3px rgba(0,0,0,.5);
-}
-
-.instructions ul { list-style: none; padding: 0; }
-
-.instructions li {
-    color: var(--text-muted);
-    margin-bottom: 6px;
-    padding-left: 26px;
-    position: relative;
-    line-height: 1.55;
-    font-size: .95rem;
-}
-
-.instructions li::before {
-    content: "🏴‍☠️";
-    position: absolute;
-    left: 0;
-    font-size: .8em;
-    top: 2px;
-}
-
-/* ======================== Подвал ======================== */
-footer {
-    text-align: center;
-    margin-top: 20px;
-    padding-top: 14px;
-    border-top: 2px solid var(--gold);
-    color: var(--gold);
-    font-size: .85rem;
-}
-
-.footer-links {
-    margin-top: 8px;
-}
-
-.footer-links a {
-    color: var(--gold-light);
-    text-decoration: underline;
-    font-size: .8rem;
-}
+/* ======================== Подвал (скрыт — поле на весь экран) ======================== */
+footer { display: none; }
 
 /* ======================== Модальные окна ======================== */
 .modal-overlay {
@@ -945,7 +896,7 @@ body.theme-light .achievement        { background: rgba(0,0,0,.05); }
    ================================================================== */
 .toast-container {
     position: fixed;
-    bottom: 16px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 12000;
@@ -954,20 +905,20 @@ body.theme-light .achievement        { background: rgba(0,0,0,.05); }
     align-items: center;
     gap: 8px;
     pointer-events: none;
-    width: min(92vw, 420px);
+    width: min(80vw, 360px);
 }
 .toast {
     background: linear-gradient(180deg, var(--wood-dark), var(--wood-mid));
     border: 2px solid var(--gold);
     border-radius: 12px;
-    padding: 10px 16px;
+    padding: 8px 14px;
     color: var(--gold-light);
     font-weight: bold;
-    font-size: .95rem;
+    font-size: .85rem;
     text-align: center;
     box-shadow: 0 8px 24px rgba(0,0,0,.6);
     opacity: 0;
-    transform: translateY(14px) scale(.96);
+    transform: translateY(-14px) scale(.96);
     transition: opacity .25s, transform .25s;
     max-width: 100%;
 }

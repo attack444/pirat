@@ -57,8 +57,8 @@ Privacy Policy URL: HTTPS-страница `privacy-policy.html` (обязате
 | Ассет | Требование | Файл |
 |-------|------------|------|
 | App Icon | 1024×1024, **без альфы**, без скругления | `store/assets/app-store-icon-1024.png` |
-| iPhone screenshots | 6.7" и 6.5" (мин. по гайду Apple) | снять с симулятора |
-| iPad screenshots | если поддерживаете iPad | рекомендуется |
+| iPhone screenshots | 6.1" (мин. по гайду Apple) | готовы: `store/shots/iphone-*.png` (1179×2556): home, moves, shop, shop-skin |
+| iPad screenshots | если поддерживаете iPad | рекомендуется (пока нет) |
 | Splash | через Capacitor Splash Screen | цвет `#0a1a2e` |
 
 ## App Review notes (вставить в Review Information)

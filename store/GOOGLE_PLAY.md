@@ -62,8 +62,8 @@
 |-------|--------|------|
 | App icon | 512×512 | `icon-512.png` (также в `icons/`) |
 | Feature graphic | 1024×500 | `feature-graphic.png` |
-| Phone screenshots | мин. 2 шт. | снимите с эмулятора/устройства |
-| Tablet (опционально) | 7" / 10" | желательно |
+| Phone screenshots | мин. 2 шт. | готовы: `store/shots/android-*.png` (824×1830): home, moves, shop, shop-skin |
+| Tablet (опционально) | 7" / 10" | желательно (пока нет) |
 
 ## Технические требования
 - Target SDK: **34+** (Capacitor 7 использует актуальный)

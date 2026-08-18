@@ -1,9 +1,16 @@
 node_modules/
 www/
 dist/
+build/
 .DS_Store
 *.log
 .idea/
+.vscode/
+
+# Профили Playwright/Chromium, создаваемые при генерации скриншотов
+store/shots/.cdptest/
+store/shots/.chrome-*/
+store/shots/.shot-*/
 .vscode/
 android/.gradle/
 android/app/build/

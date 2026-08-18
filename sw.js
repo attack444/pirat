@@ -1,6 +1,7 @@
+/* global self, caches, fetch */
 // ======================== Service Worker — Пиратская 2048 ========================
 // Версию кэша меняй при каждом релизе (принудительно обновит файлы у пользователей)
-const CACHE = 'pirate-2048-v3';
+const CACHE = 'pirate-2048-v4';
 
 const ASSETS = [
     './',
@@ -18,6 +19,8 @@ const ASSETS = [
     './js/levels.js',
     './js/achievements.js',
     './js/daily.js',
+    './js/daily-login.js',
+    './js/shop.js',
     './manifest.json',
     './icons/icon.svg',
     './icons/icon-192.png',

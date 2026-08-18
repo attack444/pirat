@@ -1,0 +1,66 @@
+#!/usr/bin/env node
+/**
+ * Собирает build/yandex/ — веб-версию для публикации на Яндекс Играх.
+ *
+ * Отличие от scripts/build-www.js (нативный Capacitor-бандл):
+ * - копируются исходные ES-модули (без бандла esbuild и Capacitor-плагинов);
+ * - сохраняются manifest.json и sw.js (PWA для веб-сборки);
+ * - НЕ копируются тесты (*.test.js), мусор слияния (board/config/utils/ui)
+ *   и нативные точки входа (native-entry/native-plugins).
+ *
+ * Результат — папка build/yandex/, которую нужно заархивировать в ZIP
+ * (например: powershell Compress-Archive build/yandex/* build/yandex.zip)
+ * и загрузить в кабинет Яндекс Игр.
+ */
+import { cpSync, mkdirSync, rmSync, readdirSync, writeFileSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const out = join(root, 'build', 'yandex');
+
+rmSync(out, { recursive: true, force: true });
+mkdirSync(join(out, 'js'), { recursive: true });
+mkdirSync(join(out, 'css'), { recursive: true });
+mkdirSync(join(out, 'icons'), { recursive: true });
+
+// ── Статика веб-версии (НЕ нативная, с manifest + sw) ─────────
+const staticFiles = ['index.html', 'manifest.json', 'sw.js', 'privacy-policy.html'];
+for (const f of staticFiles) {
+    const src = join(root, f);
+    if (existsSync(src)) cpSync(src, join(out, f));
+    else console.warn(`skip missing: ${f}`);
+}
+
+// CSS: только актуальный styles.css (не тянем старый мусор style.css/variables.css)
+if (existsSync(join(root, 'css', 'styles.css'))) {
+    cpSync(join(root, 'css', 'styles.css'), join(out, 'css', 'styles.css'));
+}
+
+// Icons: все иконки PWA
+if (existsSync(join(root, 'icons'))) {
+    cpSync(join(root, 'icons'), join(out, 'icons'), { recursive: true });
+}
+
+// ── JS-модули веб-версии ──────────────────────────────────────
+const jsDir = join(root, 'js');
+const EXCLUDE = new Set([
+    'board.js', 'config.js', 'utils.js', 'ui.js',      // мусор слияния
+    'native-entry.js', 'native-plugins.js',            // только для нативного бандла
+]);
+const modules = readdirSync(jsDir)
+    .filter((f) => f.endsWith('.js'))
+    .filter((f) => !f.endsWith('.test.js'))
+    .filter((f) => !EXCLUDE.has(f));
+
+for (const f of modules) {
+    cpSync(join(jsDir, f), join(out, 'js', f));
+}
+
+writeFileSync(
+    join(out, 'build.json'),
+    JSON.stringify({ platform: 'yandex', version: '1.0.0', jsModules: modules.length }, null, 2)
+);
+
+console.log(`✓ build/yandex готов: статика + ${modules.length} JS-модулей + css + icons`);
+console.log(`  Файлы: ${modules.join(', ')}`);

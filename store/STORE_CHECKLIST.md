@@ -26,7 +26,7 @@
 - [x] `privacy-policy.html` — полная политика (RU): сбор данных отсутствует,
   локальное хранение, удаление, дети, разрешения, контакты
 - [x] `privacy-policy.html` не попадает в PWA-кэш (network-first в `sw.js`)
-- [ ] Задеплоить `privacy-policy.html` на HTTPS (5mb2.ru):
+- [x] Задеплоить `privacy-policy.html` на HTTPS (5mb2.ru) — доступен:
   `https://5mb2.ru/static/games/pirate-2048/privacy-policy.html`
 - [ ] Play Console → Data safety: **«No data collected»** (все ответы из GOOGLE_PLAY.md)
 - [ ] App Store Connect → App Privacy: **«Data Not Collected»** (все пункты No)
@@ -55,8 +55,14 @@
 - [x] Splash 2732×2732 — [`store/assets/splash-2732.png`](./assets/splash-2732.png)
 - [x] Android launcher icon + round icon (`mipmap-*` / `ic_launcher.xml`)
 - [x] Android splash (`drawable/splash.png`, цвет `#0a1a2e`)
-- [ ] **Реальные скриншоты** с эмулятора/устройства (мин. 2 phone, желательно 3–4;
-  планшет — опционально). Сейчас в репо только заглушка `icons/screenshot-mobile.png`
+- [x] Скриншоты Google Play сгенерированы (Playwright, headless Chromium):
+  `store/shots/android-home.png`, `android-moves.png`, `android-shop.png`,
+  `android-shop-skin.png` — 824×1830
+- [x] Скриншоты App Store сгенерированы: `store/shots/iphone-home.png`,
+  `iphone-moves.png`, `iphone-shop.png`, `iphone-shop-skin.png` — 1179×2556
+- [ ] (опционально) Заменить сгенерированные скриншоты на реальные с
+  эмулятора/устройства (со статус-баром); планшет — опционально.
+  Генератор: `node scripts/make-store-shots.mjs` (нужны Playwright + сервер :4173)
 
 ## 6. Технические требования
 
@@ -80,14 +86,29 @@
   (онбординг, модалка рестарта, лимит undo, reduce-motion) и синхронизирован
   в `android/app/src/main/assets/public`. Веб-ассеты gitignored — перед сборкой
   в Android Studio заново выполняй `npm run sync`.
-- [ ] **ПЕРЕСБИРАТЬ после экономики (2026-08-18)**: добавлены магазин (лавка),
-  бусты, ежедневный вход, скины ice/fire/storm, тема forest — заново выполни
-  `npm run sync`, чтобы `www/` и нативные ассеты получили новые модули
-  (`js/shop.js`, `js/daily-login.js`) и UI.
+- [x] **Пересборка после экономики (2026-08-18)**: `npm run sync` выполнена —
+  `www/` и нативные ассеты (`android/app/src/main/assets/public`,
+  `ios/App/App/public`) получили модули `js/shop.js`, `js/daily-login.js`
+  и новый UI (лавка, бусты, ежедневный вход, скины/темы). Тесты 177/177.
 - [ ] Собрать подписанный **AAB** (Android Studio → Generate Signed Bundle)
 - [ ] iOS: собрать на macOS (Xcode → Archive → Distribute)
 - [ ] Проверить, что название/скриншоты соответствуют игре (Guideline 2.3.7)
 - [ ] Указать App Review notes перед отправкой (текст в APP_STORE.md)
+
+## 9. Яндекс Игры (браузерная платформа)
+
+- [x] SDK-адаптер (init / LoadingAPI / player / лидерборд / реклама / share) — `js/platform-sdk.js`
+- [x] Загрузочный экран с прогрессом (LoadingAPI)
+- [x] Облачные сохранения (`player.setData/getData`, ключ `pirat2048`)
+- [x] Service Worker на площадке отключён (не регистрируется в iframe)
+- [x] Сборка веб-версии: `npm run build:yandex` → `build/yandex/` (14 модулей)
+- [x] ZIP готов: `build/pirate-2048-yandex.zip` (≈90 КБ)
+- [x] Гайд: [`YANDEX_GAMES.md`](./YANDEX_GAMES.md)
+- [x] Скриншоты 1280×720 готовы: `store/shots/yandex-home.png`, `yandex-moves.png`,
+  `yandex-shop.png`, `yandex-shop-skin.png`
+- [ ] Загрузить ZIP в кабинет Яндекс Игр, заполнить метаданные, загрузить скриншоты 1280×720 и иконку
+- [ ] Создать лидерборд `pirat2048_top` в кабинете
+- [ ] Включить монетизацию (реклама interstitial + rewarded) → модерация
 
 ---
 

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<base href="/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <!-- PWA / магазины приложений -->
+    <meta name="theme-color" content="#0a1a2e">
+    <meta name="description" content="Пиратская версия 2048 — объединяй плитки, проходи 7 уровней и стань Пиратским Королём! Без рекламы и покупок.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Пират 2048">
+    <!-- Предпросмотр нативной версии: index.html?platform=ios или ?platform=android -->
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+
+    <title>Пират 2048 — головоломка 2048</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- ── Загрузочный экран (требование VK / Yandex) ─────────── -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-inner">
+            <div class="loading-emoji">🏴‍☠️</div>
+            <div class="loading-title">Пират 2048</div>
+            <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar-fill"></div></div>
+            <div class="loading-hint" id="loading-hint">Грузим карту сокровищ…</div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- ── Шапка ──────────────────────────────────────── -->
+        <header>
+            <div class="header-top">
+                <h1>🏴‍☠️ 2048 Пиратская версия</h1>
+                <div class="header-actions">
+                    <button id="pause-btn" class="btn btn-icon" title="Пауза" aria-label="Пауза">⏸️</button>
+                    <button id="sound-btn" class="btn btn-icon" title="Звук вкл/выкл" aria-label="Звук вкл/выкл">🔊</button>
+                    <button id="shop-btn" class="btn btn-icon" title="Лавка старого капитана" aria-label="Магазин">🛒</button>
+                    <button id="settings-btn" class="btn btn-icon" title="Настройки и достижения" aria-label="Настройки">⚙️</button>
+                    <button id="fullscreen-btn" class="btn btn-icon" title="Полный экран" aria-label="Полный экран">⛶</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <span class="label">Уровень</span>
+                    <span id="level-display" class="value">1</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Очки</span>
+                    <span id="score" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Рекорд</span>
+                    <span id="best-score" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Партий</span>
+                    <span id="games-played" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Плитка</span>
+                    <span id="best-tile" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Ходы</span>
+                    <span id="moves" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Серия</span>
+                    <span id="combo" class="value">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Дублоны</span>
+                    <span id="doubloons" class="value">0</span>
+                </div>
+            </div>
+
+            <div class="level-info">
+                <span id="level-name" class="level-name">⚓ Юнга</span>
+                <span class="level-target-wrap">Цель: <strong id="level-target">256</strong></span>
+            </div>
+        </header>
+
+        <!-- ── Ежедневный вход (награда за визит) ─────────── -->
+        <div id="daily-login" class="daily-login" hidden>
+            <div class="dl-head">
+                <span class="dl-title">🎁 Ежедневный вход</span>
+                <span class="dl-days" id="dl-days">День 1</span>
+                <span class="dl-week" id="dl-week"></span>
+                <button id="dl-claim-btn" class="btn btn-small dl-claim-btn" disabled>Забрать</button>
+                <button id="dl-close" class="btn btn-icon dl-close" title="Скрыть" aria-label="Скрыть">✕</button>
+            </div>
+        </div>
+
+        <!-- ── Игровое поле ────────────────────────────────── -->
+        <main>
+            <div id="board" class="board size-4"></div>
+
+            <!-- D-pad — видим только на тач-устройствах -->
+            <div class="dpad" aria-label="Управление">
+                <button class="dpad-btn" id="dpad-up"    aria-label="Вверх">▲</button>
+                <div class="dpad-row">
+                    <button class="dpad-btn" id="dpad-left"  aria-label="Влево">◄</button>
+                    <div class="dpad-center">☠️</div>
+                    <button class="dpad-btn" id="dpad-right" aria-label="Вправо">►</button>
+                </div>
+                <button class="dpad-btn" id="dpad-down"  aria-label="Вниз">▼</button>
+            </div>
+
+            <!-- Кнопки управления -->
+            <div class="controls">
+                <button id="restart-btn"     class="btn btn-primary">🔄 Новая игра</button>
+                <button id="undo-btn"        class="btn btn-ghost" disabled>↩ Отменить</button>
+                <button id="hint-btn"        class="btn btn-ghost" title="Подсветить лучший ход">💡 Подсказка</button>
+                <button id="level-select-btn" class="btn btn-secondary">📜 Уровни</button>
+            </div>
+
+            <!-- Бусты из лавки -->
+            <div class="boost-bar" aria-label="Бусты">
+                <button id="boost-shuffle" class="btn btn-ghost boost-btn" disabled title="Перемешать плитки">🔄 <span class="boost-count" id="boost-shuffle-count">0</span></button>
+                <button id="boost-bomb"    class="btn btn-ghost boost-btn" disabled title="Убрать самую большую плитку">💣 <span class="boost-count" id="boost-bomb-count">0</span></button>
+                <button id="boost-x2"      class="btn btn-ghost boost-btn" disabled title="Двойные очки: ×2 на 3 хода со слиянием">⚡ <span class="boost-count" id="boost-x2-count">0</span></button>
+            </div>
+
+            <!-- Инструкция -->
+            <div class="instructions">
+                <h2>Как играть</h2>
+                <ul>
+                    <li>Свайп пальцем или стрелки клавиатуры — двигай плитки</li>
+                    <li>Одинаковые плитки сливаются в одну с удвоенным значением</li>
+                    <li>Достигни целевого числа и переходи на следующий уровень</li>
+                    <li>Пройди все 7 уровней и стань Пиратским Королём! 👑</li>
+                </ul>
+            </div>
+        </main>
+
+        <footer>
+            <p>🏴‍☠️ Пиратская версия 2048 | Сделано с ❤️</p>
+            <p class="footer-links"><a href="privacy-policy.html">Политика конфиденциальности</a></p>
+        </footer>
+    </div>
+
+    <!-- ── Конфетти и уведомления ──────────────────────────── -->
+    <div id="confetti" class="confetti-layer" aria-hidden="true"></div>
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- ── Модальное окно: победа / конец игры ──────────────── -->
+    <div id="game-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-icon" id="modal-icon">🎉</div>
+            <h2 class="modal-title" id="modal-title">Победа!</h2>
+            <p  class="modal-message" id="modal-message">Ты достиг цели!</p>
+            <div class="modal-score">
+                Очки: <strong id="modal-score-value">0</strong>
+            </div>
+            <div class="modal-actions" id="modal-actions"></div>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: выбор уровня ──────────────────────── -->
+    <div id="level-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal level-modal">
+            <h2>🗺️ Карта уровней</h2>
+            <div class="levels-grid" id="levels-grid"></div>
+            <button class="btn btn-ghost" id="close-level-modal">✕ Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: настройки ────────────────────────── -->
+    <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal settings-modal">
+            <h2>⚙️ Настройки</h2>
+
+            <div class="setting-group">
+                <div class="setting-label">Тема <span class="setting-price" id="theme-price-hint"></span></div>
+                <div class="setting-options" id="theme-options">
+                    <button class="btn btn-ghost setting-btn" data-theme="dark" data-price="0">🌙 Тёмная</button>
+                    <button class="btn btn-ghost setting-btn" data-theme="light" data-price="250">☀️ Светлая</button>
+                    <button class="btn btn-ghost setting-btn" data-theme="forest" data-price="450">🌲 Лес</button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">Скин плиток <span class="setting-price" id="skin-price-hint"></span></div>
+                <div class="setting-options" id="skin-options">
+                    <button class="btn btn-ghost setting-btn" data-skin="gold" data-price="0">🥇 Золото</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="wood" data-price="300">🪵 Дерево</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="gem" data-price="600">💎 Камни</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="ice" data-price="800">🧊 Лёд</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="fire" data-price="800">🔥 Пламя</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="storm" data-price="800">🌊 Шторм</button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-toggle">
+                    <input type="checkbox" id="settings-sound">
+                    <span>🔊 Звук</span>
+                </label>
+                <label class="setting-toggle">
+                    <input type="checkbox" id="settings-infinity">
+                    <span>♾ Бесконечный режим — играть дальше после цели</span>
+                </label>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">Сохранения</div>
+                <div class="setting-options">
+                    <button class="btn btn-ghost" id="export-btn">💾 Экспорт</button>
+                    <button class="btn btn-ghost" id="import-btn">📂 Импорт</button>
+                    <button class="btn btn-ghost" id="install-btn" hidden>⬇️ Установить</button>
+                </div>
+                <input type="file" id="import-file" accept="application/json,.json" hidden>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">📅 Ежедневные задания</div>
+                <div class="daily-list" id="daily-list"></div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">🌐 Сообщество</div>
+                <div class="setting-options">
+                    <button class="btn btn-ghost" id="leaderboard-btn">🏆 Таблица лидеров</button>
+                    <button class="btn btn-ghost" id="share-btn">📣 Поделиться</button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">🏆 Достижения</div>
+                <div class="achievements-grid" id="achievements-grid"></div>
+            </div>
+
+            <button class="btn btn-ghost" id="close-settings-btn">✕ Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: таблица лидеров ────────────────────── -->
+    <div id="leaderboard-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal leaderboard-modal">
+            <h2>🏆 Таблица лидеров</h2>
+            <p class="modal-message">Лучшие пираты на просторах этого моря</p>
+            <div class="leaderboard-list" id="leaderboard-list"></div>
+            <button class="btn btn-ghost" id="close-leaderboard-btn">✕ Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: пауза ─────────────────────────────── -->
+    <div id="pause-overlay" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-icon">⏸️</div>
+            <h2 class="modal-title">Пауза</h2>
+            <p class="modal-message">Передохни, капитан!</p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="resume-btn">▶ Продолжить</button>
+                <button class="btn btn-ghost" id="pause-restart-btn">🔄 Заново</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: подтверждение перезапуска ─────────── -->
+    <div id="confirm-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal">
+            <div class="modal-icon">⚠️</div>
+            <h2 class="modal-title">Начать заново?</h2>
+            <p class="modal-message">Текущий прогресс партии будет потерян. Ты уверен, капитан?</p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="confirm-restart-yes">🔄 Да, заново</button>
+                <button class="btn btn-ghost" id="confirm-restart-no">✕ Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: лавка старого капитана ─────────── -->
+    <div id="shop-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal shop-modal">
+            <h2>🏪 Лавка старого капитана</h2>
+            <div class="shop-balance">Дублоны: <strong id="shop-doubloons">0</strong> 🪙</div>
+            <div class="shop-tabs" id="shop-tabs">
+                <button class="btn btn-small shop-tab active" data-cat="boost">🔄 Бусты</button>
+                <button class="btn btn-small shop-tab" data-cat="perk">💎 Перки</button>
+                <button class="btn btn-small shop-tab" data-cat="skin">🎨 Скины</button>
+                <button class="btn btn-small shop-tab" data-cat="theme">🌙 Темы</button>
+            </div>
+            <div class="shop-grid" id="shop-grid"></div>
+            <button class="btn btn-ghost" id="close-shop-btn">✕ Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: онбординг (первый запуск) ─────────── -->
+    <div id="tutorial-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal tutorial-modal">
+            <div class="modal-icon">🏴‍☠️</div>
+            <h2 class="modal-title">Добро пожаловать, капитан!</h2>
+            <ul class="tutorial-list">
+                <li><span class="t-ico">👆</span><span>Свайпай пальцем по доске или жми стрелки на клавиатуре, чтобы двигать плитки</span></li>
+                <li><span class="t-ico">🔗</span><span>Одинаковые плитки сливаются в одну — значение удваивается</span></li>
+                <li><span class="t-ico">🎯</span><span>Собери целевую плитку и переходи на следующий уровень</span></li>
+            </ul>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="tutorial-ok">Понятно, в путь! ⛵</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+<!-- TEST DRIVER (auto-generated, не для продакшна) -->
+<script>
+(function () {
+  var stage = new URLSearchParams(location.search).get('stage') || 'home';
+  var plan = {
+    daily: ['tutorial-ok', 'dl-claim-btn'],
+    boost: ['tutorial-ok', 'dl-claim-btn', 'shop-btn', 'tab-boost'],
+    perk:  ['tutorial-ok', 'dl-claim-btn', 'shop-btn', 'tab-perk'],
+    skin:  ['tutorial-ok', 'dl-claim-btn', 'shop-btn', 'tab-skin'],
+    theme: ['tutorial-ok', 'dl-claim-btn', 'shop-btn', 'tab-theme'],
+    buy:   ['tutorial-ok', 'dl-claim-btn', 'shop-btn', 'tab-boost', 'buy-shuffle', 'close-shop-btn']
+  }[stage] || [];
+  var trace = [];
+  var stepIndex = 0;
+  var attempts = 0;
+  var MAX = 400; // 400 * 50ms = 20s виртуального времени
+
+  function $id(id) { return document.getElementById(id); }
+  function $sel(sel) { return document.querySelector(sel); }
+
+  function getEl(step) {
+    if (step === 'tutorial-ok') return $id('tutorial-ok');
+    if (step === 'dl-claim-btn') return $id('dl-claim-btn');
+    if (step === 'shop-btn') return $id('shop-btn');
+    if (step === 'close-shop-btn') return $id('close-shop-btn');
+    if (step === 'tab-perk') return $sel('.shop-tab[data-cat="perk"]');
+    if (step === 'tab-skin') return $sel('.shop-tab[data-cat="skin"]');
+    if (step === 'tab-theme') return $sel('.shop-tab[data-cat="theme"]');
+    if (step === 'tab-boost') return $sel('.shop-tab[data-cat="boost"]');
+    if (step === 'buy-shuffle') return $sel('.shop-buy[data-shop-id="boost_shuffle"]');
+    return null;
+  }
+
+  // Условие, что шаг можно выполнять (элемент готов к клику)
+  function ready(step) {
+    if (step === 'tutorial-ok') {
+      var m = $id('tutorial-modal');
+      return !!(m && m.classList.contains('visible'));
+    }
+    return true;
+  }
+
+  // Применился ли шаг (результат в DOM)
+  function applied(step) {
+    var m, sm;
+    if (step === 'tutorial-ok') {
+      m = $id('tutorial-modal');
+      return !!(m && !m.classList.contains('visible'));
+    }
+    if (step === 'dl-claim-btn') {
+      var d = $id('doubloons');
+      return !!(d && d.textContent.trim() === '50');
+    }
+    if (step === 'shop-btn') {
+      sm = $id('shop-modal');
+      return !!(sm && sm.classList.contains('visible'));
+    }
+    if (step === 'tab-boost' || step === 'tab-perk' || step === 'tab-skin' || step === 'tab-theme') {
+      return !!$sel('.shop-tab.active[data-cat="' + step.slice(4) + '"]');
+    }
+    if (step === 'buy-shuffle') {
+      var c = $id('boost-shuffle-count');
+      return !!(c && c.textContent.trim() === '1');
+    }
+    if (step === 'close-shop-btn') {
+      sm = $id('shop-modal');
+      return !!(sm && !sm.classList.contains('visible'));
+    }
+    return true;
+  }
+
+  var timer = setInterval(function () {
+    if (stepIndex >= plan.length || attempts++ > MAX) {
+      clearInterval(timer);
+      document.body.setAttribute('data-driver-done', '1');
+      document.body.setAttribute('data-driver-trace', JSON.stringify(trace));
+      return;
+    }
+    var step = plan[stepIndex];
+    var el = getEl(step);
+    if (!ready(step)) {
+      trace.push('wait:' + step);
+      return;
+    }
+    if (!el || el.disabled) {
+      trace.push('missing:' + step);
+      return;
+    }
+    el.click();
+    trace.push('clicked:' + step);
+    if (applied(step)) {
+      stepIndex++;
+      trace.push('ok:' + step);
+    }
+  }, 50);
+})();
+</script>
+</body>
+</html>
