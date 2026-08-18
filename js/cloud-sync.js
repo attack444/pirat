@@ -65,6 +65,19 @@ export function resolveConflict(local, cloud) {
     merged.unlockedSkins = unionArr(base.unlockedSkins, other.unlockedSkins, ['gold']);
     merged.unlockedThemes = unionArr(base.unlockedThemes, other.unlockedThemes, ['dark']);
 
+    // ── Магазин (бусты / перки / ежедневный вход) ──
+    // Запасы бустов складываем по максимуму каждого ключа (ничего не теряем).
+    merged.inventory = mergeMaxByKey(base.inventory, other.inventory);
+    // Перки — одноразовые флаги: объединяем (base поверх other для совпадений).
+    merged.perks = { ...(other.perks || {}), ...(base.perks || {}) };
+    // Ежедневный вход: максимум дней серии, метка последнего захода от base (иначе other).
+    const baseStreak = base.dailyStreak || {};
+    const otherStreak = other.dailyStreak || {};
+    merged.dailyStreak = {
+        days: Math.max(Number(baseStreak.days) || 0, Number(otherStreak.days) || 0),
+        lastClaim: baseStreak.lastClaim || otherStreak.lastClaim || '',
+    };
+
     // Текущий уровень — «последняя запись побеждает», но всегда внутри разблокированного.
     if (!merged.unlockedLevels.includes(merged.currentLevel)) {
         merged.currentLevel = merged.unlockedLevels[merged.unlockedLevels.length - 1] || 1;

@@ -293,3 +293,181 @@ describe('Game streak & addScore', () => {
         assert.equal(g.getStats().streak, 4);
     });
 });
+
+describe('Game shuffle boost', () => {
+    it('returns false when the board has fewer than 2 tiles', () => {
+        const g = makeGame();
+        g.tiles = [
+            { id: 1, value: 2 }, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        assert.equal(g.shuffle(), false);
+    });
+
+    it('returns false when the game is over', () => {
+        const g = makeGame();
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 4 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        g.gameOver = true;
+        assert.equal(g.shuffle(), false);
+    });
+
+    it('preserves the multiset of tile values when shuffling', () => {
+        const g = makeGame();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 4 }, { id: 3, value: 8 }, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        const before = g.tiles.filter(Boolean).map(t => t.value).sort((a, b) => a - b);
+        assert.equal(g.shuffle(), true);
+        const after = g.tiles.filter(Boolean).map(t => t.value).sort((a, b) => a - b);
+        assert.deepEqual(after, before);
+    });
+
+    it('reorders tiles deterministically when Math.random is fixed', () => {
+        const g = makeGame();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 4 }, { id: 3, value: 8 }, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        const orig = Math.random;
+        Math.random = () => 0; // Фишер–Йетс с j = 0
+        try {
+            g.shuffle();
+        } finally {
+            Math.random = orig;
+        }
+        // [2,4,8] → i=2: меняем местами idx2 и idx0 → [8,4,2]; i=1: idx1 и idx0 → [4,8,2]
+        assert.deepEqual(g.tiles.filter(Boolean).map(t => t.value), [4, 8, 2]);
+    });
+});
+
+describe('Game bomb boost (removeHighestTile)', () => {
+    it('removes the highest-value tile and returns its value', () => {
+        const g = makeGame();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 16 }, { id: 3, value: 4 }, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        assert.equal(g.removeHighestTile(), 16);
+        const remaining = g.tiles.filter(Boolean).map(t => t.value);
+        assert.ok(!remaining.includes(16));
+        assert.equal(remaining.length, 2);
+    });
+
+    it('removes a single tile when the maximum value appears twice', () => {
+        const g = makeGame();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 8 }, { id: 2, value: 8 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        assert.equal(g.removeHighestTile(), 8);
+        assert.equal(g.tiles.filter(Boolean).length, 1);
+    });
+
+    it('returns null when the board is empty', () => {
+        const g = makeGame();
+        g.tiles = Array(16).fill(null);
+        assert.equal(g.removeHighestTile(), null);
+    });
+});
+
+describe('Game bonus tile perk (addBonusTile)', () => {
+    it('spawns a tile of the requested value on a random empty cell', () => {
+        const g = makeGame();
+        g.render = () => {};
+        g.tiles = Array(16).fill(null);
+        assert.equal(g.addBonusTile(4), true);
+        const filled = g.tiles.filter(Boolean);
+        assert.equal(filled.length, 1);
+        assert.equal(filled[0].value, 4);
+        assert.equal(filled[0].justSpawned, true);
+    });
+
+    it('returns false when the board is full', () => {
+        const g = makeGame();
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 4 }, { id: 3, value: 8 }, { id: 4, value: 16 },
+            { id: 5, value: 4 }, { id: 6, value: 8 }, { id: 7, value: 16 }, { id: 8, value: 32 },
+            { id: 9, value: 8 }, { id: 10, value: 16 }, { id: 11, value: 32 }, { id: 12, value: 64 },
+            { id: 13, value: 16 }, { id: 14, value: 32 }, { id: 15, value: 64 }, { id: 16, value: 128 },
+        ];
+        assert.equal(g.addBonusTile(4), false);
+        assert.equal(g.tiles.filter(Boolean).length, 16);
+    });
+});
+
+describe('Game score multiplier boost (x2)', () => {
+    it('starts with no active multiplier', () => {
+        const g = makeGame();
+        assert.equal(g.getScoreMultiplierMoves(), 0);
+    });
+
+    it('activateScoreMultiplier sets the remaining merging moves', () => {
+        const g = makeGame();
+        g.render = () => {};
+        g.activateScoreMultiplier(3);
+        assert.equal(g.getScoreMultiplierMoves(), 3);
+        g.activateScoreMultiplier(0);
+        assert.equal(g.getScoreMultiplierMoves(), 0);
+    });
+
+    it('doubles merge-gained score and spends a charge only on merging moves', () => {
+        const g = makeGame();
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 2 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        g.activateScoreMultiplier(2);
+        g.handleMove('left'); // слияние 2+2 → +4, ×2 → +8
+        assert.equal(g.score, 8);
+        assert.equal(g.getScoreMultiplierMoves(), 1);
+
+        // Ход с перемещением, но без слияния — ×2 не тратится и очки не удваиваются
+        g.tiles = [
+            null, { id: 3, value: 4 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        g.handleMove('left');
+        assert.equal(g.score, 8);
+        assert.equal(g.getScoreMultiplierMoves(), 1);
+    });
+
+    it('resets the multiplier in init and loadState', () => {
+        const g = makeGame();
+        g.render = () => {};
+        g.activateScoreMultiplier(2);
+        g.init();
+        assert.equal(g.getScoreMultiplierMoves(), 0);
+
+        g.activateScoreMultiplier(2);
+        g.loadState({ tiles: Array(16).fill(null), score: 0, moves: 0, nextTileId: 1 });
+        assert.equal(g.getScoreMultiplierMoves(), 0);
+    });
+});

@@ -24,6 +24,9 @@ const baseLocal = {
     lastAdTime: 1000,
     daily: { date: '2026-08-17', tasks: [], claimed: { a: 1 } },
     dailyCounters: { moves: 10, merges: 4, wins: 1, hints: 2 },
+    inventory: { shuffle: 2, bomb: 0, x2: 1 },
+    perks: { coinBonus: true },
+    dailyStreak: { days: 3, lastClaim: '2026-08-16' },
 };
 
 const baseCloud = {
@@ -45,6 +48,9 @@ const baseCloud = {
     lastAdTime: 500,
     daily: { date: '2026-08-17', tasks: [], claimed: { b: 1 } },
     dailyCounters: { moves: 20, merges: 0, wins: 0, hints: 0 },
+    inventory: { shuffle: 1, bomb: 3, x2: 0 },
+    perks: { extraUndos: true },
+    dailyStreak: { days: 2, lastClaim: '2026-08-15' },
 };
 
 describe('cloud-sync.updatedAt', () => {
@@ -98,6 +104,28 @@ describe('cloud-sync.resolveConflict', () => {
         const m = resolveConflict(baseLocal, baseCloud);
         assert.deepEqual(m.dailyCounters, { moves: 20, merges: 4, wins: 1, hints: 2 });
         assert.deepEqual(m.daily.claimed, { b: 1, a: 1 });
+    });
+
+    it('merges shop boosts, perks and the daily-login streak', () => {
+        const m = resolveConflict(baseLocal, baseCloud); // cloud newer → base
+        // Запасы бустов — по максимуму каждого ключа
+        assert.deepEqual(m.inventory, { shuffle: 2, bomb: 3, x2: 1 });
+        // Перки — OR-объединение флагов
+        assert.deepEqual(m.perks, { coinBonus: true, extraUndos: true });
+        // Серия входа: максимум дней, метка последнего захода от base (новее)
+        assert.equal(m.dailyStreak.days, 3);
+        assert.equal(m.dailyStreak.lastClaim, '2026-08-15');
+    });
+
+    it('keeps the shop keys when only one side has them', () => {
+        const local = { ...baseLocal };
+        delete local.inventory;
+        delete local.perks;
+        delete local.dailyStreak;
+        const m = resolveConflict(local, baseCloud);
+        assert.deepEqual(m.inventory, baseCloud.inventory);
+        assert.deepEqual(m.perks, baseCloud.perks);
+        assert.deepEqual(m.dailyStreak, baseCloud.dailyStreak);
     });
 
     it('keeps the base daily block when dates differ', () => {

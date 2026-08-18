@@ -11,6 +11,8 @@ import { comboReward, STREAK_THRESHOLD } from './combo.js';
 import { LEVELS, levelById, isLastLevel } from './levels.js';
 import { ACHIEVEMENTS, evaluateAchievements } from './achievements.js';
 import { DAILY_TASKS, ensureDaily as ensureDailyState, dailyMetric as dailyMetricState, checkDaily as checkDailyState } from './daily.js';
+import { claimDailyLogin, dailyLoginInfo } from './daily-login.js';
+import { getShopItem, itemsByType, ownsItem, buyItem, useBoost, boostCount, ownsPerk, applyCoinReward, effectiveUndoLimit } from './shop.js';
 
 const STORAGE_KEY = 'pirate2048_v1';
 const SAVE_KEY    = 'pirate2048_saves';
@@ -37,6 +39,10 @@ function loadState() {
         doubloons: 0,
         unlockedSkins: ['gold'],
         unlockedThemes: ['dark'],
+        // Экономика: магазин, ежедневный вход
+        inventory: {},
+        perks: {},
+        dailyStreak: { days: 0, lastClaim: '' },
         // Ежедневные задания
         daily: { date: '', tasks: [], claimed: {} },
         dailyCounters: { moves: 0, merges: 0, wins: 0, hints: 0, undos: 0 },
@@ -136,6 +142,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const leaderboardList  = $('leaderboard-list');
     const closeLeaderboardBtn = $('close-leaderboard-btn');
     const shareBtn         = $('share-btn');
+    // Магазин, ежедневный вход, бусты
+    const shopBtn          = $('shop-btn');
+    const shopModal        = $('shop-modal');
+    const shopTabs         = $('shop-tabs');
+    const shopGrid         = $('shop-grid');
+    const shopDoubloons    = $('shop-doubloons');
+    const closeShopBtn     = $('close-shop-btn');
+    const dailyLoginEl     = $('daily-login');
+    const dlClaimBtn       = $('dl-claim-btn');
+    const dlDays           = $('dl-days');
+    const dlWeek           = $('dl-week');
+    const dlClose          = $('dl-close');
+    const boostShuffleBtn  = $('boost-shuffle');
+    const boostShuffleCount = $('boost-shuffle-count');
+    const boostBombBtn     = $('boost-bomb');
+    const boostBombCount   = $('boost-bomb-count');
+    const boostX2Btn       = $('boost-x2');
+    const boostX2Count     = $('boost-x2-count');
 
     const confettiEl    = $('confetti');
     const toastContainer = $('toast-container');
@@ -261,7 +285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Внешний вид: тема и скин
     function applyAppearance() {
-        document.body.classList.remove('theme-dark', 'theme-light', 'skin-gold', 'skin-wood', 'skin-gem');
+        document.body.classList.remove('theme-dark', 'theme-light', 'theme-forest', 'skin-gold', 'skin-wood', 'skin-gem', 'skin-ice', 'skin-fire', 'skin-storm');
         document.body.classList.add('theme-' + (state.theme || 'dark'));
         document.body.classList.add('skin-' + (state.skin || 'gold'));
     }
@@ -310,12 +334,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function addDoubloons(n, text, icon = '🪙') {
-        if (!n || n <= 0) return;
-        state.doubloons = (state.doubloons || 0) + n;
+        // Перк «Золотая казна» (+50%) применяется ко всем наградам
+        const gained = applyCoinReward(state, n);
+        if (gained <= 0) return;
+        state.doubloons = (state.doubloons || 0) + gained;
         saveState(state);
         updateDoubloons();
         pushCloudSave();
-        showToast(`+${n} дублонов${text ? ' — ' + text : ''}`, icon);
+        showToast(`+${gained} дублонов${text ? ' — ' + text : ''}`, icon);
     }
 
     // ── Облачные сохранения (VK / Yandex) ────────────────────
@@ -398,6 +424,163 @@ document.addEventListener('DOMContentLoaded', async () => {
         saveState(state);
         addDoubloons(def ? def.reward : 0, 'ежедневное задание', '📅');
         renderDaily();
+    }
+
+    // ── Ежедневный вход (награда за визит) ───────────────────
+    function renderDailyLogin() {
+        if (!dailyLoginEl) return;
+        const info = dailyLoginInfo(state);
+        if (!info.canClaim) {
+            dailyLoginEl.hidden = true;
+            return;
+        }
+        dailyLoginEl.hidden = false;
+        if (dlDays) dlDays.textContent = `День ${info.days + 1}`;
+        if (dlWeek) {
+            dlWeek.innerHTML = info.rewards.map((r, i) => {
+                const filled = i < info.claimedInCycle;
+                const next = i === info.currentIndex;
+                return `<span class="dl-day${filled ? ' filled' : ''}${next ? ' next' : ''}">${i + 1}: ${r}</span>`;
+            }).join('');
+        }
+        if (dlClaimBtn) {
+            dlClaimBtn.disabled = false;
+            dlClaimBtn.textContent = `Забрать +${info.nextReward} 🪙`;
+        }
+    }
+
+    function claimDailyLoginReward() {
+        const res = claimDailyLogin(state);
+        if (!res.ok) return;
+        // claimDailyLogin добавляет награду напрямую в state.doubloons,
+        // поэтому перк «Золотая казна» (+50%) применяем вручную.
+        const bonus = applyCoinReward(state, res.reward) - res.reward;
+        if (bonus > 0) state.doubloons = (state.doubloons || 0) + bonus;
+        saveState(state);
+        updateDoubloons();
+        pushCloudSave();
+        renderDailyLogin();
+        showToast(`+${res.reward + bonus} дублонов (день ${res.days})`, '🎁');
+    }
+
+    // ── Лавка старого капитана (магазин) ─────────────────────
+    let shopCategory = 'boost';
+
+    function updateShopBalance() {
+        if (shopDoubloons) shopDoubloons.textContent = (state.doubloons || 0).toLocaleString('ru');
+    }
+
+    function renderShop() {
+        if (!shopGrid) return;
+        shopGrid.innerHTML = '';
+        const items = itemsByType(shopCategory);
+        for (const item of items) {
+            const owned = ownsItem(state, item);
+            const canBuy = (state.doubloons || 0) >= (item.price || 0);
+            const el = document.createElement('div');
+            el.className = 'shop-item' + (owned ? ' owned' : '');
+            let badge = '';
+            if (item.type === 'boost') badge = `В запасе: ${boostCount(state, item.key)}`;
+            else if (owned) badge = item.type === 'perk' ? '✓ Куплен' : '✓ Открыт';
+            el.innerHTML = `
+                <div class="shop-icon">${item.icon}</div>
+                <div class="shop-info">
+                    <div class="shop-name">${item.name}</div>
+                    <div class="shop-desc">${item.desc}</div>
+                    ${badge ? `<div class="shop-base">${badge}</div>` : ''}
+                </div>
+                ${owned && item.type !== 'boost'
+                    ? '<div class="shop-buy owned">✓</div>'
+                    : `<button class="btn btn-small shop-buy${canBuy ? '' : ' disabled'}" data-shop-id="${item.id}">${item.price} 🪙</button>`}
+            `;
+            shopGrid.appendChild(el);
+        }
+        shopGrid.querySelectorAll('.shop-buy[data-shop-id]').forEach(btn => {
+            btn.addEventListener('click', () => buyFromShop(btn.dataset.shopId));
+        });
+    }
+
+    function buyFromShop(id) {
+        const item = getShopItem(id);
+        if (!item) return;
+        const res = buyItem(state, item);
+        if (!res.ok) {
+            if (res.reason === 'not_enough') showToast(`Не хватает дублонов — нужно ${item.price}`, '🪙');
+            else if (res.reason === 'owned') showToast('Уже куплено', '✅');
+            return;
+        }
+        saveState(state);
+        updateDoubloons();
+        updateShopBalance();
+        updateBoostBar();
+        updateSettingsUI();
+        pushCloudSave();
+        if (item.type === 'skin') { state.skin = item.key; applyAppearance(); updateSettingsUI(); }
+        if (item.type === 'theme') { state.theme = item.key; applyAppearance(); updateSettingsUI(); }
+        renderShop();
+        showToast(`${item.name} — куплено!`, '🛍️');
+    }
+
+    function openShopModal() {
+        shopCategory = 'boost';
+        if (shopTabs) shopTabs.querySelectorAll('.shop-tab').forEach(b => b.classList.toggle('active', b.dataset.cat === 'boost'));
+        updateShopBalance();
+        renderShop();
+        showModal(shopModal);
+    }
+
+    // ── Панель бустов ─────────────────────────────────────────
+    function updateBoostBar() {
+        const defs = [
+            ['shuffle', boostShuffleBtn, boostShuffleCount],
+            ['bomb',    boostBombBtn,    boostBombCount],
+            ['x2',      boostX2Btn,      boostX2Count],
+        ];
+        for (const [key, btn, cntEl] of defs) {
+            const c = boostCount(state, key);
+            if (cntEl) cntEl.textContent = c.toLocaleString('ru');
+            if (!btn) continue;
+            const disabled = c <= 0 || !game || game.gameOver || game.won || game._busy;
+            btn.disabled = disabled;
+            btn.classList.toggle('has-count', c > 0);
+            btn.classList.toggle('active', key === 'x2' && !!game && game.getScoreMultiplierMoves() > 0);
+        }
+    }
+
+    function useBoostFromBar(key) {
+        if (!game || game.gameOver || game.won || game._busy) return;
+        if (!useBoost(state, key)) {
+            showToast('Буста нет — купи в лавке', '🛒');
+            return;
+        }
+        let ok = false;
+        if (key === 'shuffle') {
+            ok = game.shuffle() === true;
+        } else if (key === 'bomb') {
+            ok = game.removeHighestTile() !== null;
+        } else if (key === 'x2') {
+            game.activateScoreMultiplier(3);
+            ok = true;
+        }
+        if (!ok) {
+            // Возвращаем буст, если применить не удалось
+            state.inventory = state.inventory || {};
+            state.inventory[key] = (state.inventory[key] || 0) + 1;
+            showToast('Сейчас нельзя использовать буст', '⚠️');
+            updateBoostBar();
+            return;
+        }
+        saveState(state);
+        updateBoostBar();
+        updateDoubloons();
+        pushCloudSave();
+        const msgs = {
+            shuffle: 'Плитки перемешаны!',
+            bomb:    'Самая большая плитка убрана!',
+            x2:      'Двойные очки на 3 хода со слиянием!',
+        };
+        showToast(msgs[key], { shuffle: '🔄', bomb: '💣', x2: '⚡' }[key]);
+        if (state.sound !== false) playMove();
     }
 
     // ── Уведомления (тосты) ──────────────────────────────────
@@ -495,6 +678,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 applyAppearance();
                 updateSettingsUI();
+                renderDailyLogin();
+                updateBoostBar();
                 refreshAchievements();
                 startLevel(state.currentLevel || 1);
                 showToast('Прогресс загружен из файла', '📂');
@@ -566,7 +751,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     addDoubloons(reward.doubloons, reward.mult > 1 ? `комбо ×${reward.mult}` : 'серия');
                 }
             },
-            onSave:  () => { saveBoard(); saveState(state); updateUndoState(); updateMoves(); checkAchievements(); checkDaily(); pushCloudSave(); },
+            onSave:  () => { saveBoard(); saveState(state); updateUndoState(); updateMoves(); updateBoostBar(); checkAchievements(); checkDaily(); pushCloudSave(); },
             onTarget: (score) => {
                 // Бесконечный режим: цель достигнута — празднуем и продолжаем
                 if (state.sound !== false) playWin();
@@ -619,9 +804,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             state.gamesPlayed = (state.gamesPlayed || 0) + 1;
             saveState(state);
             updateStats();
+            // Перк «Бонусная плитка»: новая партия начинается с плиткой 4
+            if (ownsPerk(state, 'bonusTile')) {
+                game.addBonusTile(4);
+                saveBoard();
+            }
         }
         updateUndoState();
         updateMoves();
+        updateBoostBar();
     }
 
     function resetCurrentGame() {
@@ -631,12 +822,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         reviveCount = 0;
         reviveBusy = false;
         game.init();
+        // Перк «Бонусная плитка»: новая партия начинается с плиткой 4
+        if (ownsPerk(state, 'bonusTile')) {
+            game.addBonusTile(4);
+            saveBoard();
+        }
         scoreEl.textContent = '0';
         state.gamesPlayed = (state.gamesPlayed || 0) + 1;
         saveState(state);
         updateStats();
         updateUndoState();
         updateMoves();
+        updateBoostBar();
         checkAchievements();
     }
 
@@ -986,9 +1183,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             // (защита от «прочитывания» партии бесконечными отменами)
             ensureDaily();
             const used = state.dailyCounters.undos || 0;
-            if (used >= WEB_UNDO_LIMIT) {
+            const undoLimit = effectiveUndoLimit(state, WEB_UNDO_LIMIT);
+            if (used >= undoLimit) {
                 if ((state.doubloons || 0) < UNDO_COST) {
-                    showToast(`Лимит бесплатных отмен: ${WEB_UNDO_LIMIT}/день. Дальше — ${UNDO_COST} 🪙`, '⚠️');
+                    showToast(`Лимит бесплатных отмен: ${undoLimit}/день. Дальше — ${UNDO_COST} 🪙`, '⚠️');
                     return;
                 }
                 state.doubloons -= UNDO_COST;
@@ -1067,6 +1265,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     shareBtn.addEventListener('click', () => shareResult(state.bestTotal || 0));
+
+    // ── Магазин / ежедневный вход / бусты ────────────────────
+    if (shopBtn) shopBtn.addEventListener('click', openShopModal);
+    if (closeShopBtn) closeShopBtn.addEventListener('click', () => hideModal(shopModal));
+    if (shopModal) shopModal.addEventListener('click', (e) => {
+        if (e.target === shopModal) hideModal(shopModal);
+    });
+    if (shopTabs) shopTabs.addEventListener('click', (e) => {
+        const btn = e.target.closest('.shop-tab');
+        if (!btn || !btn.dataset.cat) return;
+        shopCategory = btn.dataset.cat;
+        shopTabs.querySelectorAll('.shop-tab').forEach(b => b.classList.toggle('active', b === btn));
+        renderShop();
+    });
+    if (boostShuffleBtn) boostShuffleBtn.addEventListener('click', () => useBoostFromBar('shuffle'));
+    if (boostBombBtn)    boostBombBtn.addEventListener('click', () => useBoostFromBar('bomb'));
+    if (boostX2Btn)      boostX2Btn.addEventListener('click', () => useBoostFromBar('x2'));
+    if (dlClaimBtn)      dlClaimBtn.addEventListener('click', claimDailyLoginReward);
+    if (dlClose) dlClose.addEventListener('click', () => {
+        if (dailyLoginEl) dailyLoginEl.hidden = true;
+    });
 
     // ── Пауза ────────────────────────────────────────────────
     function setPaused(paused) {
@@ -1172,7 +1391,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateDoubloons();
     ensureDaily();
     renderDaily();
+    renderDailyLogin();
     startLevel(state.currentLevel);
+    updateBoostBar();
 
     // Загрузочный экран завершён
     if (loadingBarFill) loadingBarFill.style.width = '100%';

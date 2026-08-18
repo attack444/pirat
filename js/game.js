@@ -39,6 +39,8 @@ export default class Game {
         this.movesWithoutMerge = 0;
         // Серия: ходы подряд, каждый из которых содержит хотя бы одно слияние
         this.streak            = 0;
+        // Буст «Двойные очки»: сколько ходов со слиянием осталось с ×2
+        this.multiplierMoves   = 0;
 
         // Рендер (абсолютное позиционирование плиток)
         this._tileEls      = new Map();
@@ -78,6 +80,7 @@ export default class Game {
         this.maxMerge          = 0;
         this.movesWithoutMerge = 0;
         this.streak            = 0;
+        this.multiplierMoves   = 0;
 
         this._addNewTile();
         this._addNewTile();
@@ -107,8 +110,15 @@ export default class Game {
             streak: this.streak,
         };
 
+        const scoreBefore = this.score;
         const { moved, moves, merges } = this._move(direction);
         if (!moved) return;
+
+        // Буст «Двойные очки»: ходы со слиянием дают ×2 к набранным очкам
+        if (this.multiplierMoves > 0 && this.score > scoreBefore) {
+            this.score += (this.score - scoreBefore);
+            this.multiplierMoves--;
+        }
 
         this.movesCount++;
         if (merges === 0) this.movesWithoutMerge++;
@@ -193,6 +203,7 @@ export default class Game {
         }
         this.score         = state.score || 0;
         this.streak        = 0;
+        this.multiplierMoves   = 0;
         this.won           = false;
         this.gameOver      = false;
         this.winCelebrated = false;
@@ -222,6 +233,73 @@ export default class Game {
         this.onScoreUpdate(this.score);
         if (this.onSave) this.onSave();
         return n;
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Бусты и перки (магазин «Лавка старого капитана»)
+    // ──────────────────────────────────────────────────────────
+
+    /** Буст «Перемешать»: случайно перемешивает плитки на доске. */
+    shuffle() {
+        if (this.gameOver || this._busy) return false;
+        const filled = [];
+        for (let i = 0; i < this.tiles.length; i++) {
+            if (this.tiles[i] !== null) filled.push(this.tiles[i]);
+        }
+        if (filled.length < 2) return false;
+        // Фишер–Йетс
+        for (let i = filled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [filled[i], filled[j]] = [filled[j], filled[i]];
+        }
+        let k = 0;
+        for (let i = 0; i < this.tiles.length; i++) {
+            if (this.tiles[i] !== null) this.tiles[i] = filled[k++];
+        }
+        this.render();
+        if (this.onSave) this.onSave();
+        return true;
+    }
+
+    /** Буст «Бомба»: удаляет самую большую плитку с доски. */
+    removeHighestTile() {
+        if (this._busy) return null;
+        let maxIdx = -1;
+        let maxVal = 0;
+        for (let i = 0; i < this.tiles.length; i++) {
+            const t = this.tiles[i];
+            if (t && t.value > maxVal) { maxVal = t.value; maxIdx = i; }
+        }
+        if (maxIdx === -1) return null;
+        this.tiles[maxIdx] = null;
+        this.render();
+        if (this.onSave) this.onSave();
+        return maxVal;
+    }
+
+    /** Перк «Бонусная плитка»: добавляет плитку value на случайную свободную клетку. */
+    addBonusTile(value = 4) {
+        const empty = [];
+        for (let i = 0; i < this.tiles.length; i++) {
+            if (this.tiles[i] === null) empty.push(i);
+        }
+        if (empty.length === 0) return false;
+        const idx = empty[Math.floor(Math.random() * empty.length)];
+        this.tiles[idx] = { id: this._nextTileId++, value, justSpawned: true };
+        this.render();
+        return true;
+    }
+
+    /** Буст «Двойные очки»: включает ×2 к очкам на N следующих ходов со слиянием. */
+    activateScoreMultiplier(moves = 3) {
+        this.multiplierMoves = Math.max(0, Math.floor(Number(moves)) || 0);
+        this.render();
+        if (this.onSave) this.onSave();
+    }
+
+    /** Сколько ходов со слиянием осталось с бонусом ×2. */
+    getScoreMultiplierMoves() {
+        return this.multiplierMoves || 0;
     }
 
     /** Статистика партии для достижений. */

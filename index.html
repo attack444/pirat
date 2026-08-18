@@ -41,6 +41,7 @@
                 <div class="header-actions">
                     <button id="pause-btn" class="btn btn-icon" title="Пауза" aria-label="Пауза">⏸️</button>
                     <button id="sound-btn" class="btn btn-icon" title="Звук вкл/выкл" aria-label="Звук вкл/выкл">🔊</button>
+                    <button id="shop-btn" class="btn btn-icon" title="Лавка старого капитана" aria-label="Магазин">🛒</button>
                     <button id="settings-btn" class="btn btn-icon" title="Настройки и достижения" aria-label="Настройки">⚙️</button>
                     <button id="fullscreen-btn" class="btn btn-icon" title="Полный экран" aria-label="Полный экран">⛶</button>
                 </div>
@@ -87,6 +88,17 @@
             </div>
         </header>
 
+        <!-- ── Ежедневный вход (награда за визит) ─────────── -->
+        <div id="daily-login" class="daily-login" hidden>
+            <div class="dl-head">
+                <span class="dl-title">🎁 Ежедневный вход</span>
+                <span class="dl-days" id="dl-days">День 1</span>
+                <span class="dl-week" id="dl-week"></span>
+                <button id="dl-claim-btn" class="btn btn-small dl-claim-btn" disabled>Забрать</button>
+                <button id="dl-close" class="btn btn-icon dl-close" title="Скрыть" aria-label="Скрыть">✕</button>
+            </div>
+        </div>
+
         <!-- ── Игровое поле ────────────────────────────────── -->
         <main>
             <div id="board" class="board size-4"></div>
@@ -108,6 +120,13 @@
                 <button id="undo-btn"        class="btn btn-ghost" disabled>↩ Отменить</button>
                 <button id="hint-btn"        class="btn btn-ghost" title="Подсветить лучший ход">💡 Подсказка</button>
                 <button id="level-select-btn" class="btn btn-secondary">📜 Уровни</button>
+            </div>
+
+            <!-- Бусты из лавки -->
+            <div class="boost-bar" aria-label="Бусты">
+                <button id="boost-shuffle" class="btn btn-ghost boost-btn" disabled title="Перемешать плитки">🔄 <span class="boost-count" id="boost-shuffle-count">0</span></button>
+                <button id="boost-bomb"    class="btn btn-ghost boost-btn" disabled title="Убрать самую большую плитку">💣 <span class="boost-count" id="boost-bomb-count">0</span></button>
+                <button id="boost-x2"      class="btn btn-ghost boost-btn" disabled title="Двойные очки: ×2 на 3 хода со слиянием">⚡ <span class="boost-count" id="boost-x2-count">0</span></button>
             </div>
 
             <!-- Инструкция -->
@@ -164,6 +183,7 @@
                 <div class="setting-options" id="theme-options">
                     <button class="btn btn-ghost setting-btn" data-theme="dark" data-price="0">🌙 Тёмная</button>
                     <button class="btn btn-ghost setting-btn" data-theme="light" data-price="250">☀️ Светлая</button>
+                    <button class="btn btn-ghost setting-btn" data-theme="forest" data-price="450">🌲 Лес</button>
                 </div>
             </div>
 
@@ -173,6 +193,9 @@
                     <button class="btn btn-ghost setting-btn" data-skin="gold" data-price="0">🥇 Золото</button>
                     <button class="btn btn-ghost setting-btn" data-skin="wood" data-price="300">🪵 Дерево</button>
                     <button class="btn btn-ghost setting-btn" data-skin="gem" data-price="600">💎 Камни</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="ice" data-price="800">🧊 Лёд</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="fire" data-price="800">🔥 Пламя</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="storm" data-price="800">🌊 Шторм</button>
                 </div>
             </div>
 
@@ -252,6 +275,22 @@
                 <button class="btn btn-primary" id="confirm-restart-yes">🔄 Да, заново</button>
                 <button class="btn btn-ghost" id="confirm-restart-no">✕ Отмена</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: лавка старого капитана ─────────── -->
+    <div id="shop-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal shop-modal">
+            <h2>🏪 Лавка старого капитана</h2>
+            <div class="shop-balance">Дублоны: <strong id="shop-doubloons">0</strong> 🪙</div>
+            <div class="shop-tabs" id="shop-tabs">
+                <button class="btn btn-small shop-tab active" data-cat="boost">🔄 Бусты</button>
+                <button class="btn btn-small shop-tab" data-cat="perk">💎 Перки</button>
+                <button class="btn btn-small shop-tab" data-cat="skin">🎨 Скины</button>
+                <button class="btn btn-small shop-tab" data-cat="theme">🌙 Темы</button>
+            </div>
+            <div class="shop-grid" id="shop-grid"></div>
+            <button class="btn btn-ghost" id="close-shop-btn">✕ Закрыть</button>
         </div>
     </div>
 

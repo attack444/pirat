@@ -72,6 +72,57 @@ body.skin-gem {
     --t8192-bg: linear-gradient(135deg, #200717, #0d0208);  --t8192-c: var(--gold-bright);
 }
 
+body.skin-ice {
+    --t0-bg:   linear-gradient(135deg, #5aa7c7, #2f6f8f);   --t0-c:   var(--white);
+    --t2-bg:   linear-gradient(135deg, #eaf7ff, #cfeafb);   --t2-c:   #1c4f6e;
+    --t4-bg:   linear-gradient(135deg, #cfeafb, #9fd4f2);   --t4-c:   #123c54;
+    --t8-bg:   linear-gradient(135deg, #9fd4f2, #6fb7e8);   --t8-c:   var(--white);
+    --t16-bg:  linear-gradient(135deg, #6fb7e8, #4d9cd4);   --t16-c:  var(--white);
+    --t32-bg:  linear-gradient(135deg, #4d9cd4, #2f7fb8);   --t32-c:  var(--white);
+    --t64-bg:  linear-gradient(135deg, #2f7fb8, #4f6fd0);   --t64-c:  var(--white);
+    --t128-bg: linear-gradient(135deg, #4f6fd0, #3a54ad);   --t128-c: var(--white);
+    --t256-bg: linear-gradient(135deg, #3a54ad, #2c3f8f);   --t256-c: var(--white);
+    --t512-bg: linear-gradient(135deg, #2c3f8f, #1f5f8f);   --t512-c: var(--white);
+    --t1024-bg: linear-gradient(135deg, #1f5f8f, #123f66);  --t1024-c: var(--white);
+    --t2048-bg: linear-gradient(135deg, #00b8ff, #0066b0);  --t2048-c: var(--white);
+    --t4096-bg: linear-gradient(135deg, #1b3a5a, #0d2036);  --t4096-c: var(--gold-light);
+    --t8192-bg: linear-gradient(135deg, #0d2036, #050e18);  --t8192-c: var(--gold-bright);
+}
+
+body.skin-fire {
+    --t0-bg:   linear-gradient(135deg, #b23a2e, #6e1c14);   --t0-c:   var(--white);
+    --t2-bg:   linear-gradient(135deg, #ffe9c9, #ffd19a);   --t2-c:   #5e2a10;
+    --t4-bg:   linear-gradient(135deg, #ffd19a, #ffab6b);   --t4-c:   #6e2408;
+    --t8-bg:   linear-gradient(135deg, #ffab6b, #ff8a3d);   --t8-c:   var(--white);
+    --t16-bg:  linear-gradient(135deg, #ff8a3d, #ff6a1f);   --t16-c:  var(--white);
+    --t32-bg:  linear-gradient(135deg, #ff6a1f, #ff3d00);   --t32-c:  var(--white);
+    --t64-bg:  linear-gradient(135deg, #ff3d00, #d81b1b);   --t64-c:  var(--white);
+    --t128-bg: linear-gradient(135deg, #d81b1b, #b71c1c);   --t128-c: var(--white);
+    --t256-bg: linear-gradient(135deg, #b71c1c, #8e1515);   --t256-c: var(--white);
+    --t512-bg: linear-gradient(135deg, #8e1515, #6b0f0f);   --t512-c: var(--white);
+    --t1024-bg: linear-gradient(135deg, #6b0f0f, #ff6a00);  --t1024-c: var(--white);
+    --t2048-bg: linear-gradient(135deg, #ffb300, #ff3d00);  --t2048-c: var(--white);
+    --t4096-bg: linear-gradient(135deg, #7a0e0e, #3d0606);  --t4096-c: var(--gold-light);
+    --t8192-bg: linear-gradient(135deg, #3d0606, #1a0202);  --t8192-c: var(--gold-bright);
+}
+
+body.skin-storm {
+    --t0-bg:   linear-gradient(135deg, #274b6d, #12263a);   --t0-c:   var(--white);
+    --t2-bg:   linear-gradient(135deg, #d8f1f5, #a5dce7);   --t2-c:   #0d3b52;
+    --t4-bg:   linear-gradient(135deg, #a5dce7, #67b8cf);   --t4-c:   #083142;
+    --t8-bg:   linear-gradient(135deg, #67b8cf, #3d93ad);   --t8-c:   var(--white);
+    --t16-bg:  linear-gradient(135deg, #3d93ad, #2a6f8c);   --t16-c:  var(--white);
+    --t32-bg:  linear-gradient(135deg, #2a6f8c, #1d4f6b);   --t32-c:  var(--white);
+    --t64-bg:  linear-gradient(135deg, #1d4f6b, #32466e);   --t64-c:  var(--white);
+    --t128-bg: linear-gradient(135deg, #32466e, #263454);   --t128-c: var(--white);
+    --t256-bg: linear-gradient(135deg, #263454, #1a243d);   --t256-c: var(--white);
+    --t512-bg: linear-gradient(135deg, #1a243d, #3a1f4d);   --t512-c: var(--white);
+    --t1024-bg: linear-gradient(135deg, #3a1f4d, #25122f);  --t1024-c: var(--white);
+    --t2048-bg: linear-gradient(135deg, #1466a5, #0c3a63);  --t2048-c: var(--white);
+    --t4096-bg: linear-gradient(135deg, #123049, #081a2b);  --t4096-c: var(--gold-light);
+    --t8192-bg: linear-gradient(135deg, #081a2b, #030a12);  --t8192-c: var(--gold-bright);
+}
+
 html, body {
     height: 100%;
     overscroll-behavior: none;
@@ -1294,3 +1345,214 @@ body.theme-light .lb-name { color: #5a4326; }
 body.reduce-motion .confetti-layer { display: none; }
 body.reduce-motion .board.shake { animation: none; }
 body.reduce-motion .stat .value.active { animation: none; }
+
+/* ==================================================================
+   ЕЖЕДНЕВНЫЙ ВХОД (панель награды за визит)
+   ================================================================== */
+.daily-login {
+    background: linear-gradient(180deg, rgba(184,134,11,.25), rgba(0,0,0,.25));
+    border: 2px solid var(--gold);
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin: 0 0 14px;
+    box-shadow: inset 0 0 14px rgba(255,215,0,.15);
+}
+.dl-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.dl-title { color: var(--gold-light); font-weight: bold; font-size: .95rem; }
+.dl-days { color: var(--gold-bright); font-weight: bold; font-size: .9rem; }
+.dl-week { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+.dl-day {
+    background: rgba(0,0,0,.3);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px;
+    padding: 4px 7px;
+    font-size: .72rem;
+    color: var(--text-muted);
+}
+.dl-day.filled { border-color: var(--gold); background: rgba(184,134,11,.25); color: var(--gold-light); }
+.dl-day.next {
+    border-color: var(--gold-bright);
+    color: var(--gold-bright);
+    box-shadow: 0 0 0 2px rgba(255,215,0,.3);
+    font-weight: bold;
+}
+.dl-claim-btn {
+    background: linear-gradient(180deg, var(--gold), #8b6914);
+    color: #fff;
+    border: none;
+    font-weight: bold;
+}
+.dl-claim-btn:disabled { opacity: .5; cursor: not-allowed; }
+.dl-close { margin-left: auto; }
+body.theme-light .daily-login { background: linear-gradient(180deg, rgba(184,134,11,.15), rgba(0,0,0,.04)); border-color: #b8860b; }
+body.theme-light .dl-day { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.18); color: #5a4326; }
+body.theme-light .dl-day.filled { border-color: #b8860b; background: rgba(184,134,11,.18); color: #8b6914; }
+
+/* ==================================================================
+   ПАНЕЛЬ БУСТОВ
+   ================================================================== */
+.boost-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 10px 0 4px;
+    flex-wrap: wrap;
+}
+.boost-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .9rem;
+}
+.boost-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: rgba(0,0,0,.35);
+    color: var(--gold-light);
+    font-size: .72rem;
+    font-weight: bold;
+}
+.boost-btn.has-count { border-color: var(--gold); }
+.boost-btn.active {
+    border-color: var(--gold-bright);
+    color: var(--gold-bright);
+    background: rgba(255,215,0,.18);
+    box-shadow: 0 0 0 2px rgba(255,215,0,.3);
+    animation: combo-pulse .6s ease;
+}
+.boost-btn:disabled { opacity: .45; cursor: not-allowed; }
+body.theme-light .boost-count { background: rgba(0,0,0,.08); color: #8b6914; }
+
+/* ==================================================================
+   ЛАВКА СТАРОГО КАПИТАНА (магазин)
+   ================================================================== */
+.shop-modal { max-width: 560px; }
+.shop-balance {
+    text-align: center;
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin: 4px 0 12px;
+}
+.shop-balance strong { color: var(--gold-bright); font-size: 1.15rem; }
+.shop-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.shop-tab {
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(255,255,255,.14);
+    color: var(--text-muted);
+}
+.shop-tab.active {
+    border-color: var(--gold-bright);
+    color: var(--gold-bright);
+    background: rgba(255,215,0,.15);
+    font-weight: bold;
+}
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    max-height: 52vh;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+.shop-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,0,0,.22);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align: center;
+}
+.shop-item.owned { border-color: rgba(76,175,80,.55); background: rgba(76,175,80,.08); }
+.shop-icon { font-size: 1.6rem; line-height: 1; }
+.shop-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.shop-name { color: var(--gold-light); font-weight: bold; font-size: .9rem; }
+.shop-desc { color: var(--text-muted); font-size: .74rem; line-height: 1.25; }
+.shop-base { color: rgba(255,255,255,.5); font-size: .7rem; }
+.shop-item.owned .shop-base { color: #4caf50; }
+.shop-buy {
+    background: linear-gradient(180deg, var(--gold), #8b6914);
+    color: #fff;
+    border: none;
+    font-weight: bold;
+    margin-top: auto;
+}
+.shop-buy.owned { background: rgba(0,0,0,.2); color: #4caf50; cursor: default; }
+.shop-buy.disabled { opacity: .5; cursor: not-allowed; }
+body.theme-light .shop-tab { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.2); color: #5a4326; }
+body.theme-light .shop-tab.active { border-color: #b8860b; background: rgba(184,134,11,.2); color: #6b4a10; }
+body.theme-light .shop-item { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.18); }
+body.theme-light .shop-item.owned { border-color: rgba(76,175,80,.6); background: rgba(76,175,80,.12); }
+body.theme-light .shop-name { color: #8b6914; }
+body.theme-light .shop-desc { color: #5a4326; }
+body.theme-light .shop-balance { color: #5a4326; }
+
+/* ==================================================================
+   ТЕМА «ЛЕС» (body.theme-forest)
+   ================================================================== */
+body.theme-forest {
+    background: linear-gradient(135deg, #0e2a1a 0%, #1c4a2c 100%);
+}
+body.theme-forest .container {
+    background: linear-gradient(180deg, #1d3a26 0%, #2a5236 100%);
+    border-color: #4c8f3e;
+    box-shadow: 0 20px 40px rgba(0,0,0,.6), inset 0 0 20px rgba(76,143,62,.15);
+}
+body.theme-forest header { border-bottom-color: #4c8f3e; }
+body.theme-forest header h1 { color: #9ade7b; }
+body.theme-forest .stat { border-color: #4c8f3e; }
+body.theme-forest .stat .label { color: #7cb45f; }
+body.theme-forest .stat .value { color: #9ade7b; }
+body.theme-forest .level-name { color: #9ade7b; }
+body.theme-forest .level-target-wrap strong { color: #9ade7b; }
+body.theme-forest .btn-icon { background: rgba(0,0,0,.3); border-color: #4c8f3e; }
+body.theme-forest .btn-secondary { background: rgba(0,0,0,.3); border-color: #4c8f3e; }
+body.theme-forest .btn-ghost { border-color: rgba(255,255,255,.2); }
+body.theme-forest .board { border-color: #4c8f3e; background: #17301f; box-shadow: inset 0 0 30px rgba(0,0,0,.4), 0 8px 20px rgba(0,0,0,.35); }
+body.theme-forest .board .cell { background: rgba(255,255,255,.06); }
+body.theme-forest .instructions { background: rgba(0,0,0,.25); border-color: #4c8f3e; }
+body.theme-forest .instructions h2 { color: #9ade7b; }
+body.theme-forest .instructions li { color: #d6e8cd; }
+body.theme-forest footer { border-top-color: #4c8f3e; color: #b7d9a5; }
+body.theme-forest .footer-links a { color: #9ade7b; }
+body.theme-forest .modal { background: linear-gradient(180deg, #1d3a26, #152a1d); }
+body.theme-forest .modal-title { color: #9ade7b; }
+body.theme-forest .modal-message { color: #d6e8cd; }
+body.theme-forest .modal-score { background: rgba(0,0,0,.25); border-color: #4c8f3e; color: #9ade7b; }
+body.theme-forest .level-card { background: rgba(0,0,0,.25); }
+body.theme-forest .level-card.unlocked:hover { background: rgba(76,143,62,.25); }
+body.theme-forest .lc-num, body.theme-forest .lc-target { color: #9ade7b; }
+body.theme-forest .lc-name { color: #d6e8cd; }
+body.theme-forest .setting-option, body.theme-forest .achievement { background: rgba(0,0,0,.25); }
+body.theme-forest .setting-btn { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.15); color: #d6e8cd; }
+body.theme-forest .setting-btn.active { border-color: #9ade7b; background: rgba(154,222,123,.15); }
+body.theme-forest .daily-task { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.12); }
+body.theme-forest .daily-name { color: #d6e8cd; }
+body.theme-forest .leaderboard-row { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.12); }
+body.theme-forest .lb-name { color: #d6e8cd; }
+body.theme-forest .daily-login { border-color: #4c8f3e; }
+body.theme-forest .dl-day { background: rgba(0,0,0,.3); border-color: rgba(255,255,255,.12); }
+body.theme-forest .boost-count { background: rgba(0,0,0,.35); }
+body.theme-forest .shop-tab { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.14); }
+body.theme-forest .shop-item { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.12); }
+body.theme-forest .shop-name { color: #9ade7b; }
