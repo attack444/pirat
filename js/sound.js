@@ -2,6 +2,7 @@
 
 let ctx = null;
 let masterGain = null;
+let muted = false;      // глушение: потеря фокуса (п. 1.3), полноэкранная реклама (п. 4.7)
 
 /** Создание/возобновление AudioContext (по первому жесту пользователя). */
 function ensure() {
@@ -32,6 +33,7 @@ function ensure() {
  * @param {number} [opts.delay]     задержка старта (с)
  */
 function tone({ freq = 440, end = freq, dur = 0.08, type = 'sine', vol = 0.5, delay = 0 }) {
+    if (muted) return;   // пока звук заглушён, новые звуки не ставим
     const c = ensure();
     if (!c) return;
 
@@ -74,4 +76,21 @@ export function playWin() {
 /** Поражение (нисходящий гудок). */
 export function playGameOver() {
     tone({ freq: 392, end: 196, dur: 0.5, type: 'sawtooth', vol: 0.22 });
+}
+
+// ── Глушение звука (п. 1.3 «потеря фокуса», п. 4.7 «полноэкранная реклама») ──
+/** Приостановить воспроизведение и запретить новые звуки. */
+export function suspendSound() {
+    muted = true;
+    try {
+        if (ctx && ctx.state === 'running') ctx.suspend().catch(() => {});
+    } catch (_) {}
+}
+
+/** Возобновить воспроизведение. */
+export function resumeSound() {
+    muted = false;
+    try {
+        if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
+    } catch (_) {}
 }

@@ -131,7 +131,7 @@ describe('sdk Yandex connection path', () => {
         assert.ok(s.ya, 'sdk.ya should hold the YaGames.init() result');
     });
 
-    it('loads the official relative /sdk.js before the CDN fallback', async () => {
+    it('loads only the official relative /sdk.js (п. 1.7: без URL на S3-серверы)', async () => {
         setSearch('?platform=yandex');
         setWindow({});
         const srcs = [];
@@ -149,11 +149,33 @@ describe('sdk Yandex connection path', () => {
         try {
             const s = makeSdk();
             assert.equal(await s.init(), 'yandex');
-            assert.equal(srcs[0], '/sdk.js');
-            assert.equal(srcs[1], 'https://sdk.games.s3.yandex.net/sdk.js');
+            assert.deepEqual(srcs, ['/sdk.js'], 'подключается только относительный /sdk.js');
+            assert.ok(srcs.every((src) => !/s3[.-]/.test(src) && !src.includes('yandex.net')),
+                'в коде не должно быть абсолютных URL на S3-серверы Яндекса');
         } finally {
             globalThis.document.createElement = origCreate;
         }
+    });
+
+    it('detects the user language at startup (п. 2.14)', async () => {
+        setSearch('?platform=yandex');
+        setWindow({
+            ysdk: {
+                getPlayer: async () => ({}),
+                environment: { i18n: { lang: 'ru' } },
+            },
+        });
+        const s = makeSdk();
+        assert.equal(await s.init(), 'yandex');
+        assert.equal(s.getLang(), 'ru');
+    });
+
+    it('returns null language when SDK has no i18n environment', async () => {
+        setSearch('?platform=yandex');
+        setWindow({ ysdk: { getPlayer: async () => ({}) } });
+        const s = makeSdk();
+        assert.equal(await s.init(), 'yandex');
+        assert.equal(s.getLang(), null);
     });
 
     it('does not hang when YaGames.init() never resolves (timeout guard)', async () => {

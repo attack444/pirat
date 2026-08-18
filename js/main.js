@@ -2,7 +2,7 @@
 
 import Game from './game.js';
 import { applyPlatform, hapticLight } from './platform.js';
-import { playMove, playMerge, playWin, playGameOver } from './sound.js';
+import { playMove, playMerge, playWin, playGameOver, suspendSound, resumeSound } from './sound.js';
 import sdk from './platform-sdk.js';
 import { applyLevelWin, applyLevelGameOver, isLevelUnlocked } from './progress.js';
 import { resolveConflict, mergeBoardSaves } from './cloud-sync.js';
@@ -220,6 +220,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (loadingBarFill) loadingBarFill.style.width = '10%';
     sdk.setLoadingProgress(10);
     await sdk.init();
+    // П. 2.14: автоопределение языка — при запуске (не в процессе игры).
+    const detectedLang = sdk.getLang();
+    if (detectedLang) document.documentElement.lang = detectedLang;
     if (loadingHint) loadingHint.textContent = 'Открываем карту сокровищ…';
     if (loadingBarFill) loadingBarFill.style.width = '40%';
     sdk.setLoadingProgress(40);
@@ -792,7 +795,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (sdk.isPlatform() && now - (state.lastAdTime || 0) > 4 * 60 * 1000) {
                     state.lastAdTime = now;
                     saveState(state);
-                    pendingInterstitial = setTimeout(() => sdk.showInterstitial(), 1200);
+                    pendingInterstitial = setTimeout(() => { runWithAdPause(() => sdk.showInterstitial()); }, 1200);
                 }
             },
         });
@@ -909,7 +912,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 reviveBusy = true;
                 // Отменяем отложенный interstitial, чтобы не было двух роликов подряд
                 clearTimeout(pendingInterstitial);
-                const ok = await sdk.showRewarded();
+                const ok = await runWithAdPause(() => sdk.showRewarded());
                 if (!ok) {
                     reviveBusy = false;
                     showToast('Реклама не показана — попробуй ещё', '⚠️');
@@ -1145,7 +1148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // На площадках после 3 бесплатных подсказок — реклама за награду
         if (sdk.isPlatform() && (state.hintsUsed || 0) >= 3) {
             showToast('За подсказку — реклама', '🎬');
-            const ok = await sdk.showRewarded();
+            const ok = await runWithAdPause(() => sdk.showRewarded());
             if (!ok) { showToast('Реклама не показана — попробуй ещё', '⚠️'); return; }
         }
         const h = game.hint();
@@ -1176,7 +1179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // На площадках отмена хода — за rewarded-рекламу
         if (sdk.isPlatform()) {
             showToast('За отмену хода — реклама', '🎬');
-            const ok = await sdk.showRewarded();
+            const ok = await runWithAdPause(() => sdk.showRewarded());
             if (!ok) { showToast('Реклама не показана', '⚠️'); return; }
         } else {
             // Веб: N бесплатных отмен в день, дальше — дублоны
@@ -1293,6 +1296,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (pauseOverlay) pauseOverlay.classList.toggle('visible', !!paused);
     }
 
+    // ── Показ полноэкранной рекламы: звук и геймплей на паузу (п. 4.7) ──
+    // Перед показом глушим звук и приостанавливаем игру, после закрытия — возвращаем.
+    async function runWithAdPause(action) {
+        const wasPaused = !!(game && game.paused);
+        suspendSound();
+        if (game && !game.gameOver && !game.won && !game.paused) {
+            game.setPaused(true);
+        }
+        try {
+            return await action();
+        } finally {
+            resumeSound();
+            if (game && !wasPaused && !game.gameOver && !game.won) {
+                game.setPaused(false);
+            }
+        }
+    }
+
     pauseBtn.addEventListener('click', () => {
         if (!game || game.won || game.gameOver) return;
         setPaused(!game.paused);
@@ -1302,12 +1323,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     pauseRestartBtn.addEventListener('click', () => openRestartConfirm(true));
 
-    // Авто-пауза при скрытии вкладки / переключении приложения
+    // Авто-пауза при скрытии вкладки / переключении приложения (п. 1.3):
+    // звук глушится сразу, игра ставится на паузу, при возврате — возобновляется.
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden && game && !game.paused && !game.gameOver && !game.won
-            && !document.querySelector('.modal-overlay.visible')) {
-            setPaused(true);
+        if (document.hidden) {
+            suspendSound();
+            if (game && !game.paused && !game.gameOver && !game.won
+                && !document.querySelector('.modal-overlay.visible')) {
+                setPaused(true);
+            }
+        } else {
+            resumeSound();
         }
+    });
+
+    // Потеря фокуса окна/iframe — звук останавливается (п. 1.3), при возврате — возобновляется.
+    window.addEventListener('blur', () => suspendSound());
+    window.addEventListener('focus', () => resumeSound());
+
+    // Запрет контекстного меню на игровом поле (п. 1.6.1.8 / 1.6.2.7):
+    // правый клик на десктопе и долгое нажатие на мобильных не открывают меню.
+    document.addEventListener('contextmenu', (e) => {
+        if (e.target.closest && e.target.closest('.board, .dpad')) e.preventDefault();
     });
 
     // Esc — выход из паузы

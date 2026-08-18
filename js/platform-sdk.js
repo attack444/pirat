@@ -59,20 +59,14 @@ async function ensureYaGames() {
         return window.ysdk || null;
     }
     // Официальная схема подключения SDK Яндекс Игр (п.1.1 требований платформы):
-    // https://yandex.ru/dev/games/doc/dg/sdk/sdk-about.html — раздел «Подключение».
-    // 1) относительный /sdk.js — проксируется платформой для игр, загруженных
-    //    архивом на сервер Яндекса (рекомендуемый путь, проверяется модерацией);
-    // 2) абсолютный https://sdk.games.s3.yandex.net/sdk.js — для своего домена
-    //    и локального предпросмотра вне платформы.
+    // https://yandex.ru/dev/games/doc/ru/sdk/sdk-about.html — раздел «Подключение».
+    // Относительный /sdk.js проксируется платформой для игр, загруженных архивом
+    // на сервер Яндекса (рекомендуемый путь, проверяется модерацией).
+    // ВАЖНО (п.1.7): в программном коде нет абсолютных URL на S3-серверы Яндекса.
     if (!window.__yaSdkScriptLoaded) {
         await loadScript('/sdk.js');
         window.__yaSdkScriptLoaded = true;
     }
-    if (window.YaGames) {
-        try { window.ysdk = await withTimeout(window.YaGames.init()); } catch (_) {}
-        return window.ysdk || null;
-    }
-    await loadScript('https://sdk.games.s3.yandex.net/sdk.js');
     if (window.YaGames) {
         try { window.ysdk = await withTimeout(window.YaGames.init()); } catch (_) {}
     }
@@ -84,6 +78,7 @@ export const sdk = {
     vk: null,
     ya: null,
     player: null,
+    lang: null,           // автоопределённый язык (п. 2.14) — из environment.i18n.lang
     initialized: false,
 
     async init() {
@@ -96,11 +91,19 @@ export const sdk = {
                 try { this.player = await this.ya.getPlayer({ scopes: false }); } catch (_) {}
             }
         }
+        // П. 2.14: автоопределение языка — строго при запуске, не в процессе игры.
+        // ysdk.environment.i18n.lang доступен сразу после YaGames.init().
+        this.lang = this.ya?.environment?.i18n?.lang || null;
         this.initialized = true;
         return this.host;
     },
 
     isPlatform() { return this.host === 'vk' || this.host === 'yandex'; },
+
+    // ── Язык (п. 2.14) ─────────────────────────────────────────
+    getLang() {
+        return this.lang;
+    },
 
     // ── Загрузочный экран (Yandex LoadingAPI) ──────────────────
     setLoadingProgress(p) {
