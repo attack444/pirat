@@ -18,6 +18,12 @@
     <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 
+    <!-- Yandex Games SDK: подключение по относительному пути /sdk.js —
+         официальная схема для игр, загружаемых архивом на сервер Яндекса
+         (https://yandex.ru/dev/games/doc/dg/sdk/sdk-about.html, раздел «Подключение»).
+         На площадках VK / Web / Native путь не резолвится — безвредно игнорируется. -->
+    <script async src="/sdk.js" onload="window.__yaSdkScriptLoaded = true"></script>
+
     <title>Пират 2048 — головоломка 2048</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>

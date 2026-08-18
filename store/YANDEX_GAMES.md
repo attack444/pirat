@@ -1,9 +1,13 @@
 # Яндекс Игры — публикация «Пират 2048»
 
 Гайд по публикации браузерной версии игры на платформе **Яндекс Игры**
-(games.yandex.ru). Игра запускается в iframe на Яндексе, SDK v2 встроен хостом.
+(games.yandex.ru). Игра запускается в iframe на Яндексе. SDK v2 подключается по
+официальной схеме (https://yandex.ru/dev/games/doc/dg/sdk/sdk-about.html,
+п. 1.1 требований платформы): относительный путь `/sdk.js` — проксируется
+платформой для игр, загруженных архивом на сервер Яндекса. Путь
+`https://yandex.ru/games/sdk/v2` больше не используется.
 
-Обновлён: 2026-08-18.
+Обновлён: 2026-08-19.
 
 ## Что уже реализовано (SDK-адаптер `js/platform-sdk.js`)
 
@@ -21,6 +25,27 @@
 Все методы безопасны: без SDK / без авторизации / без модерации рекламы они
 возвращают `false`/пустые данные, игра продолжает работать (web-режим).
 
+## Подключение SDK (официальная схема, п. 1.1 требований платформы)
+
+Источник: https://yandex.ru/dev/games/doc/dg/sdk/sdk-about.html — раздел «Подключение».
+
+1. В `index.html` в `<head>` добавлен статический тег — модератор видит, что SDK
+   «встроен» в игру:
+   ```html
+   <script async src="/sdk.js" onload="window.__yaSdkScriptLoaded = true"></script>
+   ```
+2. В `js/platform-sdk.js` (`ensureYaGames()`) порядок загрузки:
+   - сначала относительный `/sdk.js` — проксируется платформой для архивных игр
+     (рекомендуемый путь, проверяется модерацией: индикатор загрузчика `IT`);
+   - фолбэк `https://sdk.games.s3.yandex.net/sdk.js` — для локального предпросмотра
+     вне платформы (`?platform=yandex` на своём домене);
+   - `YaGames.init()` вызывается только после загрузки скрипта и обёрнут в
+     `withTimeout(5 с)` — игра не зависнет на лоадере, если init не вернётся.
+3. ❌ `https://yandex.ru/games/sdk/v2` (старый путь) **удалён** — именно он был
+   причиной отклонения «Не встроено или некорректно встроено SDK» (п. 1.1).
+4. Индикатор загрузчика (Loader Indicator): `IT` (новый загрузчик, корректный),
+   `IF` — старый.
+
 ## Сборка (локально, Windows)
 
 ```bash
@@ -28,12 +53,12 @@ npm run build:yandex
 # → build/yandex/  (index.html, manifest.json, sw.js, privacy-policy.html,
 #   css/styles.css, icons/, js/ — 14 модулей, без тестов и мусора)
 
-powershell -Command "Compress-Archive -Path 'D:\pirat\build\yandex\*' -DestinationPath 'D:\pirat\build\pirate-2048-yandex.zip' -Force"
-# → build/pirate-2048-yandex.zip (≈90 КБ) — готов для загрузки в кабинет
+powershell -Command "Compress-Archive -Path 'D:\pirat\build\yandex\*' -DestinationPath 'D:\pirat\build\yandex.zip' -Force"
+# → build/yandex.zip (≈91 КБ) — готов для загрузки в кабинет
 ```
 
-ZIP **уже собран и актуален** (пересобран 18.08.2026 после фикса SW):
-`build/pirate-2048-yandex.zip`, 90541 байт. Внутри:
+ZIP **уже собран и актуален** (пересобран 19.08.2026 после фикса подключения SDK):
+`build/yandex.zip`, 91214 байт. Внутри:
 - `index.html` лежит в корне (требование Яндекса);
 - `js/main.js` — актуальный, с условием `platform.isWeb && sdk.host === 'web'`
   (на площадке SW не регистрируется);
@@ -43,7 +68,7 @@ ZIP **уже собран и актуален** (пересобран 18.08.2026
 
 Повторная сборка/переархивация (если меняли код):
 ```bash
-npm run build:yandex && powershell -Command "Compress-Archive -Path 'D:\pirat\build\yandex\*' -DestinationPath 'D:\pirat\build\pirate-2048-yandex.zip' -Force"
+npm run build:yandex && powershell -Command "Compress-Archive -Path 'D:\pirat\build\yandex\*' -DestinationPath 'D:\pirat\build\yandex.zip' -Force"
 ```
 
 ## Шпаргалка для черновика (копируй-вставляй)
@@ -136,7 +161,7 @@ npm run build:yandex && powershell -Command "Compress-Archive -Path 'D:\pirat\bu
 
 | Поле | Файл |
 |------|------|
-| Архив (ZIP) | `D:\pirat\build\pirate-2048-yandex.zip` (90 КБ) |
+| Архив (ZIP) | `D:\pirat\build\yandex.zip` (91 КБ) |
 
 ## Пошаговая инструкция отправки в кабинет (детально)
 
@@ -150,7 +175,7 @@ npm run build:yandex && powershell -Command "Compress-Archive -Path 'D:\pirat\bu
 
 ### Шаг 2. Загрузить игровой файл (ZIP)
 1. Открыть вкладку/раздел **«Игровые файлы»** (или «Архив игры»).
-2. Загрузить `D:\pirat\build\pirate-2048-yandex.zip` (**90 КБ**).
+2. Загрузить `D:\pirat\build\yandex.zip` (**91 КБ**).
 3. Требование Яндекса выполнено: `index.html` в корне архива.
 4. Нажать «Сохранить»/«Проверить» — кабинет распакует архив и покажет структуру.
 
@@ -212,14 +237,16 @@ npm run build:yandex && powershell -Command "Compress-Archive -Path 'D:\pirat\bu
 - [ ] Облачное сохранение: прогресс переживает перезагрузку в другом окне/браузере.
 - [ ] Кнопка «На весь экран» не роняет iframe (код игнорирует отказ).
 - [ ] Никаких консольных ошибок (F12 в песочнице).
+- [ ] SDK загружен: нет ошибок `Failed to load resource: /sdk.js`, нет запросов к `yandex.ru/games/sdk/v2`; `YaGames.init()` отрабатывает (лоадер доходит до 100%).
 
 ## Типичные причины отклонения (и как у нас)
 
 | Причина | Статус у нас |
 |---------|-------------|
+| SDK не встроен / встроен некорректно (п. 1.1) | ✅ исправлено 19.08: статический `<script async src="/sdk.js">` в `<head>` + `ensureYaGames()` (`/sdk.js` → CDN); `yandex.ru/games/sdk/v2` удалён |
 | Ошибка запуска/не открывается index.html в корне | ✅ index.html в корне архива |
 | Сломанная вёрстка/нечитаемые тексты | ✅ проверено на скриншотах 1280×720 |
-| Ошибки консоли / краши | ✅ тесты 177/177, песочница |
+| Ошибки консоли / краши | ✅ тесты 180/180, песочница |
 | Нет политики конфиденциальности | ✅ `privacy-policy.html` в архиве + на 5mb2.ru |
 | Реклама без модерации/нарушение | ✅ до модерации реклама не показывается |
 | Некорректный возрастной рейтинг | ✅ 3+, без насилия/азарта |
@@ -230,7 +257,8 @@ npm run build:yandex && powershell -Command "Compress-Archive -Path 'D:\pirat\bu
 - [x] Загрузочный экран с прогрессом (LoadingAPI)
 - [x] Облачные сохранения (setData/getData)
 - [x] Регистрация SW отключена на площадке
-- [x] Сборка `build/yandex` + ZIP (`build/pirate-2048-yandex.zip`) — актуальны (18.08.2026)
+- [x] SDK встроен по официальной схеме: статический `<script async src="/sdk.js">` в `<head>` + `ensureYaGames()` (`/sdk.js` → CDN-фолбэк), без `yandex.ru/games/sdk/v2`
+- [x] Сборка `build/yandex` + ZIP (`build/yandex.zip`) — актуальны (19.08.2026)
 - [x] Скриншоты 1280×720: `store/shots/yandex-*.png` (home, moves, shop, shop-skin)
 - [ ] Загрузить ZIP в кабинет Яндекс Игр
 - [ ] Заполнить метаданные + загрузить скриншоты 1280×720 и иконку 512×512

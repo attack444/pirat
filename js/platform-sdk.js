@@ -34,6 +34,18 @@ function loadScript(src) {
     });
 }
 
+// Ограничиваем время инициализации, чтобы игра не «зависала» на загрузочном
+// экране, если SDK недоступен (важно для прохождения модерации п.1.1).
+function withTimeout(promise, ms = 5000) {
+    return new Promise((resolve) => {
+        let done = false;
+        const timer = setTimeout(() => { if (!done) { done = true; resolve(null); } }, ms);
+        const finish = (v) => { if (!done) { done = true; clearTimeout(timer); resolve(v); } };
+        try { Promise.resolve(promise).then(finish, () => finish(null)); }
+        catch (_) { finish(null); }
+    });
+}
+
 async function ensureBridge() {
     if (window.vkBridge) return window.vkBridge;
     await loadScript('https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js');
@@ -43,12 +55,26 @@ async function ensureBridge() {
 async function ensureYaGames() {
     if (window.ysdk) return window.ysdk;
     if (window.YaGames) {
-        try { window.ysdk = await window.YaGames.init(); } catch (_) {}
+        try { window.ysdk = await withTimeout(window.YaGames.init()); } catch (_) {}
         return window.ysdk || null;
     }
-    await loadScript('https://yandex.ru/games/sdk/v2');
+    // Официальная схема подключения SDK Яндекс Игр (п.1.1 требований платформы):
+    // https://yandex.ru/dev/games/doc/dg/sdk/sdk-about.html — раздел «Подключение».
+    // 1) относительный /sdk.js — проксируется платформой для игр, загруженных
+    //    архивом на сервер Яндекса (рекомендуемый путь, проверяется модерацией);
+    // 2) абсолютный https://sdk.games.s3.yandex.net/sdk.js — для своего домена
+    //    и локального предпросмотра вне платформы.
+    if (!window.__yaSdkScriptLoaded) {
+        await loadScript('/sdk.js');
+        window.__yaSdkScriptLoaded = true;
+    }
     if (window.YaGames) {
-        try { window.ysdk = await window.YaGames.init(); } catch (_) {}
+        try { window.ysdk = await withTimeout(window.YaGames.init()); } catch (_) {}
+        return window.ysdk || null;
+    }
+    await loadScript('https://sdk.games.s3.yandex.net/sdk.js');
+    if (window.YaGames) {
+        try { window.ysdk = await withTimeout(window.YaGames.init()); } catch (_) {}
     }
     return window.ysdk || null;
 }

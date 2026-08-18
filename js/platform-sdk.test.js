@@ -115,6 +115,59 @@ describe('sdk.init / host detection', () => {
     });
 });
 
+// ── Yandex SDK connection path (модерация п.1.1 требований) ──────────────
+describe('sdk Yandex connection path', () => {
+    it('initializes via window.YaGames.init() when the SDK script is present', async () => {
+        setSearch('?platform=yandex');
+        let initCalls = 0;
+        setWindow({
+            YaGames: {
+                init: async () => { initCalls++; return { features: { LoadingAPI: {} } }; },
+            },
+        });
+        const s = makeSdk();
+        assert.equal(await s.init(), 'yandex');
+        assert.equal(initCalls, 1);
+        assert.ok(s.ya, 'sdk.ya should hold the YaGames.init() result');
+    });
+
+    it('loads the official relative /sdk.js before the CDN fallback', async () => {
+        setSearch('?platform=yandex');
+        setWindow({});
+        const srcs = [];
+        const origCreate = globalThis.document.createElement;
+        globalThis.document.createElement = (tag) => {
+            const el = origCreate(tag);
+            let _src = '';
+            Object.defineProperty(el, 'src', {
+                get() { return _src; },
+                set(v) { _src = v; srcs.push(v); },
+                configurable: true,
+            });
+            return el;
+        };
+        try {
+            const s = makeSdk();
+            assert.equal(await s.init(), 'yandex');
+            assert.equal(srcs[0], '/sdk.js');
+            assert.equal(srcs[1], 'https://sdk.games.s3.yandex.net/sdk.js');
+        } finally {
+            globalThis.document.createElement = origCreate;
+        }
+    });
+
+    it('does not hang when YaGames.init() never resolves (timeout guard)', async () => {
+        setSearch('?platform=yandex');
+        setWindow({ YaGames: { init: () => new Promise(() => {}) } });
+        const s = makeSdk();
+        const start = Date.now();
+        const host = await s.init();
+        assert.equal(host, 'yandex');
+        assert.equal(s.ya, null);
+        assert.ok(Date.now() - start < 10000, 'should resolve well before the 5s timeout');
+    });
+});
+
 // ── Cloud saves ──────────────────────────────────────────────────────────
 describe('sdk.saveCloud / loadCloud', () => {
     it('saves to VK storage and returns true', async () => {
