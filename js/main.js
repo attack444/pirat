@@ -48,6 +48,8 @@ function loadState() {
         dailyCounters: { moves: 0, merges: 0, wins: 0, hints: 0, undos: 0 },
         // Реклама: кулдаун interstitial
         lastAdTime: 0,
+        // Фаза 2: одноразовые соц-бонусы за добавление в избранное / на главный экран
+        socialBonuses: {},
         // Метка последнего изменения — для разрешения конфликтов облако/локально
         updatedAt: 0,
         // Онбординг уже показан
@@ -142,6 +144,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const leaderboardList  = $('leaderboard-list');
     const closeLeaderboardBtn = $('close-leaderboard-btn');
     const shareBtn         = $('share-btn');
+    // Фаза 2: соцмеханики VK
+    const inviteBtn       = $('invite-btn');
+    const requestBtn      = $('request-btn');
+    const storyBtn        = $('story-btn');
+    const favoritesBtn    = $('favorites-btn');
+    const homeScreenBtn   = $('home-screen-btn');
     // Магазин, ежедневный вход, бусты
     const shopBtn          = $('shop-btn');
     const shopModal        = $('shop-modal');
@@ -1019,6 +1027,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             addModalBtn('🏆 Таблица', 'btn-secondary', () => sdk.showLeaderboard(score, state.currentLevel));
         }
 
+        // VK: пригласить друзей сыграть (retention-механика, Фаза 2).
+        if (sdk.host === 'vk') {
+            addModalBtn('👥 Пригласить друзей', 'btn-secondary', () => runSocial(() => sdk.showInvite('ocean2048_invite')));
+        }
+
         showModal(gameModal);
     }
 
@@ -1081,6 +1094,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // VK: кнопка системной таблицы результатов (друзья/все).
         if (sdk.host === 'vk') {
             addModalBtn('🏆 Таблица', 'btn-ghost', () => sdk.showLeaderboard(score, state.currentLevel));
+        }
+
+        // VK: пригласить друзей сыграть (retention-механика, Фаза 2).
+        if (sdk.host === 'vk') {
+            addModalBtn('👥 Пригласить друзей', 'btn-ghost', () => runSocial(() => sdk.showInvite('ocean2048_invite')));
         }
 
         showModal(gameModal);
@@ -1413,6 +1431,81 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     shareBtn.addEventListener('click', () => shareResult(state.bestTotal || 0));
+
+    // ── Соцмеханики VK (Фаза 2) ───────────────────────────────
+    // Показываем кнопки только на платформе VK. По требованиям VK между раундами
+    // открываем не чаще одного диалога — кнопки живут в настройках (меню), где
+    // игрок сознательно открывает соц-действие.
+
+    // Одноразовый бонус жемчужинами за соц-действие (избранное / главный экран).
+    // Ключ хранится в state.socialBonuses, чтобы награда начислялась один раз.
+    function grantSocialBonus(key, amount, text, icon) {
+        const bonuses = state.socialBonuses || {};
+        if (bonuses[key]) return false; // уже получал
+        bonuses[key] = true;
+        state.socialBonuses = bonuses;
+        saveState(state);
+        addDoubloons(amount, text, icon);
+        return true;
+    }
+
+    // Защита от двойного нажатия: пока диалог открыт — кнопка «занята».
+    let socialBusy = false;
+    async function runSocial(action) {
+        if (socialBusy) return;
+        socialBusy = true;
+        try { await action(); } finally { socialBusy = false; }
+    }
+
+    if (sdk.host === 'vk') {
+        if (inviteBtn) inviteBtn.hidden = false;
+        if (requestBtn) requestBtn.hidden = false;
+        if (storyBtn) storyBtn.hidden = false;
+        if (favoritesBtn) favoritesBtn.hidden = false;
+        if (homeScreenBtn) homeScreenBtn.hidden = false;
+    }
+
+    if (inviteBtn) inviteBtn.addEventListener('click', () => runSocial(async () => {
+        const ok = await sdk.showInvite('ocean2048_invite');
+        showToast(ok ? 'Приглашение отправлено!' : 'Не удалось пригласить', ok ? '👥' : '⚠️');
+    }));
+
+    if (requestBtn) requestBtn.addEventListener('click', () => runSocial(async () => {
+        const best = state.bestTotal || 0;
+        const msg = `🌊 Я набрал ${best.toLocaleString('ru')} очков в «Океан 2048». Сможешь больше?`;
+        const ok = await sdk.showRequest(undefined, msg);
+        showToast(ok ? 'Вызов отправлен!' : 'Не удалось отправить вызов', ok ? '💪' : '⚠️');
+    }));
+
+    if (storyBtn) storyBtn.addEventListener('click', () => runSocial(async () => {
+        const best = state.bestTotal || 0;
+        const ok = await sdk.showStory({
+            text: `Мой рекорд — ${best.toLocaleString('ru')} 🌊 Океан 2048`,
+        });
+        showToast(ok ? 'История опубликована!' : 'Не удалось открыть истории', ok ? '📸' : '⚠️');
+    }));
+
+    if (favoritesBtn) favoritesBtn.addEventListener('click', () => runSocial(async () => {
+        const ok = await sdk.addToFavorites();
+        if (!ok) { showToast('Не удалось добавить в избранное', '⚠️'); return; }
+        // Награду (с тостом «+50 жемчужин») показывает addDoubloons один раз
+        const gained = grantSocialBonus('favorites', 50, 'добавление в избранное', '⭐');
+        if (!gained) showToast('Уже в избранном', '⭐');
+    }));
+
+    if (homeScreenBtn) homeScreenBtn.addEventListener('click', () => runSocial(async () => {
+        const ok = await sdk.addToHomeScreen();
+        if (!ok) { showToast('Не удалось добавить на главный экран', '⚠️'); return; }
+        const gained = grantSocialBonus('homeScreen', 50, 'добавление на главный экран', '📱');
+        if (!gained) showToast('Уже добавлено', '📱');
+    }));
+
+    // ── Контексты запуска (диплинки VK, Фаза 2) ────────────────
+    // vk_request_key — игрок пришёл по приглашению/запросу друга. Приветствуем.
+    const launchParams = sdk.getLaunchParams();
+    if (sdk.host === 'vk' && launchParams.vk_request_key) {
+        showToast('Друг позвал тебя в океан! 🌊', '🐬');
+    }
 
     // ── Магазин / ежедневный вход / бусты ────────────────────
     if (shopBtn) shopBtn.addEventListener('click', openShopModal);

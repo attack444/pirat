@@ -739,3 +739,139 @@ describe('sdk.share', () => {
         assert.equal(await s.share('text', 'https://x.test/'), false);
     });
 });
+
+// ── Соцмеханики VK (Фаза 2) ───────────────────────────────────────────────
+describe('sdk social mechanics (VK)', () => {
+    function vkSdk() {
+        const s = makeSdk();
+        s.host = 'vk';
+        const sent = [];
+        s.vk = { send: async (m, p) => { sent.push([m, p || {}]); return {}; } };
+        return { s, sent };
+    }
+
+    it('showInvite opens the invite box with requestKey', async () => {
+        const { s, sent } = vkSdk();
+        assert.equal(await s.showInvite('ocean2048_invite'), true);
+        assert.deepEqual(sent[0], ['VKWebAppShowInviteBox', { requestKey: 'ocean2048_invite' }]);
+    });
+
+    it('showInvite works without a requestKey', async () => {
+        const { s, sent } = vkSdk();
+        assert.equal(await s.showInvite(), true);
+        assert.deepEqual(sent[0], ['VKWebAppShowInviteBox', {}]);
+    });
+
+    it('showRequest sends a challenge message to a friend', async () => {
+        const { s, sent } = vkSdk();
+        assert.equal(await s.showRequest(123, 'Сможешь побить мой рекорд?'), true);
+        assert.deepEqual(sent[0], ['VKWebAppShowRequestBox', { user_id: 123, message: 'Сможешь побить мой рекорд?' }]);
+    });
+
+    it('showRequest without args still opens the friend picker', async () => {
+        const { s, sent } = vkSdk();
+        assert.equal(await s.showRequest(), true);
+        assert.deepEqual(sent[0], ['VKWebAppShowRequestBox', {}]);
+    });
+
+    it('truncates the request message to 200 chars', async () => {
+        const { s, sent } = vkSdk();
+        await s.showRequest(1, 'x'.repeat(300));
+        assert.equal(sent[0][1].message.length, 200);
+    });
+
+    it('showStory sends a text sticker + attachment + link', async () => {
+        const { s, sent } = vkSdk();
+        const ok = await s.showStory({
+            text: 'Новый рекорд!',
+            attachment: 'photo-1_2',
+            link: 'https://vk.com/app123',
+        });
+        assert.equal(ok, true);
+        const [m, p] = sent[0];
+        assert.equal(m, 'VKWebAppShowStoryBox');
+        assert.deepEqual(p.stickers, [{ sticker_type: 'text', sticker: { text: 'Новый рекорд!' } }]);
+        assert.equal(p.attachment, 'photo-1_2');
+        assert.equal(p.link, 'https://vk.com/app123');
+    });
+
+    it('showStory works with an empty opts object', async () => {
+        const { s, sent } = vkSdk();
+        assert.equal(await s.showStory(), true);
+        assert.deepEqual(sent[0][1], { background_type: 'image' });
+    });
+
+    it('addToFavorites calls VKWebAppAddToFavorites', async () => {
+        const { s, sent } = vkSdk();
+        assert.equal(await s.addToFavorites(), true);
+        assert.equal(sent[0][0], 'VKWebAppAddToFavorites');
+    });
+
+    it('addToHomeScreen calls VKWebAppAddToHomeScreen', async () => {
+        const { s, sent } = vkSdk();
+        assert.equal(await s.addToHomeScreen(), true);
+        assert.equal(sent[0][0], 'VKWebAppAddToHomeScreen');
+    });
+
+    it('getUserInfo maps the VK user object', async () => {
+        const s = makeSdk();
+        s.host = 'vk';
+        s.vk = { send: async () => ({ id: 42, first_name: 'Иван', last_name: 'Море', photo_200: 'http://x/1.jpg' }) };
+        const info = await s.getUserInfo();
+        assert.deepEqual(info, { id: 42, first_name: 'Иван', last_name: 'Море', photo_200: 'http://x/1.jpg' });
+    });
+
+    it('getUserInfo returns null when the bridge rejects', async () => {
+        const s = makeSdk();
+        s.host = 'vk';
+        s.vk = { send: async () => { throw new Error('x'); } };
+        assert.equal(await s.getUserInfo(), null);
+    });
+
+    it('getFriends maps the users list', async () => {
+        const s = makeSdk();
+        s.host = 'vk';
+        s.vk = { send: async () => ({ users: [{ id: 1, first_name: 'А', last_name: 'Б', photo_200: 'http://x/1.jpg' }] }) };
+        const friends = await s.getFriends();
+        assert.equal(friends.length, 1);
+        assert.equal(friends[0].id, 1);
+        assert.equal(friends[0].first_name, 'А');
+    });
+
+    it('getFriends returns [] when there are no users or on error', async () => {
+        const s = makeSdk();
+        s.host = 'vk';
+        s.vk = { send: async () => ({}) };
+        assert.deepEqual(await s.getFriends(), []);
+        s.vk = { send: async () => { throw new Error('x'); } };
+        assert.deepEqual(await s.getFriends(), []);
+    });
+
+    it('returns false / [] / null on non-VK hosts', async () => {
+        const s = makeSdk();
+        s.host = 'web';
+        assert.equal(await s.showInvite('k'), false);
+        assert.equal(await s.showRequest(), false);
+        assert.equal(await s.showStory({ text: 't' }), false);
+        assert.equal(await s.addToFavorites(), false);
+        assert.equal(await s.addToHomeScreen(), false);
+        assert.equal(await s.getUserInfo(), null);
+        assert.deepEqual(await s.getFriends(), []);
+    });
+
+    it('getLaunchParams merges query and hash params', () => {
+        // В реальном браузере location.search обрезается на '#', а hash идёт
+        // отдельно (диплинки VK Mini Apps). Стаб воспроизводит это разделение.
+        globalThis.location = {
+            search: '?platform=vk&foo=1',
+            hash: '#bar=2&name=Иван',
+            href: 'https://ocean2048.example/game?platform=vk&foo=1#bar=2&name=Иван',
+        };
+        const s = makeSdk();
+        const p = s.getLaunchParams();
+        assert.equal(p.platform, 'vk');
+        assert.equal(p.foo, '1');
+        assert.equal(p.bar, '2');
+        assert.equal(p.name, 'Иван');
+    });
+});

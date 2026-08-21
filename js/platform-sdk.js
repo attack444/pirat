@@ -414,6 +414,126 @@ export const sdk = {
         }
         return false;
     },
+
+    // ── Соцмеханики VK (Фаза 2) ────────────────────────────────
+    // Все методы безопасны: вне VK («web» / «yandex») возвращают false или [].
+    // ⚠️ По документации dev.vk.com приглашения (VKWebAppShowInviteBox) и запросы
+    // (VKWebAppShowRequestBox) доступны только после публикации в каталоге;
+    // код готовим заранее, активируем после каталога (Фаза 3).
+    // requestKey — дефолтный текст приглашения из кабинета приложения.
+    // Возвращает true, если системный диалог открыт.
+    async showInvite(requestKey) {
+        if (this.host !== 'vk' || !this.vk) return false;
+        try {
+            const params = {};
+            if (requestKey) params.requestKey = requestKey;
+            await this.vk.send('VKWebAppShowInviteBox', params);
+            return true;
+        } catch (_) { return false; }
+    },
+
+    // Запрос: выбрать друга и отправить ему сообщение-вызов из приложения.
+    // friendId — конкретный друг (по умолчанию системный выбор списка друзей).
+    // text — текст сообщения (по документации не более 200 символов).
+    // Возвращает true, если запрос отправлен.
+    async showRequest(friendId, text) {
+        if (this.host !== 'vk' || !this.vk) return false;
+        try {
+            const params = {};
+            if (friendId) params.user_id = friendId;
+            if (text) params.message = String(text).slice(0, 200);
+            await this.vk.send('VKWebAppShowRequestBox', params);
+            return true;
+        } catch (_) { return false; }
+    },
+
+    // История: публикация в «Истории» VK. Требует attachment в формате
+    // 'photo<owner_id>_<id>' (URL-хостинг историй VK недоступен из мини-приложений).
+    // opts: { text, attachment, link } — link добавляется как кнопка «Открыть».
+    // Возвращает true, если история открыта/опубликована.
+    async showStory(opts = {}) {
+        if (this.host !== 'vk' || !this.vk) return false;
+        try {
+            const params = { background_type: 'image' };
+            const { text, attachment, link } = opts;
+            if (text) params.stickers = [{ sticker_type: 'text', sticker: { text } }];
+            if (attachment) params.attachment = attachment;
+            if (link) params.link = link;
+            await this.vk.send('VKWebAppShowStoryBox', params);
+            return true;
+        } catch (_) { return false; }
+    },
+
+    // Добавить приложение в избранное (раздел меню VK).
+    // Возвращает true, если успешно.
+    async addToFavorites() {
+        if (this.host !== 'vk' || !this.vk) return false;
+        try {
+            await this.vk.send('VKWebAppAddToFavorites', {});
+            return true;
+        } catch (_) { return false; }
+    },
+
+    // Добавить на главный экран (Android; в iOS возвращает false — недоступно).
+    // По документации после успеха клиент получает событие VKWebAppAddToHomeScreenInfo.
+    // Возвращает true, если системный диалог открыт.
+    async addToHomeScreen() {
+        if (this.host !== 'vk' || !this.vk) return false;
+        try {
+            await this.vk.send('VKWebAppAddToHomeScreen', {});
+            return true;
+        } catch (_) { return false; }
+    },
+
+    // Профиль пользователя (VKWebAppGetUserInfo).
+    // Возвращает { id, first_name, last_name, photo_200 } или null.
+    async getUserInfo() {
+        if (this.host !== 'vk' || !this.vk) return null;
+        try {
+            const res = await this.vk.send('VKWebAppGetUserInfo', {});
+            if (!res) return null;
+            return {
+                id: res.id,
+                first_name: res.first_name || '',
+                last_name: res.last_name || '',
+                photo_200: res.photo_200 || '',
+            };
+        } catch (_) { return null; }
+    },
+
+    // Список друзей, установивших приложение (VKWebAppGetFriends).
+    // Возвращает массив { id, first_name, last_name, photo_200 } или [].
+    async getFriends() {
+        if (this.host !== 'vk' || !this.vk) return [];
+        try {
+            const res = await this.vk.send('VKWebAppGetFriends', {});
+            const users = res?.users || [];
+            return users.map((u) => ({
+                id: u.id,
+                first_name: u.first_name || '',
+                last_name: u.last_name || '',
+                photo_200: u.photo_200 || '',
+            }));
+        } catch (_) { return []; }
+    },
+
+    // Параметры запуска мини-приложения: query-параметры + хэш (#).
+    // Возвращает объект; vk_request_key — ключ запроса/приглашения от друга.
+    getLaunchParams() {
+        const params = {};
+        try {
+            const q = new URLSearchParams(location.search);
+            q.forEach((v, k) => { params[k] = v; });
+            const h = String(location.hash || '').replace(/^#/, '');
+            if (h) {
+                h.split('&').forEach((pair) => {
+                    const [k, v] = pair.split('=');
+                    if (k) params[k] = decodeURIComponent(v || '');
+                });
+            }
+        } catch (_) {}
+        return params;
+    },
 };
 
 export default sdk;
