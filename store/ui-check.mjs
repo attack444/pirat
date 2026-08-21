@@ -3,7 +3,7 @@
 import puppeteer from 'puppeteer-core';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 
-const OUT = 'D:/pirat/store/shots';
+const OUT = 'D:/ocean-2048/store/shots';
 mkdirSync(OUT, { recursive: true });
 
 const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
@@ -75,7 +75,7 @@ async function runViewport(label, width, height, tag) {
   await page.click('#dl-claim-btn');
   await sleep(400);
   const doubloonsAfterClaim = await text('#doubloons');
-  check(grp + 'дублоны после входа = 50', doubloonsAfterClaim === '50', `факт: ${doubloonsAfterClaim}`);
+  check(grp + 'жемчужины после входа = 50', doubloonsAfterClaim === '50', `факт: ${doubloonsAfterClaim}`);
   check(grp + 'баннер скрыт после входа', !(await visible('#daily-login')));
 
   // ── Магазин
@@ -131,5 +131,5 @@ const pass = results.filter((r) => r.ok).length;
 const fail = results.filter((r) => !r.ok).length;
 console.log(`\nИТОГО: ${pass} PASS, ${fail} FAIL`);
 log.push(`\nИТОГО: ${pass} PASS, ${fail} FAIL`);
-writeFileSync('D:/pirat/store/ui-check-report.txt', log.join('\n'));
+writeFileSync('D:/ocean-2048/store/ui-check-report.txt', log.join('\n'));
 console.log('Отчёт: store/ui-check-report.txt');

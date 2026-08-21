@@ -2,7 +2,11 @@
 // Единый интерфейс для VK Mini Apps, Yandex Games и обычного веба (PWA / локальный запуск).
 // Все методы безопасны: на вебе без SDK они «вырождаются» в локальные/пустые операции.
 
-const LB_NAME = 'pirat2048_top';
+const LB_NAME = 'ocean2048_top';
+// Уровень по умолчанию для VK-лидерборда (VKWebAppSaveToLeaderBoard.level).
+// В main.js при отправке результата передаётся текущий игровой уровень (1–7);
+// это значение — запасной вариант, если уровень не был передан.
+const VK_LEADERBOARD_LEVEL = 1;
 
 function detectHost() {
     const params = new URLSearchParams(location.search);
@@ -14,10 +18,61 @@ function detectHost() {
     if (window.vkBridge || window.VKWebApp) return 'vk';
     if (params.get('vk_app_id') || params.get('vk_platform') || params.get('vk_user_id')) return 'vk';
 
-    // Yandex Games: SDK уже встроен хостом
-    if (window.ysdk || window.YaGames) return 'yandex';
+    // Yandex Games: SDK встроен через тег <script src="/sdk.js"> в <head> (async)
+    // ИЛИ внедрён самой платформой. Платформа Яндекс Игр всегда добавляет в URL
+    // страницы игры параметры app-id и sdk (и при обычном запуске, и в debug-режиме).
+    // Без этой проверки, если тег /sdk.js вернул onerror (__yaSdkScriptFailed=true),
+    // а window.YaGames ещё не создан — хост ошибочно определяется как 'web' и
+    // YaGames.init() не вызывается → «SDK was not initialized» (модерация «W»).
+    if (window.ysdk || window.YaGames || window.__yaSdkScriptLoaded) return 'yandex';
+    if (params.has('app-id') || params.has('sdk')) return 'yandex';
 
     return 'web';
+}
+
+// Есть ли в документе тег <script src="/sdk.js"> (подключён в index.html)?
+// Селектор покрывает и "/sdk.js" (ведущий слэш — официальный путь для архива),
+// и "sdk.js" (без слэша) на случай локальной разработки.
+// Если тег отсутствует — ждать результат его загрузки не нужно.
+function hasYandexSdkTag() {
+    try {
+        return Array.from(
+            document.querySelectorAll('script[src="/sdk.js"], script[src="sdk.js"]')
+        ).length > 0;
+    } catch (_) {
+        return false;
+    }
+}
+
+// Ждём завершения загрузки тега <script src="/sdk.js"> (async в <head>), чтобы
+// корректно определить платформу даже если скрипт ещё грузился при старте модуля.
+// На платформе Яндекса onload → window.__yaSdkScriptLoaded (SDK создаст window.YaGames);
+// вне платформы /sdk.js не существует → onerror → window.__yaSdkScriptFailed.
+// Таймаут ограничивает ожидание, чтобы игра не задерживалась на лоадере (п. 1.1).
+function waitForSdkTagResult(ms = 2500) {
+    return new Promise((resolve) => {
+        if (!hasYandexSdkTag()) return resolve();
+        const settled = () =>
+            window.__yaSdkScriptLoaded || window.__yaSdkScriptFailed || window.YaGames || window.ysdk;
+        if (settled()) return resolve();
+        const finish = () => { clearInterval(iv); clearTimeout(timer); resolve(); };
+        const timer = setTimeout(finish, ms);
+        const iv = setInterval(() => { if (settled()) finish(); }, 50);
+    });
+}
+
+// Ждём появления window.YaGames (SDK создаёт его после onload тега /sdk.js).
+// Устраняет гонку п.1.1: onload → __yaSdkScriptLoaded=true, но window.YaGames
+// создаётся SDK чуть позже. Разовая проверка здесь возвращала null, YaGames.init()
+// не вызывался → LoadingAPI не работал → модерация видела «W» («SDK не встроено»).
+// Таймаут ограничивает ожидание, чтобы игра не задерживалась на лоадере.
+function waitForYaGames(ms = 5000) {
+    return new Promise((resolve) => {
+        if (window.YaGames || window.ysdk) return resolve();
+        const finish = () => { clearInterval(iv); clearTimeout(timer); resolve(); };
+        const timer = setTimeout(finish, ms);
+        const iv = setInterval(() => { if (window.YaGames || window.ysdk) finish(); }, 50);
+    });
 }
 
 // Подгрузка SDK-скриптов для локального предпросмотра (?platform=vk / ?platform=yandex)
@@ -54,19 +109,21 @@ async function ensureBridge() {
 
 async function ensureYaGames() {
     if (window.ysdk) return window.ysdk;
-    if (window.YaGames) {
-        try { window.ysdk = await withTimeout(window.YaGames.init()); } catch (_) {}
-        return window.ysdk || null;
-    }
-    // Официальная схема подключения SDK Яндекс Игр (п.1.1 требований платформы):
-    // https://yandex.ru/dev/games/doc/ru/sdk/sdk-about.html — раздел «Подключение».
-    // Относительный /sdk.js проксируется платформой для игр, загруженных архивом
-    // на сервер Яндекса (рекомендуемый путь, проверяется модерацией).
-    // ВАЖНО (п.1.7): в программном коде нет абсолютных URL на S3-серверы Яндекса.
-    if (!window.__yaSdkScriptLoaded) {
+    // Официальная схема подключения SDK Яндекс Игр (раздел «Подключение»
+    // документации): для игр, загружаемых архивом на сервер Яндекса, путь — /sdk.js
+    // (с ведущим "/"), платформа проксирует его (скачивать sdk.js не нужно).
+    // ВАЖНО (п.1.7): в программном коде нет абсолютных URL на внешние хранилища Яндекса.
+    // Если тег /sdk.js уже есть в index.html — не подключаем его повторно, даже если
+    // он вернул onerror (__yaSdkScriptFailed): на платформе SDK может быть внедрён
+    // самой платформой (URL-параметр sdk=), поэтому достаточно дождаться window.YaGames.
+    if (!window.YaGames && !hasYandexSdkTag()) {
         await loadScript('/sdk.js');
-        window.__yaSdkScriptLoaded = true;
     }
+    // Ждём создания window.YaGames: onload тега и создание SDK-объекта происходят
+    // не в один момент времени (или SDK внедряется платформой с задержкой).
+    // Если window.YaGames так и не появился — возвращаем null, игра продолжит
+    // без SDK, но не «зависнет» на загрузочном экране.
+    await waitForYaGames(5000);
     if (window.YaGames) {
         try { window.ysdk = await withTimeout(window.YaGames.init()); } catch (_) {}
     }
@@ -82,14 +139,39 @@ export const sdk = {
     initialized: false,
 
     async init() {
+        // Ждём результат загрузки тега sdk.js (async в <head>): на платформе
+        // Яндекса он успешно загружается (onload) и создаёт window.YaGames.
+        // Это устраняет гонку, когда main.js стартует раньше, чем sdk.js,
+        // и хост ошибочно определялся как 'web' (SDK не инициализировался →
+        // LoadingAPI.ready() не вызывался → модерация видела «SDK не встроен»).
+        await waitForSdkTagResult(2500);
         this.host = detectHost();
         if (this.host === 'vk') {
             this.vk = await ensureBridge();
+            // VK Mini Apps: обязательный VKWebAppInit — инициализация моста.
+            // Без него методы (VKWebAppStorageSet/Get, VKWebAppSaveToLeaderBoard,
+            // VKWebAppShowNativeAds, VKWebAppShare) не работают.
+            if (this.vk) {
+                try { await this.vk.send('VKWebAppInit', {}); } catch (_) {}
+            }
         } else if (this.host === 'yandex') {
             this.ya = await ensureYaGames();
-            if (this.ya) {
-                try { this.player = await this.ya.getPlayer({ scopes: false }); } catch (_) {}
+        } else if (hasYandexSdkTag() && !window.__yaSdkScriptFailed) {
+            // Тег /sdk.js есть в документе, но ещё не «созрел» за время
+            // waitForSdkTagResult (например, медленная сеть на платформе Яндекса).
+            // Пытаемся инициализировать SDK; если удалось — повышаем хост до
+            // 'yandex', иначе LoadingAPI не отработает и модерация отклонит (п.1.1).
+            const ya = await ensureYaGames();
+            if (ya) {
+                this.ya = ya;
+                this.host = 'yandex';
             }
+        }
+        if (this.ya) {
+            // getPlayer() — единственный SDK-вызов без withTimeout: если в окружении
+            // (debug-панель Яндекс Игр / draft) он не разрешается, sdk.init() «зависает»,
+            // LoadingAPI.ready() не вызывается → платформа видит «SDK в режиме ожидания» (W).
+            try { this.player = await withTimeout(this.ya.getPlayer({ scopes: false }), 5000); } catch (_) {}
         }
         // П. 2.14: автоопределение языка — строго при запуске, не в процессе игры.
         // ysdk.environment.i18n.lang доступен сразу после YaGames.init().
@@ -121,13 +203,42 @@ export const sdk = {
         } catch (_) {}
     },
 
+    // ── Разметка геймплея (Yandex GameplayAPI, п. 1.19.3) ─────
+    // start — когда игра реально запущена (уровень, игровой процесс),
+    // stop — когда игровой процесс завершён/прерван (меню, пауза, реклама, проигрыш).
+    gameplayStart() {
+        try {
+            if (this.ya?.features?.GameplayAPI?.start) this.ya.features.GameplayAPI.start();
+        } catch (_) {}
+    },
+    gameplayStop() {
+        try {
+            if (this.ya?.features?.GameplayAPI?.stop) this.ya.features.GameplayAPI.stop();
+        } catch (_) {}
+    },
+
+    // ── Пауза и возобновление (game_api_pause / game_api_resume, п. 1.19.4) ──
+    // Платформа уведомляет о показе полноэкранной рекламы, сворачивании и т.п.
+    onPause(cb) {
+        try { if (this.ya?.on) this.ya.on('game_api_pause', cb); } catch (_) {}
+    },
+    offPause(cb) {
+        try { if (this.ya?.off) this.ya.off('game_api_pause', cb); } catch (_) {}
+    },
+    onResume(cb) {
+        try { if (this.ya?.on) this.ya.on('game_api_resume', cb); } catch (_) {}
+    },
+    offResume(cb) {
+        try { if (this.ya?.off) this.ya.off('game_api_resume', cb); } catch (_) {}
+    },
+
     // ── Облачные сохранения ────────────────────────────────────
     // obj — произвольный JSON-сериализуемый объект
     async saveCloud(obj) {
         if (this.host === 'vk' && this.vk) {
             try {
                 await this.vk.send('VKWebAppStorageSet', {
-                    key: 'pirat2048_save',
+                    key: 'ocean2048_save',
                     value: JSON.stringify(obj),
                 });
                 return true;
@@ -135,7 +246,7 @@ export const sdk = {
         }
         if (this.host === 'yandex' && this.player) {
             try {
-                await this.player.setData({ pirat2048: JSON.stringify(obj) });
+                await withTimeout(this.player.setData({ ocean2048: JSON.stringify(obj) }), 5000);
                 return true;
             } catch (_) { return false; }
         }
@@ -144,7 +255,7 @@ export const sdk = {
     async loadCloud() {
         if (this.host === 'vk' && this.vk) {
             try {
-                const res = await this.vk.send('VKWebAppStorageGet', { keys: ['pirat2048_save'] });
+                const res = await this.vk.send('VKWebAppStorageGet', { keys: ['ocean2048_save'] });
                 const val = res?.keys?.[0]?.value;
                 if (!val) return null;
                 return JSON.parse(val);
@@ -152,8 +263,10 @@ export const sdk = {
         }
         if (this.host === 'yandex' && this.player) {
             try {
-                const data = await this.player.getData();
-                const raw = data?.pirat2048;
+                // getData() идёт до LoadingAPI.ready() (main.js → loadCloud) — без
+                // таймаута зависший вызов оставляет загрузочный экран и «W» (SDK ждёт).
+                const data = await withTimeout(this.player.getData(), 5000);
+                const raw = data?.ocean2048;
                 if (!raw) return null;
                 return JSON.parse(raw);
             } catch (_) { return null; }
@@ -162,20 +275,25 @@ export const sdk = {
     },
 
     // ── Лидерборды ─────────────────────────────────────────────
-    async submitScore(score) {
+    // score — итоговые очки, level — текущий игровой уровень (1–7), опционально.
+    async submitScore(score, level) {
         if (this.host === 'vk' && this.vk) {
             try {
+                // VK: level — уровень игрока (1–7), score — очки для лидерборда.
+                // Лидерборд один на приложение (настраивается в кабинете VK Mini
+                // Apps → App Settings → Leaderboards); при нехватке данных берём
+                // запасной уровень VK_LEADERBOARD_LEVEL.
                 await this.vk.send('VKWebAppSaveToLeaderBoard', {
-                    level: Math.max(1, Math.floor(score / 10)),
+                    level: Math.max(1, Number(level) || VK_LEADERBOARD_LEVEL),
                     score: Math.round(score),
                 });
                 return true;
             } catch (_) { return false; }
         }
-        if (this.host === 'yandex' && this.ya) {
+        if (this.host === 'yandex' && this.ya?.leaderboards) {
             try {
-                const lb = await this.ya.getLeaderboards();
-                await lb.setLeaderboardScore(LB_NAME, Math.round(score));
+                // Новый API лидербордов (см. документацию): ysdk.leaderboards.setScore().
+                await this.ya.leaderboards.setScore(LB_NAME, Math.round(score));
                 return true;
             } catch (_) { return false; }
         }
@@ -188,27 +306,28 @@ export const sdk = {
                 const res = await this.vk.send('VKWebAppGetLeaderBoard', { user_result_type: 1, global: true });
                 const rows = res?.leaderboard || [];
                 return rows.map(r => ({
-                    name: [r.first_name, r.last_name].filter(Boolean).join(' ') || 'Пират',
+                    name: [r.first_name, r.last_name].filter(Boolean).join(' ') || 'Ныряльщик',
                     score: Number(r.score) || 0,
                     isMe: !!r.me,
                 })).sort((a, b) => b.score - a.score).slice(0, 50);
             } catch (_) { return []; }
         }
-        if (this.host === 'yandex' && this.ya) {
+        if (this.host === 'yandex' && this.ya?.leaderboards) {
             try {
-                const lb = await this.ya.getLeaderboards();
-                const res = await lb.getLeaderboardEntries(LB_NAME, { quantityTop: 10, includeUser: true });
+                // Новый API лидербордов (см. документацию): ysdk.leaderboards.getEntries().
+                const res = await this.ya.leaderboards.getEntries(LB_NAME, {
+                    quantityTop: 10,
+                    includeUser: true,
+                    quantityAround: 5,
+                });
                 const rows = res?.entries || [];
-                const meScore = res?.userScore;
+                const myId = this.player?.uniqueID;
                 const list = rows.map(r => ({
                     name: r.player?.publicName || 'Игрок',
                     score: Number(r.score) || 0,
-                    isMe: !!meScore && Number(r.score) === Number(meScore),
+                    // isMe определяется по уникальному идентификатору пользователя (uniqueID).
+                    isMe: !!myId && !!r.player && String(r.player.uniqueID) === String(myId),
                 }));
-                if (meScore !== undefined && meScore !== null && !list.some(x => x.isMe)) {
-                    list.push({ name: 'Я', score: Number(meScore), isMe: true });
-                    list.sort((a, b) => b.score - a.score);
-                }
                 return list;
             } catch (_) { return []; }
         }
@@ -227,11 +346,12 @@ export const sdk = {
         if (this.host === 'yandex' && this.ya?.adv) {
             return new Promise((resolve) => {
                 try {
+                    // Колбэки строго по документации: onOpen, onClose(wasShown), onError.
                     this.ya.adv.showFullscreenAdv({
                         callbacks: {
-                            onClose: () => resolve(true),
+                            onOpen: () => {},
+                            onClose: (wasShown) => resolve(wasShown !== false),
                             onError: () => resolve(false),
-                            onOffline: () => resolve(false),
                         },
                     });
                 } catch (_) { resolve(false); }
@@ -243,16 +363,21 @@ export const sdk = {
     async showRewarded() {
         if (this.host === 'vk' && this.vk) {
             try {
-                await this.vk.send('VKWebAppShowNativeAds', { ad_format: 'reward' });
-                return true;
+                // VK: VKWebAppShowNativeAds возвращает { result: true } только если
+                // пользователь досмотрел rewarded-ролик до конца. result: false —
+                // закрыл раньше (награда не выдаётся).
+                const res = await this.vk.send('VKWebAppShowNativeAds', { ad_format: 'reward' });
+                return !!(res && res.result !== false);
             } catch (_) { return false; }
         }
         if (this.host === 'yandex' && this.ya?.adv) {
             return new Promise((resolve) => {
                 let rewarded = false;
                 try {
+                    // Колбэки строго по документации: onOpen, onRewarded, onClose(wasShown), onError.
                     this.ya.adv.showRewardedVideo({
                         callbacks: {
+                            onOpen: () => {},
                             onRewarded: () => { rewarded = true; },
                             onClose: () => resolve(rewarded),
                             onError: () => resolve(false),
@@ -270,11 +395,9 @@ export const sdk = {
         const url = link || location.href;
         if (this.host === 'vk' && this.vk) {
             try {
+                // VKWebAppShare открывает системный диалог «Поделиться» внутри VK
+                // (не требует прав wall / access token) — предпочтительный способ.
                 await this.vk.send('VKWebAppShare', { link: url });
-                return true;
-            } catch (_) {}
-            try {
-                await this.vk.send('VKWebAppShowWallPostBox', { message: text });
                 return true;
             } catch (_) { return false; }
         }

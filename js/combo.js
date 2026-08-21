@@ -12,7 +12,7 @@ export const STREAK_THRESHOLD = 3;
 // Очки серии за каждый ход после порога
 export const STREAK_SCORE_PER_STEP = 10;
 
-// Дублоны за крупные комбо / серии
+// Жемчужины за крупные комбо / серии (имена констант не меняем — это не ключи БД)
 export const COMBO_DOUBLOONS = { triple: 2, mega: 5 };
 export const STREAK_DOUBLOONS = 3;
 export const STREAK_DOUBLOONS_THRESHOLD = 8;
@@ -53,7 +53,7 @@ export function streakBonusScore(streak = 0) {
 }
 
 /**
- * Дублоны за крупные комбо и длинные серии (маленькая поощряющая награда).
+ * Жемчужины за крупные комбо и длинные серии (маленькая поощряющая награда).
  */
 export function comboDoubloons({ merges = 0, streak = 0 } = {}) {
     let d = 0;

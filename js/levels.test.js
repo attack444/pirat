@@ -13,9 +13,9 @@ test('LEVELS: 7 уровней с возрастающими требовани�
 });
 
 test('levelById возвращает нужный уровень', () => {
-    assert.equal(levelById(3).name, 'Буканьер');
+    assert.equal(levelById(3).name, 'Медуза');
     assert.equal(levelById('5').size, 5);
-    assert.equal(levelById(6).rank, '🏴‍☠️');
+    assert.equal(levelById(6).rank, '🦈');
 });
 
 test('levelById фолбэчит на первый уровень для неизвестного id', () => {

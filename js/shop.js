@@ -1,4 +1,4 @@
-// ======================== Лавка старого капитана ========================
+// ======================== Рынок у рифа (магазин) ========================
 // Чистая, тестируемая логика магазина: каталог, покупки, бусты и перки.
 // Модуль не трогает DOM и не обращается к window/localStorage — только state.
 // Категории предметов:
@@ -14,21 +14,21 @@ export const SHOP_ITEMS = [
     { id: 'boost_x2',      type: 'boost', key: 'x2',      icon: '⚡', name: 'Двойные очки', desc: 'Следующие 3 хода со слиянием дают ×2 очков',        price: 90 },
 
     // ── Перки (одноразовые) ──
-    { id: 'perk_coinBonus',  type: 'perk', key: 'coinBonus',  icon: '🪙', name: 'Золотая казна',  desc: '+50% дублонов за все награды',                 price: 800 },
+    { id: 'perk_coinBonus',  type: 'perk', key: 'coinBonus',  icon: '🦪', name: 'Жемчужная жила', desc: '+50% жемчужин за все награды',                  price: 800 },
     { id: 'perk_bonusTile',  type: 'perk', key: 'bonusTile',  icon: '📦', name: 'Бонусная плитка', desc: 'Каждая новая партия начинается с плиткой 4', price: 600 },
     { id: 'perk_extraUndos', type: 'perk', key: 'extraUndos', icon: '♻️', name: 'Доп. отмены',     desc: '+3 бесплатных отмены хода в день',             price: 500 },
 
     // ── Скины плиток ──
-    { id: 'skin_gold',  type: 'skin',  key: 'gold',  icon: '🥇', name: 'Золото', price: 0,   base: true },
-    { id: 'skin_wood',  type: 'skin',  key: 'wood',  icon: '🪵', name: 'Дерево', price: 300 },
-    { id: 'skin_gem',   type: 'skin',  key: 'gem',   icon: '💎', name: 'Камни',  price: 600 },
-    { id: 'skin_ice',   type: 'skin',  key: 'ice',   icon: '🧊', name: 'Лёд',    price: 800 },
-    { id: 'skin_fire',  type: 'skin',  key: 'fire',  icon: '🔥', name: 'Пламя',  price: 800 },
-    { id: 'skin_storm', type: 'skin',  key: 'storm', icon: '🌊', name: 'Шторм',  price: 800 },
+    { id: 'skin_gold',  type: 'skin',  key: 'gold',  icon: '🦪', name: 'Жемчуг',     price: 0,   base: true },
+    { id: 'skin_wood',  type: 'skin',  key: 'wood',  icon: '🪵', name: 'Коралл',     price: 300 },
+    { id: 'skin_gem',   type: 'skin',  key: 'gem',   icon: '💎', name: 'Кристаллы',  price: 600 },
+    { id: 'skin_ice',   type: 'skin',  key: 'ice',   icon: '🧊', name: 'Айсберг',    price: 800 },
+    { id: 'skin_fire',  type: 'skin',  key: 'fire',  icon: '🔥', name: 'Вулкан',     price: 800 },
+    { id: 'skin_storm', type: 'skin',  key: 'storm', icon: '🌊', name: 'Буря',       price: 800 },
 
     // ── Темы оформления ──
-    { id: 'theme_dark',   type: 'theme', key: 'dark',   icon: '🌙', name: 'Тёмная',  price: 0,   base: true },
-    { id: 'theme_light',  type: 'theme', key: 'light',  icon: '☀️', name: 'Светлая', price: 250 },
+    { id: 'theme_dark',   type: 'theme', key: 'dark',   icon: '🌙', name: 'Бездна',  price: 0,   base: true },
+    { id: 'theme_light',  type: 'theme', key: 'light',  icon: '☀️', name: 'Лагуна',  price: 250 },
     { id: 'theme_forest', type: 'theme', key: 'forest', icon: '🌲', name: 'Лес',     price: 450 },
 ];
 
@@ -57,7 +57,7 @@ export function ownsItem(state, item) {
     return false;
 }
 
-/** Можно ли купить: хватает дублонов, и предмет ещё не открыт (для не-расходников). */
+/** Можно ли купить: хватает жемчужин, и предмет ещё не открыт (для не-расходников). */
 export function canAfford(state, item) {
     if (!state || !item) return false;
     if (item.type !== 'boost' && ownsItem(state, item)) return false;
@@ -114,12 +114,12 @@ export function ownsPerk(state, key) {
     return !!state && !!((state.perks || {})[key]);
 }
 
-/** Множитель наград за дублоны (перк «Золотая казна»): 1.5 или 1. */
+/** Множитель наград за жемчужины (перк «Жемчужная жила»): 1.5 или 1. */
 export function coinMultiplier(state) {
     return ownsPerk(state, 'coinBonus') ? 1.5 : 1;
 }
 
-/** Итоговая награда дублонов с учётом перка «Золотая казна» (+50%). */
+/** Итоговая награда жемчужин с учётом перка «Жемчужная жила» (+50%). */
 export function applyCoinReward(state, n) {
     const base = Math.max(0, Math.floor(Number(n) || 0));
     return Math.round(base * coinMultiplier(state));

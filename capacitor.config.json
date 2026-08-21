@@ -1,6 +1,6 @@
 {
-  "appId": "com.pirat.game2048",
-  "appName": "Пират 2048",
+  "appId": "com.ocean2048.game",
+  "appName": "Океан 2048",
   "webDir": "www",
   "server": {
     "androidScheme": "https"

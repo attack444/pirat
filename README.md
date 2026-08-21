@@ -1,12 +1,12 @@
-# 🏴‍☠️ Пират 2048
+# 🌊 Океан 2048
 
-Классическая головоломка 2048 в пиратском стиле — **три версии**: веб, iOS и Android.
+Классическая головоломка 2048 в подводном стиле — **три версии**: веб, iOS и Android.
 
 ## Версии
 
 | Платформа | Внешний вид | Запуск |
 |-----------|-------------|--------|
-| **Веб / PWA** | Деревянная рамка-«окошко», кнопка fullscreen | Открыть `index.html` или задеплоить статику |
+| **Веб / PWA** | Подводная рамка-«окошко», кнопка fullscreen | Открыть `index.html` или задеплоить статику |
 | **Android** | Без рамки, safe-area, D-pad, вибрация | `npm run android` |
 | **iOS** | Без рамки, safe-area, D-pad, вибрация | На Mac: `npm run ios` |
 
@@ -15,7 +15,7 @@
 ## Возможности
 
 - Свайпы + экранный D-pad + стрелки / WASD
-- 7 уровней (ранги от Юнги до Пиратского Короля), поля 4×4 → 6×6
+- 7 уровней (ранги от Ракушки до Хозяина Моря), поля 4×4 → 6×6
 - Прогресс в `localStorage`
 - Полный экран (веб)
 - PWA offline (веб)
@@ -37,7 +37,7 @@ npm run android       # Android Studio → Generate Signed Bundle (AAB)
 npm run ios           # только macOS + Xcode → Archive
 ```
 
-Package / Bundle ID: `com.pirat.game2048`
+Package / Bundle ID: `com.ocean2048.game`
 
 Подробные чеклисты модерации:
 - [`store/GOOGLE_PLAY.md`](store/GOOGLE_PLAY.md) — Data safety, IARC, listing
@@ -48,7 +48,7 @@ Package / Bundle ID: `com.pirat.game2048`
 ## Структура
 
 ```
-pirat/
+ocean-2048/
 ├── index.html              # Веб-вход
 ├── privacy-policy.html     # Политика конфиденциальности (для магазинов)
 ├── manifest.json / sw.js   # PWA (только веб)
@@ -80,7 +80,7 @@ pirat/
 
 1. Залейте сайт и `privacy-policy.html` на **HTTPS** (например, на `5mb2.ru`)
 2. Укажите URL политики в консолях магазинов
-3. Privacy Policy: `https://5mb2.ru/static/games/pirate-2048/privacy-policy.html` (`slavasundukov887@gmail.com`)
+3. Privacy Policy: `https://5mb2.ru/static/games/ocean-2048/privacy-policy.html` (`slavasundukov887@gmail.com`)
 4. Сделайте реальные скриншоты с устройств
 5. Заполните Data safety / App Privacy как «данные не собираются»
 

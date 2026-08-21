@@ -1,4 +1,4 @@
-/**
+     /**
  * Unit tests for the SDK adapter (platform-sdk.js).
  * Stubs window / location / document / navigator — no browser required.
  * Each test gets a fresh sdk instance (Object.create) so the shared singleton
@@ -23,7 +23,7 @@ globalThis.document = {
 };
 
 function setSearch(search) {
-    globalThis.location = { search, href: 'https://pirat.example/game' };
+    globalThis.location = { search, href: 'https://ocean2048.example/game' };
 }
 
 function setWindow(win) {
@@ -68,18 +68,29 @@ describe('sdk.init / host detection', () => {
 
     it('forces vk via ?platform=vk', async () => {
         setSearch('?platform=vk');
-        setWindow({ vkBridge: { send: async () => {} } });
+        const sent = [];
+        setWindow({ vkBridge: { send: async (m) => { sent.push(m); return {}; } } });
         const s = makeSdk();
         assert.equal(await s.init(), 'vk');
         assert.equal(s.host, 'vk');
         assert.ok(s.vk, 'vk bridge should be attached');
         assert.equal(s.isPlatform(), true);
+        // Обязательная инициализация моста VK Mini Apps
+        assert.ok(sent.includes('VKWebAppInit'), 'VKWebAppInit должен вызываться при инициализации VK');
     });
 
     it('detects vk from window.vkBridge without a forced param', async () => {
         setWindow({ vkBridge: { send: async () => {} } });
         const s = makeSdk();
         assert.equal(await s.init(), 'vk');
+    });
+
+    it('does not fail when VKWebAppInit rejects (bridge is still usable)', async () => {
+        setSearch('?platform=vk');
+        setWindow({ vkBridge: { send: async () => { throw new Error('init blocked'); } } });
+        const s = makeSdk();
+        assert.equal(await s.init(), 'vk');
+        assert.ok(s.vk, 'bridge должен остаться доступным даже если VKWebAppInit упал');
     });
 
     it('detects vk from ?vk_user_id', async () => {
@@ -108,10 +119,10 @@ describe('sdk.init / host detection', () => {
     });
 
     it('detects yandex from window.ysdk and inits the player', async () => {
-        setWindow({ ysdk: { getPlayer: async () => ({ name: 'Пират' }) } });
+        setWindow({ ysdk: { getPlayer: async () => ({ name: 'Дельфин' }) } });
         const s = makeSdk();
         assert.equal(await s.init(), 'yandex');
-        assert.deepEqual(s.player, { name: 'Пират' });
+        assert.deepEqual(s.player, { name: 'Дельфин' });
     });
 });
 
@@ -148,7 +159,15 @@ describe('sdk Yandex connection path', () => {
         };
         try {
             const s = makeSdk();
-            assert.equal(await s.init(), 'yandex');
+            const initPromise = s.init();
+            // После onload /sdk.js (в моке срабатывает синхронно) сам SDK создаёт
+            // window.YaGames чуть позже — имитируем, чтобы ensureYaGames()
+            // дождался появления и вызвал YaGames.init() (гонка п.1.1).
+            setTimeout(() => {
+                globalThis.window.YaGames = { init: async () => ({ features: { LoadingAPI: {} } }) };
+            }, 30);
+            assert.equal(await initPromise, 'yandex');
+            assert.ok(s.ya, 'SDK должен инициализироваться после появления window.YaGames');
             assert.deepEqual(srcs, ['/sdk.js'], 'подключается только относительный /sdk.js');
             assert.ok(srcs.every((src) => !/s3[.-]/.test(src) && !src.includes('yandex.net')),
                 'в коде не должно быть абсолютных URL на S3-серверы Яндекса');
@@ -188,6 +207,58 @@ describe('sdk Yandex connection path', () => {
         assert.equal(s.ya, null);
         assert.ok(Date.now() - start < 10000, 'should resolve well before the 5s timeout');
     });
+
+    it('detects yandex and inits SDK when the /sdk.js tag has already loaded (onload marker, п. 1.1)', async () => {
+        // Гонка: onload тега /sdk.js уже произошёл (__yaSdkScriptLoaded), но
+        // window.YaGames SDK создаёт чуть позже. Раньше разовая проверка
+        // возвращала null → YaGames.init() не вызывался → LoadingAPI не работал →
+        // модерация видела «W» («SDK не встроено», п.1.1).
+        setWindow({ __yaSdkScriptLoaded: true });
+        const s = makeSdk();
+        const initPromise = s.init();
+        // Имитируем позднее создание window.YaGames самим SDK.
+        setTimeout(() => {
+            globalThis.window.YaGames = { init: async () => ({ features: { LoadingAPI: {} } }) };
+        }, 30);
+        assert.equal(await initPromise, 'yandex');
+        assert.equal(s.host, 'yandex');
+        // window.YaGames появился позже — SDK обязан инициализироваться (не null!).
+        assert.ok(s.ya, 'sdk.ya должен быть инициализирован после появления window.YaGames');
+    });
+
+    it('stays on web when the /sdk.js tag failed to load (onerror marker)', async () => {
+        // Вне платформы (5mb2.ru / локально) /sdk.js не существует → onerror.
+        setWindow({ __yaSdkScriptFailed: true });
+        const s = makeSdk();
+        assert.equal(await s.init(), 'web');
+        assert.equal(s.isPlatform(), false);
+    });
+
+    it('waits for the async /sdk.js tag result and for window.YaGames before deciding the host (п. 1.1)', async () => {
+        // Ключевой кейс повторного отклонения: тег /sdk.js (async) ещё грузился,
+        // main.js стартовал раньше, и хост ошибочно определялся как 'web' →
+        // LoadingAPI.ready() не вызывался → модерация видела «SDK не встроен».
+        const origDoc = globalThis.document;
+        globalThis.document = {
+            ...origDoc,
+            querySelectorAll: () => [{ src: '/sdk.js' }],
+        };
+        try {
+            const s = makeSdk();
+            const initPromise = s.init();
+            // Имитируем поздний onload тега /sdk.js на платформе Яндекса,
+            // а затем и позднее создание window.YaGames самим SDK.
+            setTimeout(() => { globalThis.window.__yaSdkScriptLoaded = true; }, 30);
+            setTimeout(() => {
+                globalThis.window.YaGames = { init: async () => ({ features: { LoadingAPI: {} } }) };
+            }, 60);
+            assert.equal(await initPromise, 'yandex');
+            assert.equal(s.host, 'yandex');
+            assert.ok(s.ya, 'SDK должен инициализироваться после появления window.YaGames');
+        } finally {
+            globalThis.document = origDoc;
+        }
+    });
 });
 
 // ── Cloud saves ──────────────────────────────────────────────────────────
@@ -200,7 +271,7 @@ describe('sdk.saveCloud / loadCloud', () => {
         assert.equal(await s.saveCloud({ score: 42 }), true);
         assert.equal(sent.length, 1);
         assert.equal(sent[0][0], 'VKWebAppStorageSet');
-        assert.equal(sent[0][1].key, 'pirat2048_save');
+        assert.equal(sent[0][1].key, 'ocean2048_save');
         assert.equal(sent[0][1].value, JSON.stringify({ score: 42 }));
     });
 
@@ -215,7 +286,7 @@ describe('sdk.saveCloud / loadCloud', () => {
         const s = makeSdk();
         s.host = 'vk';
         s.vk = {
-            send: async () => ({ keys: [{ key: 'pirat2048_save', value: '{"score":7}' }] }),
+            send: async () => ({ keys: [{ key: 'ocean2048_save', value: '{"score":7}' }] }),
         };
         assert.deepEqual(await s.loadCloud(), { score: 7 });
     });
@@ -240,20 +311,20 @@ describe('sdk.saveCloud / loadCloud', () => {
         let saved = null;
         s.player = { setData: async (data) => { saved = data; } };
         assert.equal(await s.saveCloud({ a: 1 }), true);
-        assert.deepEqual(saved, { pirat2048: '{"a":1}' });
+        assert.deepEqual(saved, { ocean2048: '{"a":1}' });
     });
 
     it('loads Yandex player data', async () => {
         const s = makeSdk();
         s.host = 'yandex';
-        s.player = { getData: async () => ({ pirat2048: '{"level":3}' }) };
+        s.player = { getData: async () => ({ ocean2048: '{"level":3}' }) };
         assert.deepEqual(await s.loadCloud(), { level: 3 });
     });
 
     it('returns null on invalid Yandex JSON', async () => {
         const s = makeSdk();
         s.host = 'yandex';
-        s.player = { getData: async () => ({ pirat2048: 'not-json' }) };
+        s.player = { getData: async () => ({ ocean2048: 'not-json' }) };
         assert.equal(await s.loadCloud(), null);
     });
 
@@ -267,16 +338,16 @@ describe('sdk.saveCloud / loadCloud', () => {
 
 // ── Leaderboards ─────────────────────────────────────────────────────────
 describe('sdk.submitScore / getLeaderboard', () => {
-    it('submits to VK with level = floor(score / 10)', async () => {
+    it('submits to VK with the player level from the game', async () => {
         const s = makeSdk();
         s.host = 'vk';
         const sent = [];
         s.vk = { send: async (m, p) => { sent.push([m, p]); return {}; } };
-        assert.equal(await s.submitScore(1000), true);
-        assert.deepEqual(sent[0], ['VKWebAppSaveToLeaderBoard', { level: 100, score: 1000 }]);
+        assert.equal(await s.submitScore(1000, 5), true);
+        assert.deepEqual(sent[0], ['VKWebAppSaveToLeaderBoard', { level: 5, score: 1000 }]);
     });
 
-    it('keeps the VK level at minimum 1 for tiny scores', async () => {
+    it('falls back to VK_LEADERBOARD_LEVEL when the level is not passed', async () => {
         const s = makeSdk();
         s.host = 'vk';
         const sent = [];
@@ -285,17 +356,33 @@ describe('sdk.submitScore / getLeaderboard', () => {
         assert.equal(sent[0][1].level, 1);
     });
 
-    it('submits to the Yandex leaderboard', async () => {
+    it('clamps a bad VK level to a sane value', async () => {
+        const s = makeSdk();
+        s.host = 'vk';
+        const sent = [];
+        s.vk = { send: async (m, p) => { sent.push([m, p]); return {}; } };
+        await s.submitScore(500, 0);
+        assert.equal(sent[0][1].level, 1);
+    });
+
+    it('submits to the Yandex leaderboard via ysdk.leaderboards.setScore (новый API)', async () => {
         const s = makeSdk();
         s.host = 'yandex';
         const calls = [];
         s.ya = {
-            getLeaderboards: async () => ({
-                setLeaderboardScore: async (name, score) => calls.push([name, score]),
-            }),
+            leaderboards: {
+                setScore: async (name, score) => calls.push([name, score]),
+            },
         };
         assert.equal(await s.submitScore(500), true);
-        assert.deepEqual(calls, [['pirat2048_top', 500]]);
+        assert.deepEqual(calls, [['ocean2048_top', 500]]);
+    });
+
+    it('returns false when the Yandex leaderboards API is unavailable', async () => {
+        const s = makeSdk();
+        s.host = 'yandex';
+        s.ya = {}; // без leaderboards — старый getLeaderboards() не используется
+        assert.equal(await s.submitScore(500), false);
     });
 
     it('returns false when the leaderboard submission fails', async () => {
@@ -319,45 +406,65 @@ describe('sdk.submitScore / getLeaderboard', () => {
         const lb = await s.getLeaderboard();
         assert.deepEqual(lb, [
             { name: 'Иван П', score: 500, isMe: false },
-            { name: 'Пират', score: 300, isMe: true },
+            { name: 'Ныряльщик', score: 300, isMe: true },
         ]);
     });
 
-    it('parses the Yandex leaderboard and marks my row', async () => {
+    it('parses the Yandex leaderboard via ysdk.leaderboards.getEntries and marks my row by uniqueID', async () => {
         const s = makeSdk();
         s.host = 'yandex';
+        s.player = { uniqueID: 'u2' };
         s.ya = {
-            getLeaderboards: async () => ({
-                getLeaderboardEntries: async () => ({
+            leaderboards: {
+                getEntries: async () => ({
                     entries: [
-                        { player: { publicName: 'Пират' }, score: 300 },
-                        { player: { publicName: 'Игрок' }, score: 200 },
+                        { player: { publicName: 'Дельфин', uniqueID: 'u1' }, score: 300 },
+                        { player: { publicName: 'Игрок', uniqueID: 'u2' }, score: 200 },
                     ],
-                    userScore: 200,
                 }),
-            }),
+            },
         };
         const lb = await s.getLeaderboard();
         assert.deepEqual(lb, [
-            { name: 'Пират', score: 300, isMe: false },
+            { name: 'Дельфин', score: 300, isMe: false },
             { name: 'Игрок', score: 200, isMe: true },
         ]);
     });
 
-    it('appends the user row when absent from the Yandex top', async () => {
+    it('marks the user row when their uniqueID appears around their rank (includeUser)', async () => {
         const s = makeSdk();
         s.host = 'yandex';
+        s.player = { uniqueID: 'me' };
         s.ya = {
-            getLeaderboards: async () => ({
-                getLeaderboardEntries: async () => ({
-                    entries: [{ player: { publicName: 'X' }, score: 50 }],
-                    userScore: 999,
+            leaderboards: {
+                getEntries: async () => ({
+                    entries: [
+                        { player: { publicName: 'X', uniqueID: 'x' }, score: 50 },
+                        { player: { publicName: 'Я', uniqueID: 'me' }, score: 999 },
+                    ],
                 }),
-            }),
+            },
         };
         const lb = await s.getLeaderboard();
         assert.deepEqual(lb, [
+            { name: 'X', score: 50, isMe: false },
             { name: 'Я', score: 999, isMe: true },
+        ]);
+    });
+
+    it('does not mark a row as mine when uniqueID is unknown', async () => {
+        const s = makeSdk();
+        s.host = 'yandex';
+        s.player = { uniqueID: 'me' };
+        s.ya = {
+            leaderboards: {
+                getEntries: async () => ({
+                    entries: [{ player: { publicName: 'X', uniqueID: 'other' }, score: 50 }],
+                }),
+            },
+        };
+        const lb = await s.getLeaderboard();
+        assert.deepEqual(lb, [
             { name: 'X', score: 50, isMe: false },
         ]);
     });
@@ -380,13 +487,37 @@ describe('sdk.showInterstitial', () => {
         assert.deepEqual(sent[0], ['VKWebAppShowNativeAds', { ad_format: 'interstitial' }]);
     });
 
-    it('shows a Yandex fullscreen and resolves true on close', async () => {
+    it('shows a Yandex fullscreen and resolves true when wasShown is true', async () => {
         const s = makeSdk();
         s.host = 'yandex';
         let callbacks = null;
         s.ya = { adv: { showFullscreenAdv(opts) { callbacks = opts.callbacks; } } };
         const promise = s.showInterstitial();
-        callbacks.onClose();
+        callbacks.onClose(true);
+        assert.equal(await promise, true);
+    });
+
+    it('resolves false when the Yandex fullscreen was not shown (wasShown=false)', async () => {
+        const s = makeSdk();
+        s.host = 'yandex';
+        let callbacks = null;
+        s.ya = { adv: { showFullscreenAdv(opts) { callbacks = opts.callbacks; } } };
+        const promise = s.showInterstitial();
+        callbacks.onClose(false);
+        assert.equal(await promise, false);
+    });
+
+    it('provides onOpen callback for the Yandex fullscreen (п. 4.7)', async () => {
+        const s = makeSdk();
+        s.host = 'yandex';
+        let opened = 0;
+        let callbacks = null;
+        s.ya = { adv: { showFullscreenAdv(opts) { callbacks = opts.callbacks; } } };
+        const promise = s.showInterstitial();
+        callbacks.onOpen();
+        assert.equal(opened, 0); // no-op onOpen; просто проверяем, что колбэк определён
+        assert.equal(typeof callbacks.onOpen, 'function');
+        callbacks.onClose(true);
         assert.equal(await promise, true);
     });
 
@@ -415,6 +546,7 @@ describe('sdk.showRewarded', () => {
         let callbacks = null;
         s.ya = { adv: { showRewardedVideo(opts) { callbacks = opts.callbacks; } } };
         const promise = s.showRewarded();
+        assert.equal(typeof callbacks.onOpen, 'function'); // onOpen обязателен по документации
         callbacks.onRewarded();
         callbacks.onClose();
         assert.equal(await promise, true);
@@ -430,13 +562,20 @@ describe('sdk.showRewarded', () => {
         assert.equal(await promise, false);
     });
 
-    it('shows a VK reward ad', async () => {
+    it('shows a VK reward ad and grants the reward on result: true', async () => {
         const s = makeSdk();
         s.host = 'vk';
         const sent = [];
-        s.vk = { send: async (m, p) => { sent.push([m, p]); return {}; } };
+        s.vk = { send: async (m, p) => { sent.push([m, p]); return { result: true }; } };
         assert.equal(await s.showRewarded(), true);
         assert.deepEqual(sent[0], ['VKWebAppShowNativeAds', { ad_format: 'reward' }]);
+    });
+
+    it('does not grant a VK reward when the user closes the ad early (result: false)', async () => {
+        const s = makeSdk();
+        s.host = 'vk';
+        s.vk = { send: async () => ({ result: false }) };
+        assert.equal(await s.showRewarded(), false);
     });
 });
 
@@ -481,6 +620,77 @@ describe('sdk loading API', () => {
     });
 });
 
+// ── GameplayAPI (п. 1.19.3) ───────────────────────────────────────────────
+describe('sdk gameplay markup (GameplayAPI)', () => {
+    it('calls GameplayAPI.start() on gameplayStart()', () => {
+        const s = makeSdk();
+        let started = 0;
+        s.ya = { features: { GameplayAPI: { start: () => { started++; }, stop: () => {} } } };
+        s.gameplayStart();
+        assert.equal(started, 1);
+    });
+
+    it('calls GameplayAPI.stop() on gameplayStop()', () => {
+        const s = makeSdk();
+        let stopped = 0;
+        s.ya = { features: { GameplayAPI: { start: () => {}, stop: () => { stopped++; } } } };
+        s.gameplayStop();
+        assert.equal(stopped, 1);
+    });
+
+    it('is safe without the Yandex SDK', () => {
+        const s = makeSdk();
+        assert.doesNotThrow(() => s.gameplayStart());
+        assert.doesNotThrow(() => s.gameplayStop());
+    });
+
+    it('is safe when GameplayAPI is missing from features', () => {
+        const s = makeSdk();
+        s.ya = { features: {} };
+        assert.doesNotThrow(() => s.gameplayStart());
+        assert.doesNotThrow(() => s.gameplayStop());
+    });
+});
+
+// ── Пауза / возобновление (game_api_pause / game_api_resume, п. 1.19.4) ──
+describe('sdk pause / resume events', () => {
+    it('subscribes to game_api_pause via ysdk.on()', () => {
+        const s = makeSdk();
+        let subscribed = [];
+        const cb = () => {};
+        s.ya = { on: (ev, fn) => subscribed.push([ev, fn]), off: () => {} };
+        s.onPause(cb);
+        assert.deepEqual(subscribed, [['game_api_pause', cb]]);
+    });
+
+    it('subscribes to game_api_resume via ysdk.on()', () => {
+        const s = makeSdk();
+        let subscribed = [];
+        const cb = () => {};
+        s.ya = { on: (ev, fn) => subscribed.push([ev, fn]), off: () => {} };
+        s.onResume(cb);
+        assert.deepEqual(subscribed, [['game_api_resume', cb]]);
+    });
+
+    it('unsubscribes via ysdk.off()', () => {
+        const s = makeSdk();
+        let unsubscribed = [];
+        const cb = () => {};
+        s.ya = { on: () => {}, off: (ev, fn) => unsubscribed.push([ev, fn]) };
+        s.offPause(cb);
+        s.offResume(cb);
+        assert.deepEqual(unsubscribed, [['game_api_pause', cb], ['game_api_resume', cb]]);
+    });
+
+    it('is safe without the Yandex SDK', () => {
+        const s = makeSdk();
+        assert.doesNotThrow(() => s.onPause(() => {}));
+        assert.doesNotThrow(() => s.onResume(() => {}));
+        assert.doesNotThrow(() => s.offPause(() => {}));
+        assert.doesNotThrow(() => s.offResume(() => {}));
+    });
+});
+
 // ── Share ────────────────────────────────────────────────────────────────
 describe('sdk.share', () => {
     it('uses the Web Share API when available', async () => {
@@ -511,7 +721,7 @@ describe('sdk.share', () => {
         let copied = '';
         globalThis.navigator.clipboard.writeText = async (t) => { copied = t; };
         assert.equal(await s.share('text'), true);
-        assert.equal(copied, 'https://pirat.example/game');
+        assert.equal(copied, 'https://ocean2048.example/game');
     });
 
     it('returns false when the user cancels the Web Share dialog', async () => {

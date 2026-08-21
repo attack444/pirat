@@ -14,8 +14,8 @@ import { DAILY_TASKS, ensureDaily as ensureDailyState, dailyMetric as dailyMetri
 import { claimDailyLogin, dailyLoginInfo } from './daily-login.js';
 import { getShopItem, itemsByType, ownsItem, buyItem, useBoost, boostCount, ownsPerk, applyCoinReward, effectiveUndoLimit } from './shop.js';
 
-const STORAGE_KEY = 'pirate2048_v1';
-const SAVE_KEY    = 'pirate2048_saves';
+const STORAGE_KEY = 'ocean2048_v1';
+const SAVE_KEY    = 'ocean2048_saves';
 
 // ──────────────────────────────────────────────────────────
 // Хранилище прогресса
@@ -35,7 +35,7 @@ function loadState() {
         achievements: {},
         hintsUsed: 0,
         undoCount: 0,
-        // Дублоны и кастомизация
+        // Жемчужины и кастомизация
         doubloons: 0,
         unlockedSkins: ['gold'],
         unlockedThemes: ['dark'],
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Онбординг
     const tutorialModal      = $('tutorial-modal');
     const tutorialOk         = $('tutorial-ok');
-    // Дублоны / ежедневные задания / сообщество
+    // Жемчужины / ежедневные задания / сообщество
     const doubloonsEl      = $('doubloons');
     const comboEl          = $('combo');
     const themePriceHint   = $('theme-price-hint');
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let reviveBusy = false;
     let pendingInterstitial = null;
 
-    // Веб-версия: лимит бесплатных отмен хода в день, дальше — дублоны
+    // Веб-версия: лимит бесплатных отмен хода в день, дальше — жемчужины
     const WEB_UNDO_LIMIT = 3;
     const UNDO_COST = 50;
 
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // П. 2.14: автоопределение языка — при запуске (не в процессе игры).
     const detectedLang = sdk.getLang();
     if (detectedLang) document.documentElement.lang = detectedLang;
-    if (loadingHint) loadingHint.textContent = 'Открываем карту сокровищ…';
+    if (loadingHint) loadingHint.textContent = 'Открываем глубины океана…';
     if (loadingBarFill) loadingBarFill.style.width = '40%';
     sdk.setLoadingProgress(40);
     if (sdk.isPlatform()) {
@@ -241,6 +241,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (loadingHint) loadingHint.textContent = 'Готовим корабль к плаванию…';
     if (loadingBarFill) loadingBarFill.style.width = '70%';
     sdk.setLoadingProgress(70);
+
+    // ── Разметка геймплея (Yandex GameplayAPI, п. 1.19.3) ─────
+    // gameplayActive — идёт ли игровой процесс (для GameplayAPI.start()/stop());
+    // gameplayWasActive — был ли геймплей активен до паузы платформы (game_api_pause);
+    // platformPaused — пауза, вызванная платформой (реклама, сворачивание окна);
+    // gameplayStartPending — старт отложен до game_api_resume (стартовая реклама).
+    let gameplayActive = false;
+    let gameplayWasActive = false;
+    let platformPaused = false;
+    let gameplayStartPending = false;
+
+    function markGameplayStart() {
+        if (gameplayActive) return;
+        // Стартовая полноэкранная реклама: если платформа на паузе, откладываем
+        // GameplayAPI.start() до game_api_resume (см. пример в документации).
+        if (platformPaused) { gameplayStartPending = true; return; }
+        gameplayStartPending = false;
+        gameplayActive = true;
+        sdk.gameplayStart();
+    }
+    function markGameplayStop() {
+        gameplayStartPending = false;
+        if (!gameplayActive) return;
+        gameplayActive = false;
+        sdk.gameplayStop();
+    }
+
+    // П. 1.19.4 + стартовая полноэкранная реклама (см. «Пауза и возобновление»).
+    // При game_api_pause глушим звук и ставим геймплей на паузу, при
+    // game_api_resume — возобновляем. Если геймплей был остановлен игроком
+    // (меню/пауза) до срабатывания game_api_pause, после resume не запускаем.
+    const onPlatformPause = () => {
+        suspendSound();
+        platformPaused = true;
+        if (gameplayActive) {
+            gameplayWasActive = true;
+            if (game && !game.gameOver && !game.won && !game.paused) setPaused(true);
+            markGameplayStop();
+        }
+    };
+    const onPlatformResume = () => {
+        resumeSound();
+        platformPaused = false;
+        if (gameplayWasActive) {
+            gameplayWasActive = false;
+            if (game && !game.gameOver && !game.won && game.paused) setPaused(false);
+        }
+        if (gameplayStartPending) {
+            gameplayStartPending = false;
+            markGameplayStart();
+        }
+    };
+    sdk.onPause(onPlatformPause);
+    sdk.onResume(onPlatformResume);
 
     // На нативных приложениях кнопка fullscreen не нужна — уже полный экран
     if (platform.isNative && fullscreenBtn) {
@@ -331,20 +385,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // ── Дублоны — валюта для скинов и тем ────────────────────
+    // ── Жемчужины — валюта для скинов и тем ──────────────────
     function updateDoubloons() {
         if (doubloonsEl) doubloonsEl.textContent = (state.doubloons || 0).toLocaleString('ru');
     }
 
-    function addDoubloons(n, text, icon = '🪙') {
-        // Перк «Золотая казна» (+50%) применяется ко всем наградам
+    function addDoubloons(n, text, icon = '🦪') {
+        // Перк «Жемчужная жила» (+50%) применяется ко всем наградам
         const gained = applyCoinReward(state, n);
         if (gained <= 0) return;
         state.doubloons = (state.doubloons || 0) + gained;
         saveState(state);
         updateDoubloons();
         pushCloudSave();
-        showToast(`+${gained} дублонов${text ? ' — ' + text : ''}`, icon);
+        showToast(`+${gained} жемчужин${text ? ' — ' + text : ''}`, icon);
     }
 
     // ── Облачные сохранения (VK / Yandex) ────────────────────
@@ -456,17 +510,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         const res = claimDailyLogin(state);
         if (!res.ok) return;
         // claimDailyLogin добавляет награду напрямую в state.doubloons,
-        // поэтому перк «Золотая казна» (+50%) применяем вручную.
+        // поэтому перк «Жемчужная жила» (+50%) применяем вручную.
         const bonus = applyCoinReward(state, res.reward) - res.reward;
         if (bonus > 0) state.doubloons = (state.doubloons || 0) + bonus;
         saveState(state);
         updateDoubloons();
         pushCloudSave();
         renderDailyLogin();
-        showToast(`+${res.reward + bonus} дублонов (день ${res.days})`, '🎁');
+        showToast(`+${res.reward + bonus} жемчужин (день ${res.days})`, '🎁');
     }
 
-    // ── Лавка старого капитана (магазин) ─────────────────────
+    // ── Рынок у рифа (магазин) ───────────────────────────────
     let shopCategory = 'boost';
 
     function updateShopBalance() {
@@ -494,7 +548,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
                 ${owned && item.type !== 'boost'
                     ? '<div class="shop-buy owned">✓</div>'
-                    : `<button class="btn btn-small shop-buy${canBuy ? '' : ' disabled'}" data-shop-id="${item.id}">${item.price} 🪙</button>`}
+                    : `<button class="btn btn-small shop-buy${canBuy ? '' : ' disabled'}" data-shop-id="${item.id}">${item.price} 🦪</button>`}
             `;
             shopGrid.appendChild(el);
         }
@@ -508,7 +562,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!item) return;
         const res = buyItem(state, item);
         if (!res.ok) {
-            if (res.reason === 'not_enough') showToast(`Не хватает дублонов — нужно ${item.price}`, '🪙');
+            if (res.reason === 'not_enough') showToast(`Не хватает жемчужин — нужно ${item.price}`, '🦪');
             else if (res.reason === 'owned') showToast('Уже куплено', '✅');
             return;
         }
@@ -657,12 +711,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ── Экспорт / импорт сохранений ──────────────────────────
 
     function exportData() {
-        const data = { app: 'pirat2048', version: 1, exported: Date.now(), state, saves: loadSaves() };
+        const data = { app: 'ocean2048', version: 1, exported: Date.now(), state, saves: loadSaves() };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'pirat2048-save.json';
+        a.download = 'ocean2048-save.json';
         a.click();
         URL.revokeObjectURL(url);
         showToast('Прогресс сохранён в файл', '💾');
@@ -673,7 +727,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.onload = () => {
             try {
                 const data = JSON.parse(reader.result);
-                if (!data || data.app !== 'pirat2048' || !data.state) throw new Error('bad file');
+                if (!data || data.app !== 'ocean2048' || !data.state) throw new Error('bad file');
                 state = { ...loadState(), ...data.state };
                 saveState(state);
                 if (data.saves) {
@@ -695,8 +749,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ── Модальные окна ───────────────────────────────────────
 
-    function showModal(el) { if (el) el.classList.add('visible'); }
-    function hideModal(el) { if (el) el.classList.remove('visible'); }
+    function showModal(el) {
+        if (el) el.classList.add('visible');
+        // П. 1.19.3: при открытии любого окна игровой процесс приостанавливается.
+        markGameplayStop();
+    }
+    function hideModal(el) {
+        if (el) el.classList.remove('visible');
+        // П. 1.19.3: при закрытии окна, если партия продолжается, геймплей возобновляется.
+        if (game && !game.gameOver && !game.won && !game.paused) markGameplayStart();
+    }
 
     // ── Запуск уровня ────────────────────────────────────────
 
@@ -764,7 +826,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             onWin: (score) => {
                 const isNewBest = !state.bestScores[state.currentLevel] || score > state.bestScores[state.currentLevel];
                 state = applyLevelWin(state, score);
-                // Дублоны за победу
+                // Жемчужины за победу
                 addDoubloons(100, 'победа');
                 if (isNewBest) addDoubloons(200, 'новый рекорд уровня', '🏆');
                 state.dailyCounters.wins = (state.dailyCounters.wins || 0) + 1;
@@ -772,7 +834,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 checkAchievements();
                 checkDaily();
                 pushCloudSave();
-                if (sdk.isPlatform()) sdk.submitScore(score);
+                if (sdk.isPlatform()) sdk.submitScore(score, state.currentLevel);
                 if (state.sound !== false) playWin();
                 const isLast = isLastLevel(state.currentLevel);
                 spawnConfetti(isLast ? 140 : 80, true);
@@ -787,7 +849,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 checkAchievements();
                 checkDaily();
                 pushCloudSave();
-                if (sdk.isPlatform()) sdk.submitScore(score);
+                if (sdk.isPlatform()) sdk.submitScore(score, state.currentLevel);
                 if (state.sound !== false) playGameOver();
                 showGameOverModal(score);
                 // Реклама при проигрыше (interstitial) с кулдауном 4 минуты
@@ -816,6 +878,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateUndoState();
         updateMoves();
         updateBoostBar();
+        // П. 1.19.3: запуск уровня — начало игрового процесса.
+        if (!loadingScreen || loadingScreen.classList.contains('hidden')) markGameplayStart();
     }
 
     function resetCurrentGame() {
@@ -838,6 +902,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateMoves();
         updateBoostBar();
         checkAchievements();
+        // П. 1.19.3: перезапуск партии — игровой процесс снова активен.
+        markGameplayStart();
     }
 
     // ── Модальные окна: победа / конец игры ──────────────────
@@ -854,16 +920,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function showWinModal(score, isLast) {
         modalIcon.textContent    = isLast ? '👑' : '🎉';
-        modalTitle.textContent   = isLast ? 'Ты — Пиратский Король!' : 'Уровень пройден!';
+        modalTitle.textContent   = isLast ? 'Ты — Хозяин Моря!' : 'Уровень пройден!';
         modalMessage.textContent = isLast
-            ? 'Все 7 уровней позади. Ты — легенда!'
+            ? 'Все 7 уровней позади. Ты — легенда океана!'
             : `Ты достиг ${currentLevelDef().target.toLocaleString('ru')}! Поздравляем!`;
         modalScore.textContent   = score.toLocaleString('ru');
 
         clearModalActions();
 
         if (!isLast) {
-            addModalBtn('⚓ Следующий уровень', 'btn-primary', () => {
+            addModalBtn('🐬 Следующий уровень', 'btn-primary', () => {
                 hideModal(gameModal);
                 startLevel(state.currentLevel + 1);
             });
@@ -878,6 +944,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         addModalBtn('▶ Продолжить игру', 'btn-secondary', () => {
             hideModal(gameModal);
             game.won = false;
+            // П. 1.19.3: партия продолжается — геймплей возобновляется.
+            markGameplayStart();
         });
 
         addModalBtn('🔄 Заново', 'btn-ghost', () => {
@@ -923,6 +991,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (game.undo()) {
                     updateUndoState();
                     updateMoves();
+                    // П. 1.19.3: после спасения партия продолжается — геймплей активен.
+                    markGameplayStart();
                     showToast('Шанс использован — продолжаем плавание!', '🎬');
                 } else {
                     // Крайний случай: история опустела — начинаем партию заново
@@ -1067,7 +1137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const price = Number(btn.dataset.price) || 0;
         if (price > 0 && !(state.unlockedThemes || []).includes(theme)) {
             if ((state.doubloons || 0) < price) {
-                showToast(`Не хватает дублонов — нужно ${price}`, '🪙');
+                showToast(`Не хватает жемчужин — нужно ${price}`, '🦪');
                 return;
             }
             state.doubloons -= price;
@@ -1091,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const price = Number(btn.dataset.price) || 0;
         if (price > 0 && !(state.unlockedSkins || []).includes(skin)) {
             if ((state.doubloons || 0) < price) {
-                showToast(`Не хватает дублонов — нужно ${price}`, '🪙');
+                showToast(`Не хватает жемчужин — нужно ${price}`, '🦪');
                 return;
             }
             state.doubloons -= price;
@@ -1234,7 +1304,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             rows.sort((a, b) => b.score - a.score);
         }
         if (!rows.length) {
-            leaderboardList.innerHTML = '<div class="lb-empty">Пока пусто. Сыграй и побей рекорд! 🏴‍☠️</div>';
+            leaderboardList.innerHTML = '<div class="lb-empty">Пока пусто. Сыграй и побей рекорд! 🌊</div>';
             return;
         }
         leaderboardList.innerHTML = '';
@@ -1258,7 +1328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ── Поделиться результатом ───────────────────────────────
     async function shareResult(score) {
-        const text = `🏴‍☠️ Я набрал ${(score || 0).toLocaleString('ru')} очков в «Пират 2048»! Сможешь больше?`;
+        const text = `🌊 Я набрал ${(score || 0).toLocaleString('ru')} очков в «Океан 2048»! Сможешь больше?`;
         const ok = await sdk.share(text);
         if (ok) {
             if (!sdk.isPlatform()) showToast('Ссылка скопирована — отправь друзьям!', '📣');
@@ -1294,6 +1364,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     function setPaused(paused) {
         if (game) game.setPaused(paused);
         if (pauseOverlay) pauseOverlay.classList.toggle('visible', !!paused);
+        // П. 1.19.3: пауза — стоп геймплея, снятие паузы — возобновление.
+        if (paused) markGameplayStop();
+        else if (game && !game.gameOver && !game.won) markGameplayStart();
     }
 
     // ── Показ полноэкранной рекламы: звук и геймплей на паузу (п. 4.7) ──
@@ -1301,6 +1374,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function runWithAdPause(action) {
         const wasPaused = !!(game && game.paused);
         suspendSound();
+        // П. 1.19.3: перед рекламой игровой процесс останавливается.
+        markGameplayStop();
         if (game && !game.gameOver && !game.won && !game.paused) {
             game.setPaused(true);
         }
@@ -1310,6 +1385,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             resumeSound();
             if (game && !wasPaused && !game.gameOver && !game.won) {
                 game.setPaused(false);
+                // П. 1.19.3: после рекламы геймплей возобновляется.
+                markGameplayStart();
             }
         }
     }
@@ -1328,7 +1405,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             suspendSound();
-            if (game && !game.paused && !game.gameOver && !game.won
+            // На Яндекс Играх паузу при сворачивании/смене вкладки ставит сама
+            // платформа через событие game_api_pause (п. 1.19.4) — обработчик
+            // onPlatformPause. Для VK и веба оставляем резервный механизм.
+            if (sdk.host !== 'yandex' && game && !game.paused && !game.gameOver && !game.won
                 && !document.querySelector('.modal-overlay.visible')) {
                 setPaused(true);
             }
@@ -1376,7 +1456,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     confirmRestartNo.addEventListener('click', () => {
         hideModal(confirmModal);
-        if (!confirmRestartFromPause && game) game.setPaused(false);
+        // Если подтверждение открыто не из паузы — возвращаем игру (и геймплей).
+        if (!confirmRestartFromPause) setPaused(false);
     });
 
     confirmModal.addEventListener('click', (e) => {
@@ -1386,13 +1467,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ── Онбординг (первый запуск) ────────────────────────────
     function showTutorial() {
         if (!tutorialModal) return;
-        if (game) game.setPaused(true);
+        // П. 1.19.3: онбординг приостанавливает игровой процесс.
+        if (game) setPaused(true);
         showModal(tutorialModal);
     }
 
     tutorialOk.addEventListener('click', () => {
         hideModal(tutorialModal);
-        if (game) game.setPaused(false);
+        // П. 1.19.3: после онбординга игровой процесс возобновляется.
+        if (game) setPaused(false);
     });
 
     // ── D-pad (кнопки-стрелки на экране) ────────────────────
@@ -1448,7 +1531,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         state.tutorialSeen = true;
         saveState(state);
         showTutorial();
+    } else {
+        // П. 1.19.3: игра готова и загрузочный экран скрыт — начинаем геймплей.
+        markGameplayStart();
     }
 
-    console.log(`🏴‍☠️ Пират 2048 — платформа: ${platform.name}, SDK: ${sdk.host}`);
+    console.log(`🌊 Океан 2048 — платформа: ${platform.name}, SDK: ${sdk.host}`);
 });

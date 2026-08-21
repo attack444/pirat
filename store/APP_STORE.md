@@ -1,10 +1,10 @@
-# App Store — чеклист публикации «Пират 2048»
+# App Store — чеклист публикации «Океан 2048»
 
 ## Идентификаторы
 | Поле | Значение |
 |------|----------|
-| Bundle ID | `com.pirat.game2048` |
-| App name | Пират 2048 |
+| Bundle ID | `com.ocean2048.game` |
+| App name | Океан 2048 |
 | Subtitle (30) | 7 уровней без рекламы |
 | Primary category | Games → Puzzle |
 | Secondary | Games → Board (опционально) |
@@ -63,10 +63,10 @@ Privacy Policy URL: HTTPS-страница `privacy-policy.html` (обязате
 
 ## App Review notes (вставить в Review Information)
 ```
-Пират 2048 — офлайн-головоломка без аккаунта, рекламы и покупок.
+Океан 2048 — офлайн-головоломка без аккаунта, рекламы и покупок.
 Управление: свайп по полю или кнопки-стрелки.
 Прогресс хранится только на устройстве.
-Privacy Policy: https://5mb2.ru/static/games/pirate-2048/privacy-policy.html
+Privacy Policy: https://5mb2.ru/static/games/ocean-2048/privacy-policy.html
 Демо-аккаунт не требуется.
 ```
 
@@ -88,11 +88,11 @@ npx cap open ios    # Xcode → Signing → Archive → Distribute
 5. Поддержка жеста «назад» не критична на iOS; на Android обработан `backButton`.
 
 ## Текст для Store (RU)
-**Promotional text:**  
-Новая пиратская кампания: 7 рангов, поля до 6×6, без рекламы.
+**Promotional text:**
+Новая морская кампания: 7 рангов, поля до 6×6, бусты, скины и ежедневные задания.
 
-**Description:**  
+**Description:**
 то же, что в `GOOGLE_PLAY.md` (полное описание).
 
 **Keywords (100 chars):**  
-2048,головоломка,пират,пазл,числа,без рекламы,офлайн,уровни,дети,игра
+2048,головоломка,океан,пазл,числа,без рекламы,офлайн,уровни,дети,игра

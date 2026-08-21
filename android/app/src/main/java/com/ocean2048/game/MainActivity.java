@@ -1,4 +1,4 @@
-package com.pirat.game2048;
+package com.ocean2048.game;
 
 import com.getcapacitor.BridgeActivity;
 

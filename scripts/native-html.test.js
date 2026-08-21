@@ -10,7 +10,7 @@ describe('markHtmlAsNative', () => {
 <html>
 <head>
     <link rel="manifest" href="manifest.json">
-    <title>Pirate</title>
+    <title>Ocean 2048</title>
 </head>
 <body>
     <div id="board"></div>

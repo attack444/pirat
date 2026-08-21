@@ -1,7 +1,7 @@
 {
-  "name": "pirate-2048",
+  "name": "ocean-2048",
   "version": "1.0.0",
-  "description": "Пиратская версия 2048 — веб, iOS и Android",
+  "description": "Океан 2048 — веб, iOS и Android",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,7 +10,12 @@
     "build:www": "node scripts/build-www.js",
     "build:yandex": "node scripts/build-yandex.js",
     "make:shots": "node scripts/make-store-shots.mjs",
+    "make:trailer": "node scripts/make-trailer.mjs",
+    "make:banners": "node scripts/make-banners.mjs",
+    "make:reels": "node scripts/make-reels.mjs",
+    "make:promo": "node scripts/make-promo.mjs",
     "make:cover": "node scripts/make-yandex-cover.mjs",
+    "make:icons": "node scripts/gen-icons.mjs",
     "sync": "npm run build:www && npx cap sync",
     "android": "npm run sync && npx cap open android",
     "ios": "npm run sync && npx cap open ios",

@@ -142,7 +142,7 @@ describe('shop.useBoost / boostCount', () => {
 });
 
 describe('shop.perks (economy)', () => {
-    it('coinMultiplier is 1 by default and 1.5 with Золотая казна', () => {
+    it('coinMultiplier is 1 by default and 1.5 with Жемчужная жила', () => {
         assert.equal(coinMultiplier(baseState()), 1);
         assert.equal(coinMultiplier(baseState({ perks: { coinBonus: true } })), 1.5);
     });

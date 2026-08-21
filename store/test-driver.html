@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <!-- PWA / магазины приложений -->
-    <meta name="theme-color" content="#0a1a2e">
-    <meta name="description" content="Пиратская версия 2048 — объединяй плитки, проходи 7 уровней и стань Пиратским Королём! Без рекламы и покупок.">
+    <meta name="theme-color" content="#0a3d62">
+    <meta name="description" content="Океан 2048 — объединяй плитки, исследуй глубины океана и стань Хозяином Моря! Без рекламы и покупок.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Пират 2048">
+    <meta name="apple-mobile-web-app-title" content="Океан 2048">
     <!-- Предпросмотр нативной версии: index.html?platform=ios или ?platform=android -->
 
     <link rel="manifest" href="manifest.json">
@@ -19,17 +19,17 @@
     <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 
-    <title>Пират 2048 — головоломка 2048</title>
+    <title>Океан 2048 — головоломка 2048</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <!-- ── Загрузочный экран (требование VK / Yandex) ─────────── -->
     <div id="loading-screen" class="loading-screen">
         <div class="loading-inner">
-            <div class="loading-emoji">🏴‍☠️</div>
-            <div class="loading-title">Пират 2048</div>
+            <div class="loading-emoji">🌊</div>
+            <div class="loading-title">Океан 2048</div>
             <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar-fill"></div></div>
-            <div class="loading-hint" id="loading-hint">Грузим карту сокровищ…</div>
+            <div class="loading-hint" id="loading-hint">Погружаемся в глубины океана…</div>
         </div>
     </div>
 
@@ -38,11 +38,11 @@
         <!-- ── Шапка ──────────────────────────────────────── -->
         <header>
             <div class="header-top">
-                <h1>🏴‍☠️ 2048 Пиратская версия</h1>
+                <h1>🌊 Океан 2048</h1>
                 <div class="header-actions">
                     <button id="pause-btn" class="btn btn-icon" title="Пауза" aria-label="Пауза">⏸️</button>
                     <button id="sound-btn" class="btn btn-icon" title="Звук вкл/выкл" aria-label="Звук вкл/выкл">🔊</button>
-                    <button id="shop-btn" class="btn btn-icon" title="Лавка старого капитана" aria-label="Магазин">🛒</button>
+                    <button id="shop-btn" class="btn btn-icon" title="Рынок у рифа" aria-label="Магазин">🛒</button>
                     <button id="settings-btn" class="btn btn-icon" title="Настройки и достижения" aria-label="Настройки">⚙️</button>
                     <button id="fullscreen-btn" class="btn btn-icon" title="Полный экран" aria-label="Полный экран">⛶</button>
                 </div>
@@ -78,13 +78,13 @@
                     <span id="combo" class="value">0</span>
                 </div>
                 <div class="stat">
-                    <span class="label">Дублоны</span>
+                    <span class="label">Жемчужины</span>
                     <span id="doubloons" class="value">0</span>
                 </div>
             </div>
 
             <div class="level-info">
-                <span id="level-name" class="level-name">⚓ Юнга</span>
+                <span id="level-name" class="level-name">🐚 Ракушка</span>
                 <span class="level-target-wrap">Цель: <strong id="level-target">256</strong></span>
             </div>
         </header>
@@ -109,7 +109,7 @@
                 <button class="dpad-btn" id="dpad-up"    aria-label="Вверх">▲</button>
                 <div class="dpad-row">
                     <button class="dpad-btn" id="dpad-left"  aria-label="Влево">◄</button>
-                    <div class="dpad-center">☠️</div>
+                    <div class="dpad-center">🐚</div>
                     <button class="dpad-btn" id="dpad-right" aria-label="Вправо">►</button>
                 </div>
                 <button class="dpad-btn" id="dpad-down"  aria-label="Вниз">▼</button>
@@ -130,20 +130,10 @@
                 <button id="boost-x2"      class="btn btn-ghost boost-btn" disabled title="Двойные очки: ×2 на 3 хода со слиянием">⚡ <span class="boost-count" id="boost-x2-count">0</span></button>
             </div>
 
-            <!-- Инструкция -->
-            <div class="instructions">
-                <h2>Как играть</h2>
-                <ul>
-                    <li>Свайп пальцем или стрелки клавиатуры — двигай плитки</li>
-                    <li>Одинаковые плитки сливаются в одну с удвоенным значением</li>
-                    <li>Достигни целевого числа и переходи на следующий уровень</li>
-                    <li>Пройди все 7 уровней и стань Пиратским Королём! 👑</li>
-                </ul>
-            </div>
         </main>
 
         <footer>
-            <p>🏴‍☠️ Пиратская версия 2048 | Сделано с ❤️</p>
+            <p>🌊 Океан 2048 | Сделано с ❤️</p>
             <p class="footer-links"><a href="privacy-policy.html">Политика конфиденциальности</a></p>
         </footer>
     </div>
@@ -247,7 +237,7 @@
     <div id="leaderboard-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal leaderboard-modal">
             <h2>🏆 Таблица лидеров</h2>
-            <p class="modal-message">Лучшие пираты на просторах этого моря</p>
+            <p class="modal-message">Лучшие исследователи глубин океана</p>
             <div class="leaderboard-list" id="leaderboard-list"></div>
             <button class="btn btn-ghost" id="close-leaderboard-btn">✕ Закрыть</button>
         </div>
@@ -258,7 +248,7 @@
         <div class="modal">
             <div class="modal-icon">⏸️</div>
             <h2 class="modal-title">Пауза</h2>
-            <p class="modal-message">Передохни, капитан!</p>
+            <p class="modal-message">Передохни, ныряльщик!</p>
             <div class="modal-actions">
                 <button class="btn btn-primary" id="resume-btn">▶ Продолжить</button>
                 <button class="btn btn-ghost" id="pause-restart-btn">🔄 Заново</button>
@@ -271,7 +261,7 @@
         <div class="modal">
             <div class="modal-icon">⚠️</div>
             <h2 class="modal-title">Начать заново?</h2>
-            <p class="modal-message">Текущий прогресс партии будет потерян. Ты уверен, капитан?</p>
+            <p class="modal-message">Текущий прогресс партии будет потерян. Ты уверен, ныряльщик?</p>
             <div class="modal-actions">
                 <button class="btn btn-primary" id="confirm-restart-yes">🔄 Да, заново</button>
                 <button class="btn btn-ghost" id="confirm-restart-no">✕ Отмена</button>
@@ -279,11 +269,11 @@
         </div>
     </div>
 
-    <!-- ── Модальное окно: лавка старого капитана ─────────── -->
+    <!-- ── Модальное окно: рынок у рифа ──────────────────── -->
     <div id="shop-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal shop-modal">
-            <h2>🏪 Лавка старого капитана</h2>
-            <div class="shop-balance">Дублоны: <strong id="shop-doubloons">0</strong> 🪙</div>
+            <h2>🪸 Рынок у рифа</h2>
+            <div class="shop-balance">Жемчужины: <strong id="shop-doubloons">0</strong> 🦪</div>
             <div class="shop-tabs" id="shop-tabs">
                 <button class="btn btn-small shop-tab active" data-cat="boost">🔄 Бусты</button>
                 <button class="btn btn-small shop-tab" data-cat="perk">💎 Перки</button>
@@ -298,8 +288,8 @@
     <!-- ── Модальное окно: онбординг (первый запуск) ─────────── -->
     <div id="tutorial-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal tutorial-modal">
-            <div class="modal-icon">🏴‍☠️</div>
-            <h2 class="modal-title">Добро пожаловать, капитан!</h2>
+            <div class="modal-icon">🐬</div>
+            <h2 class="modal-title">Добро пожаловать в океан!</h2>
             <ul class="tutorial-list">
                 <li><span class="t-ico">👆</span><span>Свайпай пальцем по доске или жми стрелки на клавиатуре, чтобы двигать плитки</span></li>
                 <li><span class="t-ico">🔗</span><span>Одинаковые плитки сливаются в одну — значение удваивается</span></li>

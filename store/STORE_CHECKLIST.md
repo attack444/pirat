@@ -1,4 +1,4 @@
-# ✅ Мастер-чеклист публикации «Пират 2048»
+# ✅ Мастер-чеклист публикации «Океан 2048»
 
 Единый отслеживаемый чеклист перед отправкой в магазины.
 Обновлён: 2026-08-18.
@@ -12,9 +12,9 @@
 
 ## 1. Идентичность и версионирование
 
-- [x] Package / Bundle ID: `com.pirat.game2048`
+- [x] Package / Bundle ID: `com.ocean2048.game`
   (`capacitor.config.json`, `android/app/build.gradle`, `strings.xml`)
-- [x] App name: «Пират 2048» (`strings.xml`, `manifest.json`)
+- [x] App name: «Океан 2048» (`strings.xml`, `manifest.json`)
 - [x] versionCode `1` / versionName `1.0` (`android/app/build.gradle`)
 - [x] compileSdk / targetSdk `35`, minSdk `23` (`android/variables.gradle`) — соответствует
   требованиям Google Play 2025–2026 (34+)
@@ -27,7 +27,7 @@
   локальное хранение, удаление, дети, разрешения, контакты
 - [x] `privacy-policy.html` не попадает в PWA-кэш (network-first в `sw.js`)
 - [x] Задеплоить `privacy-policy.html` на HTTPS (5mb2.ru) — доступен:
-  `https://5mb2.ru/static/games/pirate-2048/privacy-policy.html`
+  `https://5mb2.ru/static/games/ocean-2048/privacy-policy.html`
 - [ ] Play Console → Data safety: **«No data collected»** (все ответы из GOOGLE_PLAY.md)
 - [ ] App Store Connect → App Privacy: **«Data Not Collected»** (все пункты No)
 - [ ] Указать URL политики в обеих консолях
@@ -99,23 +99,23 @@
 
 - [x] SDK-адаптер (init / LoadingAPI / player / лидерборд / реклама / share) — `js/platform-sdk.js`
 - [x] Загрузочный экран с прогрессом (LoadingAPI)
-- [x] Облачные сохранения (`player.setData/getData`, ключ `pirat2048`)
+- [x] Облачные сохранения (`player.setData/getData`, ключ `ocean2048`)
 - [x] Service Worker на площадке отключён (не регистрируется в iframe)
 - [x] Сборка веб-версии: `npm run build:yandex` → `build/yandex/` (14 модулей)
-- [x] ZIP готов: `build/pirate-2048-yandex.zip` (≈90 КБ)
+- [x] ZIP готов: `build/yandex.zip` (≈275 КБ), иконка в океанском стиле
 - [x] Гайд: [`YANDEX_GAMES.md`](./YANDEX_GAMES.md)
-- [x] Скриншоты 1280×720 готовы: `store/shots/yandex-home.png`, `yandex-moves.png`,
+- [x] Скриншоты 1280×720 готовы (перегенерированы 20.08.2026): `store/shots/yandex-home.png`, `yandex-moves.png`,
   `yandex-shop.png`, `yandex-shop-skin.png`
 - [ ] Загрузить ZIP в кабинет Яндекс Игр, заполнить метаданные, загрузить скриншоты 1280×720 и иконку
-- [ ] Создать лидерборд `pirat2048_top` в кабинете
+- [ ] Создать лидерборд `ocean2048_top` в кабинете
 - [ ] Включить монетизацию (реклама interstitial + rewarded) → модерация
 
 ---
 
 ## ⚠️ Рекомендации (не блокеры)
 
-1. ✅ `<title>` согласован с именем приложения: `Пират 2048 — головоломка 2048`
-   (было `2048 — Пиратская версия`) — избегает претензий по бренду «2048»
+1. ✅ `<title>` согласован с именем приложения: `Океан 2048 — головоломка 2048`
+   (ранее была старая тема) — избегает претензий по бренду «2048»
    (Guideline 2.3.7). Сделано 2026-08-17.
 2. **`DEPLOY-NOTES.md` не коммитить** — содержит SSH-доступ и секреты (уже в `.gitignore`).
 3. **Отозвать старый GitHub-токен** `ghp_…` (см. `PROGRESS-NOTES.md`) после восстановления
@@ -125,7 +125,7 @@
 
 ## Ключевые ссылки
 
-- Политика приватности: `https://5mb2.ru/static/games/pirate-2048/privacy-policy.html`
+- Политика приватности: `https://5mb2.ru/static/games/ocean-2048/privacy-policy.html`
   (URL зависит от финального `slug` игры на 5mb2.ru)
 - Контакт: `slavasundukov887@gmail.com`
-- Репозиторий: `attack444/pirat`
+- Репозиторий: `attack444/ocean-2048`

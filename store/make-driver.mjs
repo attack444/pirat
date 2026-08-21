@@ -102,10 +102,10 @@ const driver = `<!-- TEST DRIVER (auto-generated, не для продакшна
 })();
 </script>`;
 
-const html = readFileSync('D:/pirat/index.html', 'utf8');
+const html = readFileSync('D:/ocean-2048/index.html', 'utf8');
 // <base href="/"> — чтобы относительные пути (css/, js/, manifest.json, icons/)
 // резолвились от корня сайта, а не от /store/ (иначе 404 и драйвер не работает)
 const withBase = html.replace('<head>', '<head>\n<base href="/">');
 const out = withBase.replace('</body>', driver + '\n</body>');
-writeFileSync('D:/pirat/store/test-driver.html', out, 'utf8');
+writeFileSync('D:/ocean-2048/store/test-driver.html', out, 'utf8');
 console.log('test-driver.html создан,', out.length, 'байт');

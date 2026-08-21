@@ -21,7 +21,7 @@
    - [GOOGLE_PLAY.md](./GOOGLE_PLAY.md) — Data safety, IARC, listing
    - [APP_STORE.md](./APP_STORE.md) — App Privacy, Age Rating, Review notes
 4. Сделайте **реальные скриншоты** с эмулятора/устройства (не оставляйте заглушки).
-5. Privacy Policy URL: `https://5mb2.ru/static/games/pirate-2048/privacy-policy.html`
+5. Privacy Policy URL: `https://5mb2.ru/static/games/ocean-2048/privacy-policy.html`
    Контакт: `slavasundukov887@gmail.com`
 
 ## Графика

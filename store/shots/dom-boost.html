@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <!-- PWA / магазины приложений -->
-    <meta name="theme-color" content="#0a1a2e">
-    <meta name="description" content="Пиратская версия 2048 — объединяй плитки, проходи 7 уровней и стань Пиратским Королём! Без рекламы и покупок.">
+    <meta name="theme-color" content="#0a3d62">
+    <meta name="description" content="Океан 2048 — объединяй плитки, исследуй глубины океана и стань Хозяином Моря! Без рекламы и покупок.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Пират 2048">
+    <meta name="apple-mobile-web-app-title" content="Океан 2048">
     <!-- Предпросмотр нативной версии: index.html?platform=ios или ?platform=android -->
 
     <link rel="manifest" href="manifest.json">
@@ -18,7 +18,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 
-    <title>Пират 2048 — головоломка 2048</title>
+    <title>Океан 2048 — головоломка 2048</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="is-web theme-dark skin-gold" data-driver-done="1" data-driver-trace="[&quot;wait:tutorial-ok&quot;,&quot;clicked:tutorial-ok&quot;,&quot;ok:tutorial-ok&quot;,&quot;clicked:dl-claim-btn&quot;,&quot;ok:dl-claim-btn&quot;,&quot;clicked:shop-btn&quot;,&quot;ok:shop-btn&quot;,&quot;clicked:tab-boost&quot;,&quot;ok:tab-boost&quot;]">
@@ -26,7 +26,7 @@
     <div id="loading-screen" class="loading-screen hidden">
         <div class="loading-inner">
             <div class="loading-emoji">🏴‍☠️</div>
-            <div class="loading-title">Пират 2048</div>
+            <div class="loading-title">Океан 2048</div>
             <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar-fill" style="width: 100%;"></div></div>
             <div class="loading-hint" id="loading-hint">Готовим корабль к плаванию…</div>
         </div>
@@ -37,7 +37,7 @@
         <!-- ── Шапка ──────────────────────────────────────── -->
         <header>
             <div class="header-top">
-                <h1>🏴‍☠️ 2048 Пиратская версия</h1>
+                <h1>🌊 Океан 2048</h1>
                 <div class="header-actions">
                     <button id="pause-btn" class="btn btn-icon" title="Пауза" aria-label="Пауза">⏸️</button>
                     <button id="sound-btn" class="btn btn-icon" title="Звук вкл/выкл" aria-label="Звук вкл/выкл">🔊</button>
@@ -77,13 +77,13 @@
                     <span id="combo" class="value">0</span>
                 </div>
                 <div class="stat">
-                    <span class="label">Дублоны</span>
+                    <span class="label">Жемчужины</span>
                     <span id="doubloons" class="value">50</span>
                 </div>
             </div>
 
             <div class="level-info">
-                <span id="level-name" class="level-name">⚓ Юнга</span>
+                <span id="level-name" class="level-name">🐚 Ракушка</span>
                 <span class="level-target-wrap">Цель: <strong id="level-target">256</strong></span>
             </div>
         </header>
@@ -94,7 +94,7 @@
                 <span class="dl-title">🎁 Ежедневный вход</span>
                 <span class="dl-days" id="dl-days">День 1</span>
                 <span class="dl-week" id="dl-week"><span class="dl-day next">1: 50</span><span class="dl-day">2: 75</span><span class="dl-day">3: 100</span><span class="dl-day">4: 125</span><span class="dl-day">5: 150</span><span class="dl-day">6: 175</span><span class="dl-day">7: 250</span></span>
-                <button id="dl-claim-btn" class="btn btn-small dl-claim-btn">Забрать +50 🪙</button>
+                <button id="dl-claim-btn" class="btn btn-small dl-claim-btn">Забрать +50 🦪</button>
                 <button id="dl-close" class="btn btn-icon dl-close" title="Скрыть" aria-label="Скрыть">✕</button>
             </div>
         </div>
@@ -129,20 +129,10 @@
                 <button id="boost-x2" class="btn btn-ghost boost-btn" disabled="" title="Двойные очки: ×2 на 3 хода со слиянием">⚡ <span class="boost-count" id="boost-x2-count">0</span></button>
             </div>
 
-            <!-- Инструкция -->
-            <div class="instructions">
-                <h2>Как играть</h2>
-                <ul>
-                    <li>Свайп пальцем или стрелки клавиатуры — двигай плитки</li>
-                    <li>Одинаковые плитки сливаются в одну с удвоенным значением</li>
-                    <li>Достигни целевого числа и переходи на следующий уровень</li>
-                    <li>Пройди все 7 уровней и стань Пиратским Королём! 👑</li>
-                </ul>
-            </div>
         </main>
 
         <footer>
-            <p>🏴‍☠️ Пиратская версия 2048 | Сделано с ❤️</p>
+            <p>🌊 Океан 2048 | Сделано с ❤️</p>
             <p class="footer-links"><a href="privacy-policy.html">Политика конфиденциальности</a></p>
         </footer>
     </div>
@@ -226,7 +216,7 @@
                 <div class="daily-head">
                     <span class="daily-icon">⚓</span>
                     <span class="daily-name">Победа</span>
-                    <span class="daily-reward">+150 🪙</span>
+                    <span class="daily-reward">+150 🦪</span>
                 </div>
                 <div class="daily-desc">Пройди уровень</div>
                 <div class="daily-progress"><div class="daily-progress-fill" style="width:0%"></div></div>
@@ -238,7 +228,7 @@
                 <div class="daily-head">
                     <span class="daily-icon">🔑</span>
                     <span class="daily-name">Ключ от сундука</span>
-                    <span class="daily-reward">+120 🪙</span>
+                    <span class="daily-reward">+120 🦪</span>
                 </div>
                 <div class="daily-desc">Собери плитку 256</div>
                 <div class="daily-progress"><div class="daily-progress-fill" style="width:0%"></div></div>
@@ -250,7 +240,7 @@
                 <div class="daily-head">
                     <span class="daily-icon">✨</span>
                     <span class="daily-name">Десять слияний</span>
-                    <span class="daily-reward">+120 🪙</span>
+                    <span class="daily-reward">+120 🦪</span>
                 </div>
                 <div class="daily-desc">Слей плитки 10 раз за день</div>
                 <div class="daily-progress"><div class="daily-progress-fill" style="width:0%"></div></div>
@@ -282,7 +272,7 @@
     <div id="leaderboard-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal leaderboard-modal">
             <h2>🏆 Таблица лидеров</h2>
-            <p class="modal-message">Лучшие пираты на просторах этого моря</p>
+            <p class="modal-message">Лучшие исследователи глубин океана</p>
             <div class="leaderboard-list" id="leaderboard-list"></div>
             <button class="btn btn-ghost" id="close-leaderboard-btn">✕ Закрыть</button>
         </div>
@@ -317,8 +307,8 @@
     <!-- ── Модальное окно: лавка старого капитана ─────────── -->
     <div id="shop-modal" class="modal-overlay visible" role="dialog" aria-modal="true">
         <div class="modal shop-modal">
-            <h2>🏪 Лавка старого капитана</h2>
-            <div class="shop-balance">Дублоны: <strong id="shop-doubloons">50</strong> 🪙</div>
+            <h2>🪸 Рынок у рифа</h2>
+            <div class="shop-balance">Жемчужины: <strong id="shop-doubloons">50</strong> 🦪</div>
             <div class="shop-tabs" id="shop-tabs">
                 <button class="btn btn-small shop-tab active" data-cat="boost">🔄 Бусты</button>
                 <button class="btn btn-small shop-tab" data-cat="perk">💎 Перки</button>
@@ -332,7 +322,7 @@
                     <div class="shop-desc">Перемешивает плитки на доске — новый шанс на ход</div>
                     <div class="shop-base">В запасе: 0</div>
                 </div>
-                <button class="btn btn-small shop-buy" data-shop-id="boost_shuffle">30 🪙</button>
+                <button class="btn btn-small shop-buy" data-shop-id="boost_shuffle">30 🦪</button>
             </div><div class="shop-item">
                 <div class="shop-icon">💣</div>
                 <div class="shop-info">
@@ -340,7 +330,7 @@
                     <div class="shop-desc">Убирает самую большую плитку с доски</div>
                     <div class="shop-base">В запасе: 0</div>
                 </div>
-                <button class="btn btn-small shop-buy disabled" data-shop-id="boost_bomb">60 🪙</button>
+                <button class="btn btn-small shop-buy disabled" data-shop-id="boost_bomb">60 🦪</button>
             </div><div class="shop-item">
                 <div class="shop-icon">⚡</div>
                 <div class="shop-info">
@@ -348,7 +338,7 @@
                     <div class="shop-desc">Следующие 3 хода со слиянием дают ×2 очков</div>
                     <div class="shop-base">В запасе: 0</div>
                 </div>
-                <button class="btn btn-small shop-buy disabled" data-shop-id="boost_x2">90 🪙</button>
+                <button class="btn btn-small shop-buy disabled" data-shop-id="boost_x2">90 🦪</button>
             </div></div>
             <button class="btn btn-ghost" id="close-shop-btn">✕ Закрыть</button>
         </div>
@@ -357,8 +347,8 @@
     <!-- ── Модальное окно: онбординг (первый запуск) ─────────── -->
     <div id="tutorial-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal tutorial-modal">
-            <div class="modal-icon">🏴‍☠️</div>
-            <h2 class="modal-title">Добро пожаловать, капитан!</h2>
+            <div class="modal-icon">🐬</div>
+            <h2 class="modal-title">Добро пожаловать в океан!</h2>
             <ul class="tutorial-list">
                 <li><span class="t-ico">👆</span><span>Свайпай пальцем по доске или жми стрелки на клавиатуре, чтобы двигать плитки</span></li>
                 <li><span class="t-ico">🔗</span><span>Одинаковые плитки сливаются в одну — значение удваивается</span></li>

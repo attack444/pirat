@@ -11,7 +11,7 @@
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
-const OUT = 'D:/pirat/store/shots';
+const OUT = 'D:/ocean-2048/store/shots';
 mkdirSync(OUT, { recursive: true });
 
 const BASE = 'http://localhost:4173';

@@ -9,34 +9,35 @@
 }
 
 :root {
-    --gold:        #b8860b;
-    --gold-light:  #f5d742;
-    --gold-bright: #ffd700;
-    --navy:        #0a1a2e;
-    --navy-mid:    #1c3b5a;
-    --wood-dark:   #3e2c1a;
-    --wood-mid:    #5a3a20;
-    --board-bg:    #2a1f0e;
+    --gold:        #00b8d4;
+    --gold-light:  #8ee7f7;
+    --gold-bright: #4af7ff;
+    --navy:        #071f36;
+    --navy-mid:    #0d3b5e;
+    --wood-dark:   #0a2b46;
+    --wood-mid:    #124769;
+    --board-bg:    #0d3d5e;
     --white:       #f9f6f2;
     --text-muted:  #e0e0e0;
 }
 
 /* ======================== Скины плиток (палитры) ======================== */
+/* Базовый скин «Жемчуг» (ключ сохранения 'gold' не меняем) */
 :root, body.skin-gold {
-    --t0-bg:   linear-gradient(135deg, #d4af37, #8b6914);   --t0-c:   var(--white);
-    --t2-bg:   linear-gradient(135deg, #eee4da, #ede0c8);   --t2-c:   #776e65;
-    --t4-bg:   linear-gradient(135deg, #ede0c8, #f2b179);   --t4-c:   #776e65;
-    --t8-bg:   linear-gradient(135deg, #f2b179, #f59563);   --t8-c:   var(--white);
-    --t16-bg:  linear-gradient(135deg, #f59563, #f67c5f);   --t16-c:  var(--white);
-    --t32-bg:  linear-gradient(135deg, #f67c5f, #f65e3b);   --t32-c:  var(--white);
-    --t64-bg:  linear-gradient(135deg, #f65e3b, #edcf72);   --t64-c:  var(--white);
-    --t128-bg: linear-gradient(135deg, #edcf72, #edcc61);   --t128-c: #776e65;
-    --t256-bg: linear-gradient(135deg, #edcc61, #edc850);   --t256-c: #776e65;
-    --t512-bg: linear-gradient(135deg, #edc850, #edc53f);   --t512-c: #776e65;
-    --t1024-bg: linear-gradient(135deg, #edc53f, #b8860b);  --t1024-c: var(--white);
-    --t2048-bg: linear-gradient(135deg, #ffd700, #b8860b);  --t2048-c: var(--white);
-    --t4096-bg: linear-gradient(135deg, #b8860b, #8b6914);  --t4096-c: var(--white);
-    --t8192-bg: linear-gradient(135deg, #8b6914, #5c4609);  --t8192-c: var(--gold-bright);
+    --t0-bg:   linear-gradient(135deg, #4a8bab, #2b6c8f);   --t0-c:   var(--white);
+    --t2-bg:   linear-gradient(135deg, #f8f4ec, #efe6d8);   --t2-c:   #5a4a3a;
+    --t4-bg:   linear-gradient(135deg, #e9f7fb, #cdeef5);   --t4-c:   #14658a;
+    --t8-bg:   linear-gradient(135deg, #bce8f2, #8fd6e8);   --t8-c:   #0d3b5e;
+    --t16-bg:  linear-gradient(135deg, #8fd6e8, #5cb8d9);   --t16-c:  var(--white);
+    --t32-bg:  linear-gradient(135deg, #5cb8d9, #3b97c4);   --t32-c:  var(--white);
+    --t64-bg:  linear-gradient(135deg, #3b97c4, #2a7fb0);   --t64-c:  var(--white);
+    --t128-bg: linear-gradient(135deg, #2a7fb0, #ff8a6b);   --t128-c: var(--white);
+    --t256-bg: linear-gradient(135deg, #ffb49a, #ff8a6b);   --t256-c: #5e2a14;
+    --t512-bg: linear-gradient(135deg, #ff8a6b, #ff6a3d);   --t512-c: var(--white);
+    --t1024-bg: linear-gradient(135deg, #ff6a3d, #e84e28);  --t1024-c: var(--white);
+    --t2048-bg: linear-gradient(135deg, #4af7ff, #00b8d4);  --t2048-c: #04222e;
+    --t4096-bg: linear-gradient(135deg, #00b8d4, #007a91);  --t4096-c: var(--white);
+    --t8192-bg: linear-gradient(135deg, #005a70, #003546);  --t8192-c: var(--gold-bright);
 }
 
 body.skin-wood {
@@ -217,10 +218,10 @@ header h1 {
     line-height: 1.2;
 }
 
-/* Активная серия комбо — золотое свечение с импульсом */
+/* Активная серия комбо — бирюзовое свечение с импульсом */
 .stat .value.active {
-    color: #ffd700;
-    text-shadow: 0 0 10px rgba(255, 215, 0, .9);
+    color: var(--gold-bright);
+    text-shadow: 0 0 10px rgba(74, 247, 255, .9);
     animation: combo-pulse .6s ease;
 }
 @keyframes combo-pulse {
@@ -319,7 +320,7 @@ main {
     font-weight: bold;
     border-radius: 6px;
     text-shadow: 1px 1px 3px rgba(0,0,0,.5);
-    background: var(--t0-bg, linear-gradient(135deg, #d4af37, #8b6914));
+    background: var(--t0-bg, linear-gradient(135deg, #4a8bab, #2b6c8f));
     color: var(--t0-c, var(--white));
     will-change: transform, opacity;
     transform: translate(var(--tx, 0), var(--ty, 0));
@@ -403,7 +404,7 @@ main {
     width: 58px;
     height: 58px;
     font-size: 1.4rem;
-    background: linear-gradient(135deg, var(--gold), #8b6914);
+    background: linear-gradient(135deg, var(--gold), #007a91);
     color: var(--white);
     border: none;
     border-radius: 10px;
@@ -455,12 +456,12 @@ main {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--gold), #daa520);
+    background: linear-gradient(135deg, var(--gold), #12c2d4);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(184,134,11,.4);
+    box-shadow: 0 4px 12px rgba(0,184,212,.4);
 }
 
-.btn-primary:hover  { background: linear-gradient(135deg,#daa520,var(--gold-bright)); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(184,134,11,.6); }
+.btn-primary:hover  { background: linear-gradient(135deg,#12c2d4,var(--gold-bright)); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,184,212,.6); }
 .btn-primary:active { transform: translateY(0); }
 
 .btn-secondary {
@@ -482,9 +483,6 @@ main {
 
 .btn-ghost:hover  { background: rgba(255,255,255,.08); }
 .btn-ghost:active { background: rgba(255,255,255,.04); }
-
-/* ======================== Инструкция (скрыта — поле на весь экран) ======================== */
-.instructions { display: none; }
 
 /* ======================== Подвал (скрыт — поле на весь экран) ======================== */
 footer { display: none; }
@@ -633,7 +631,7 @@ footer { display: none; }
 
 .level-card.current {
     border-color: var(--gold-bright);
-    box-shadow: 0 0 0 2px rgba(255,215,0,.4);
+    box-shadow: 0 0 0 2px rgba(74,247,255,.4);
 }
 
 .level-card.completed::after {
@@ -714,7 +712,6 @@ body.is-fullscreen .board {
     header h1 { font-size: 1.2rem; }
     .tile     { font-size: 1.3rem; }
     .dpad-btn { width: 50px; height: 50px; }
-    .instructions li { font-size: .85rem; }
 }
 
 /* ==================================================================
@@ -731,8 +728,8 @@ body.is-native {
     align-items: stretch;
     min-height: 100dvh;
     background:
-        radial-gradient(ellipse at 50% 0%, rgba(184,134,11,.18) 0%, transparent 55%),
-        linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 55%, #163049 100%);
+        radial-gradient(ellipse at 50% 0%, rgba(0,184,212,.18) 0%, transparent 55%),
+        linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 55%, #0e3d63 100%);
 }
 
 /* Убираем деревянную рамку-окошко вокруг всего UI */
@@ -781,16 +778,6 @@ body.force-dpad .dpad {
     display: flex;
 }
 
-/* Инструкция и футер компактнее — больше места полю */
-body.is-native .instructions {
-    padding: 12px 14px;
-    border-width: 1px;
-    background: rgba(0, 0, 0, .22);
-}
-
-body.is-native .instructions h2 { font-size: 1rem; }
-body.is-native .instructions li { font-size: .88rem; margin-bottom: 4px; }
-
 body.is-native footer {
     border-top-color: rgba(184, 134, 11, .35);
     margin-top: 12px;
@@ -827,45 +814,42 @@ body.is-android .dpad {
    СВЕТЛАЯ ТЕМА (body.theme-light)
    ================================================================== */
 body.theme-light {
-    background: linear-gradient(135deg, #f3e5c9 0%, #e3c98f 100%);
-    color: #3a2a14;
+    background: linear-gradient(135deg, #d7f2f7 0%, #a8dce6 100%);
+    color: #0d3b5e;
 }
 body.theme-light .container {
-    background: linear-gradient(180deg, #fdf3d8 0%, #f0dfb4 100%);
-    border-color: #b8860b;
-    box-shadow: 0 20px 40px rgba(0,0,0,.3), inset 0 0 20px rgba(255,215,0,.2);
+    background: linear-gradient(180deg, #eafafd 0%, #cdeef5 100%);
+    border-color: #00b8d4;
+    box-shadow: 0 20px 40px rgba(0,0,0,.25), inset 0 0 20px rgba(0,184,212,.2);
 }
-body.theme-light header              { border-bottom-color: #b8860b; }
-body.theme-light header h1           { color: #8b6914; text-shadow: 1px 1px 3px rgba(255,255,255,.4); }
-body.theme-light .stat               { background: rgba(0,0,0,.06); border-color: #b8860b; }
-body.theme-light .stat .label        { color: #8b6914; }
-body.theme-light .stat .value        { color: #8b6914; }
-body.theme-light .stat .value.active { color: #ff8c00; text-shadow: 0 0 8px rgba(255, 140, 0, .7); }
-body.theme-light .level-name         { color: #8b6914; }
-body.theme-light .level-target-wrap  { color: #5a4326; }
-body.theme-light .level-target-wrap strong { color: #8b6914; }
-body.theme-light .btn-icon           { background: rgba(0,0,0,.06); border-color: #b8860b; color: #8b6914; }
-body.theme-light .btn-icon:hover     { background: rgba(184,134,11,.15); }
-body.theme-light .btn-secondary      { background: rgba(0,0,0,.06); color: #8b6914; border-color: #b8860b; }
-body.theme-light .btn-secondary:hover { background: rgba(184,134,11,.12); }
-body.theme-light .btn-ghost          { color: #5a4326; border-color: rgba(0,0,0,.25); }
-body.theme-light .btn-ghost:hover    { background: rgba(0,0,0,.06); }
-body.theme-light .board              { border-color: #b8860b; background: #e8d5a8; box-shadow: inset 0 0 30px rgba(0,0,0,.25), 0 8px 20px rgba(0,0,0,.2); }
-body.theme-light .board .cell        { background: rgba(0,0,0,.07); }
-body.theme-light .instructions       { background: rgba(0,0,0,.05); border-color: #b8860b; }
-body.theme-light .instructions h2    { color: #8b6914; }
-body.theme-light .instructions li    { color: #5a4326; }
-body.theme-light footer              { border-top-color: #b8860b; color: #8b6914; }
-body.theme-light .footer-links a     { color: #6b4a10; }
-body.theme-light .modal              { background: linear-gradient(180deg, #fdf3d8, #f0dfb4); }
-body.theme-light .modal-title        { color: #8b6914; }
-body.theme-light .modal-message      { color: #5a4326; }
-body.theme-light .modal-score        { background: rgba(0,0,0,.06); border-color: #b8860b; color: #8b6914; }
-body.theme-light .level-card         { background: rgba(0,0,0,.05); }
-body.theme-light .level-card.unlocked:hover { background: rgba(184,134,11,.15); }
+body.theme-light header              { border-bottom-color: #00b8d4; }
+body.theme-light header h1           { color: #007a91; text-shadow: 1px 1px 3px rgba(255,255,255,.5); }
+body.theme-light .stat               { background: rgba(0,0,0,.05); border-color: #00b8d4; }
+body.theme-light .stat .label        { color: #007a91; }
+body.theme-light .stat .value        { color: #007a91; }
+body.theme-light .stat .value.active { color: #ff6a3d; text-shadow: 0 0 8px rgba(255, 106, 61, .7); }
+body.theme-light .level-name         { color: #007a91; }
+body.theme-light .level-target-wrap  { color: #1a5a76; }
+body.theme-light .level-target-wrap strong { color: #007a91; }
+body.theme-light .btn-icon           { background: rgba(0,0,0,.05); border-color: #00b8d4; color: #007a91; }
+body.theme-light .btn-icon:hover     { background: rgba(0,184,212,.15); }
+body.theme-light .btn-secondary      { background: rgba(0,0,0,.05); color: #007a91; border-color: #00b8d4; }
+body.theme-light .btn-secondary:hover { background: rgba(0,184,212,.12); }
+body.theme-light .btn-ghost          { color: #1a5a76; border-color: rgba(0,0,0,.25); }
+body.theme-light .btn-ghost:hover    { background: rgba(0,0,0,.05); }
+body.theme-light .board              { border-color: #00b8d4; background: #d9f0f5; box-shadow: inset 0 0 30px rgba(0,0,0,.15), 0 8px 20px rgba(0,0,0,.15); }
+body.theme-light .board .cell        { background: rgba(0,0,0,.06); }
+body.theme-light footer              { border-top-color: #00b8d4; color: #007a91; }
+body.theme-light .footer-links a     { color: #0d5a75; }
+body.theme-light .modal              { background: linear-gradient(180deg, #eafafd, #cdeef5); }
+body.theme-light .modal-title        { color: #007a91; }
+body.theme-light .modal-message      { color: #1a5a76; }
+body.theme-light .modal-score        { background: rgba(0,0,0,.05); border-color: #00b8d4; color: #007a91; }
+body.theme-light .level-card         { background: rgba(0,0,0,.04); }
+body.theme-light .level-card.unlocked:hover { background: rgba(0,184,212,.15); }
 body.theme-light .lc-num,
-body.theme-light .lc-target          { color: #8b6914; }
-body.theme-light .lc-name            { color: #6b4a10; }
+body.theme-light .lc-target          { color: #007a91; }
+body.theme-light .lc-name            { color: #0d5a75; }
 body.theme-light .lc-grid            { color: rgba(0,0,0,.5); }
 body.theme-light .setting-option,
 body.theme-light .achievement        { background: rgba(0,0,0,.05); }
@@ -927,7 +911,7 @@ body.theme-light .achievement        { background: rgba(0,0,0,.05); }
     max-width: 100%;
 }
 .toast.show { opacity: 1; transform: translateY(0) scale(1); }
-body.theme-light .toast { background: linear-gradient(180deg, #fdf3d8, #f0dfb4); color: #8b6914; }
+body.theme-light .toast { background: linear-gradient(180deg, #eafafd, #cdeef5); color: #007a91; }
 
 /* ==================================================================
    МОДАЛКА НАСТРОЕК
@@ -951,7 +935,7 @@ body.theme-light .toast { background: linear-gradient(180deg, #fdf3d8, #f0dfb4);
     color: var(--gold-light);
     font-size: 1rem;
     margin-bottom: 10px;
-    border-bottom: 1px solid rgba(184,134,11,.4);
+    border-bottom: 1px solid rgba(0,184,212,.4);
     padding-bottom: 6px;
     display: flex;
     align-items: center;
@@ -976,12 +960,12 @@ body.theme-light .toast { background: linear-gradient(180deg, #fdf3d8, #f0dfb4);
     align-items: center;
     gap: 6px;
 }
-.setting-btn:hover { background: rgba(184,134,11,.2); transform: translateY(-1px); }
+.setting-btn:hover { background: rgba(0,184,212,.2); transform: translateY(-1px); }
 .setting-btn.active {
     border-color: var(--gold-bright);
-    background: rgba(184,134,11,.28);
+    background: rgba(0,184,212,.28);
     color: var(--gold-light);
-    box-shadow: 0 0 0 2px rgba(255,215,0,.25);
+    box-shadow: 0 0 0 2px rgba(74,247,255,.25);
 }
 .setting-toggle {
     display: flex;
@@ -1009,10 +993,10 @@ body.theme-light .toast { background: linear-gradient(180deg, #fdf3d8, #f0dfb4);
 #install-btn[data-available="1"] { display: inline-flex; }
 body.theme-light .settings-modal h2,
 body.theme-light .setting-group > h3,
-body.theme-light .setting-label { color: #8b6914; }
-body.theme-light .setting-btn { background: rgba(0,0,0,.05); color: #5a4326; border-color: rgba(0,0,0,.2); }
-body.theme-light .setting-btn.active { border-color: #b8860b; background: rgba(184,134,11,.2); color: #6b4a10; }
-body.theme-light .setting-toggle span { color: #5a4326; }
+body.theme-light .setting-label { color: #007a91; }
+body.theme-light .setting-btn { background: rgba(0,0,0,.05); color: #1a5a76; border-color: rgba(0,0,0,.2); }
+body.theme-light .setting-btn.active { border-color: #00b8d4; background: rgba(0,184,212,.2); color: #0d5a75; }
+body.theme-light .setting-toggle span { color: #1a5a76; }
 
 /* ==================================================================
    ДОСТИЖЕНИЯ
@@ -1033,7 +1017,7 @@ body.theme-light .setting-toggle span { color: #5a4326; }
 }
 .achievement.unlocked {
     border-color: var(--gold-bright);
-    background: rgba(184,134,11,.18);
+    background: rgba(0,184,212,.18);
 }
 .achievement.locked { opacity: .5; }
 .achievement .ach-icon { font-size: 1.6rem; display: block; margin-bottom: 6px; }
@@ -1041,9 +1025,9 @@ body.theme-light .setting-toggle span { color: #5a4326; }
 .achievement .ach-desc { color: var(--text-muted); font-size: .72rem; line-height: 1.35; }
 .achievement.locked .ach-name { color: var(--text-muted); }
 body.theme-light .achievement { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.18); }
-body.theme-light .achievement.unlocked { border-color: #b8860b; background: rgba(184,134,11,.15); }
-body.theme-light .achievement .ach-name { color: #6b4a10; }
-body.theme-light .achievement .ach-desc { color: #5a4326; }
+body.theme-light .achievement.unlocked { border-color: #00b8d4; background: rgba(0,184,212,.15); }
+body.theme-light .achievement .ach-name { color: #0d5a75; }
+body.theme-light .achievement .ach-desc { color: #1a5a76; }
 
 /* ==================================================================
    ПОДСВЕТКА ПОДСКАЗКИ (лучший ход)
@@ -1053,7 +1037,7 @@ body.theme-light .achievement .ach-desc { color: #5a4326; }
 }
 @keyframes hintFlash {
     50% {
-        box-shadow: 0 0 0 5px rgba(255,215,0,.95), 0 0 24px rgba(255,215,0,.7);
+        box-shadow: 0 0 0 5px rgba(74,247,255,.95), 0 0 24px rgba(74,247,255,.7);
         transform: translate(var(--tx,0), var(--ty,0)) scale(1.12);
         z-index: 5;
     }
@@ -1067,8 +1051,8 @@ body.theme-light .achievement .ach-desc { color: #5a4326; }
     inset: 0;
     z-index: 20000;
     background:
-        radial-gradient(ellipse at 50% 30%, rgba(184,134,11,.25) 0%, transparent 60%),
-        linear-gradient(160deg, #0a1a2e 0%, #1c3b5a 100%);
+        radial-gradient(ellipse at 50% 30%, rgba(0,184,212,.25) 0%, transparent 60%),
+        linear-gradient(160deg, #071f36 0%, #0d3b5e 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1140,9 +1124,9 @@ body.theme-light .achievement .ach-desc { color: #5a4326; }
 }
 .setting-btn.locked:hover {
     border-color: var(--gold);
-    background: rgba(184,134,11,.12);
+    background: rgba(0,184,212,.12);
 }
-body.theme-light .setting-price { color: #8b6914; }
+body.theme-light .setting-price { color: #007a91; }
 body.theme-light .setting-btn.locked { border-color: rgba(0,0,0,.25); }
 
 /* ==================================================================
@@ -1201,7 +1185,7 @@ body.theme-light .setting-btn.locked { border-color: rgba(0,0,0,.25); }
 }
 .daily-count { color: var(--text-muted); font-size: .78rem; }
 .daily-claim {
-    background: linear-gradient(180deg, var(--gold), #8b6914);
+    background: linear-gradient(180deg, var(--gold), #007a91);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -1218,9 +1202,9 @@ body.theme-light .setting-btn.locked { border-color: rgba(0,0,0,.25); }
 .daily-claimed { color: #4caf50; font-size: .8rem; font-weight: bold; }
 body.theme-light .daily-task { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.18); }
 body.theme-light .daily-task.done { border-color: rgba(76,175,80,.6); background: rgba(76,175,80,.12); }
-body.theme-light .daily-name { color: #6b4a10; }
+body.theme-light .daily-name { color: #0d5a75; }
 body.theme-light .daily-desc,
-body.theme-light .daily-count { color: #5a4326; }
+body.theme-light .daily-count { color: #1a5a76; }
 
 /* ==================================================================
    ТАБЛИЦА ЛИДЕРОВ
@@ -1246,7 +1230,7 @@ body.theme-light .daily-count { color: #5a4326; }
 }
 .leaderboard-row.me {
     border-color: var(--gold-bright);
-    background: rgba(184,134,11,.18);
+    background: rgba(0,184,212,.18);
     box-shadow: 0 0 0 2px rgba(255,215,0,.25);
 }
 .lb-pos {
@@ -1262,9 +1246,9 @@ body.theme-light .daily-count { color: #5a4326; }
     font-weight: bold;
     font-size: .9rem;
 }
-.leaderboard-row:nth-child(1) .lb-pos { background: linear-gradient(180deg, #ffd700, #b8860b); color: #3a2a14; }
+.leaderboard-row:nth-child(1) .lb-pos { background: linear-gradient(180deg, #4af7ff, #00b8d4); color: #04222e; }
 .leaderboard-row:nth-child(2) .lb-pos { background: linear-gradient(180deg, #e0e0e0, #9e9e9e); color: #333; }
-.leaderboard-row:nth-child(3) .lb-pos { background: linear-gradient(180deg, #e6a866, #a4682e); color: #fff; }
+.leaderboard-row:nth-child(3) .lb-pos { background: linear-gradient(180deg, #ffb49a, #ff6a3d); color: #fff; }
 .lb-name {
     flex: 1;
     color: var(--text-muted);
@@ -1282,8 +1266,8 @@ body.theme-light .daily-count { color: #5a4326; }
     font-size: .9rem;
 }
 body.theme-light .leaderboard-row { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.15); }
-body.theme-light .leaderboard-row.me { border-color: #b8860b; background: rgba(184,134,11,.15); }
-body.theme-light .lb-name { color: #5a4326; }
+body.theme-light .leaderboard-row.me { border-color: #00b8d4; background: rgba(0,184,212,.15); }
+body.theme-light .lb-name { color: #1a5a76; }
 
 /* ==================================================================
    ДОСТУПНОСТЬ: уменьшение анимаций (prefers-reduced-motion)
@@ -1305,12 +1289,12 @@ body.reduce-motion .stat .value.active { animation: none; }
    ЕЖЕДНЕВНЫЙ ВХОД (панель награды за визит)
    ================================================================== */
 .daily-login {
-    background: linear-gradient(180deg, rgba(184,134,11,.25), rgba(0,0,0,.25));
+    background: linear-gradient(180deg, rgba(0,184,212,.25), rgba(0,0,0,.25));
     border: 2px solid var(--gold);
     border-radius: 14px;
     padding: 10px 14px;
     margin: 0 0 14px;
-    box-shadow: inset 0 0 14px rgba(255,215,0,.15);
+    box-shadow: inset 0 0 14px rgba(0,184,212,.15);
 }
 .dl-head {
     display: flex;
@@ -1330,24 +1314,24 @@ body.reduce-motion .stat .value.active { animation: none; }
     font-size: .72rem;
     color: var(--text-muted);
 }
-.dl-day.filled { border-color: var(--gold); background: rgba(184,134,11,.25); color: var(--gold-light); }
+.dl-day.filled { border-color: var(--gold); background: rgba(0,184,212,.25); color: var(--gold-light); }
 .dl-day.next {
     border-color: var(--gold-bright);
     color: var(--gold-bright);
-    box-shadow: 0 0 0 2px rgba(255,215,0,.3);
+    box-shadow: 0 0 0 2px rgba(74,247,255,.3);
     font-weight: bold;
 }
 .dl-claim-btn {
-    background: linear-gradient(180deg, var(--gold), #8b6914);
+    background: linear-gradient(180deg, var(--gold), #007a91);
     color: #fff;
     border: none;
     font-weight: bold;
 }
 .dl-claim-btn:disabled { opacity: .5; cursor: not-allowed; }
 .dl-close { margin-left: auto; }
-body.theme-light .daily-login { background: linear-gradient(180deg, rgba(184,134,11,.15), rgba(0,0,0,.04)); border-color: #b8860b; }
-body.theme-light .dl-day { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.18); color: #5a4326; }
-body.theme-light .dl-day.filled { border-color: #b8860b; background: rgba(184,134,11,.18); color: #8b6914; }
+body.theme-light .daily-login { background: linear-gradient(180deg, rgba(0,184,212,.15), rgba(0,0,0,.04)); border-color: #00b8d4; }
+body.theme-light .dl-day { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.18); color: #1a5a76; }
+body.theme-light .dl-day.filled { border-color: #00b8d4; background: rgba(0,184,212,.18); color: #007a91; }
 
 /* ==================================================================
    ПАНЕЛЬ БУСТОВ
@@ -1383,12 +1367,12 @@ body.theme-light .dl-day.filled { border-color: #b8860b; background: rgba(184,13
 .boost-btn.active {
     border-color: var(--gold-bright);
     color: var(--gold-bright);
-    background: rgba(255,215,0,.18);
+    background: rgba(74,247,255,.18);
     box-shadow: 0 0 0 2px rgba(255,215,0,.3);
     animation: combo-pulse .6s ease;
 }
 .boost-btn:disabled { opacity: .45; cursor: not-allowed; }
-body.theme-light .boost-count { background: rgba(0,0,0,.08); color: #8b6914; }
+body.theme-light .boost-count { background: rgba(0,0,0,.08); color: #007a91; }
 
 /* ==================================================================
    ЛАВКА СТАРОГО КАПИТАНА (магазин)
@@ -1416,7 +1400,7 @@ body.theme-light .boost-count { background: rgba(0,0,0,.08); color: #8b6914; }
 .shop-tab.active {
     border-color: var(--gold-bright);
     color: var(--gold-bright);
-    background: rgba(255,215,0,.15);
+    background: rgba(74,247,255,.15);
     font-weight: bold;
 }
 .shop-grid {
@@ -1446,7 +1430,7 @@ body.theme-light .boost-count { background: rgba(0,0,0,.08); color: #8b6914; }
 .shop-base { color: rgba(255,255,255,.5); font-size: .7rem; }
 .shop-item.owned .shop-base { color: #4caf50; }
 .shop-buy {
-    background: linear-gradient(180deg, var(--gold), #8b6914);
+    background: linear-gradient(180deg, var(--gold), #007a91);
     color: #fff;
     border: none;
     font-weight: bold;
@@ -1454,13 +1438,13 @@ body.theme-light .boost-count { background: rgba(0,0,0,.08); color: #8b6914; }
 }
 .shop-buy.owned { background: rgba(0,0,0,.2); color: #4caf50; cursor: default; }
 .shop-buy.disabled { opacity: .5; cursor: not-allowed; }
-body.theme-light .shop-tab { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.2); color: #5a4326; }
-body.theme-light .shop-tab.active { border-color: #b8860b; background: rgba(184,134,11,.2); color: #6b4a10; }
+body.theme-light .shop-tab { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.2); color: #1a5a76; }
+body.theme-light .shop-tab.active { border-color: #00b8d4; background: rgba(0,184,212,.2); color: #0d5a75; }
 body.theme-light .shop-item { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.18); }
 body.theme-light .shop-item.owned { border-color: rgba(76,175,80,.6); background: rgba(76,175,80,.12); }
-body.theme-light .shop-name { color: #8b6914; }
-body.theme-light .shop-desc { color: #5a4326; }
-body.theme-light .shop-balance { color: #5a4326; }
+body.theme-light .shop-name { color: #007a91; }
+body.theme-light .shop-desc { color: #1a5a76; }
+body.theme-light .shop-balance { color: #1a5a76; }
 
 /* ==================================================================
    ТЕМА «ЛЕС» (body.theme-forest)
@@ -1485,9 +1469,6 @@ body.theme-forest .btn-secondary { background: rgba(0,0,0,.3); border-color: #4c
 body.theme-forest .btn-ghost { border-color: rgba(255,255,255,.2); }
 body.theme-forest .board { border-color: #4c8f3e; background: #17301f; box-shadow: inset 0 0 30px rgba(0,0,0,.4), 0 8px 20px rgba(0,0,0,.35); }
 body.theme-forest .board .cell { background: rgba(255,255,255,.06); }
-body.theme-forest .instructions { background: rgba(0,0,0,.25); border-color: #4c8f3e; }
-body.theme-forest .instructions h2 { color: #9ade7b; }
-body.theme-forest .instructions li { color: #d6e8cd; }
 body.theme-forest footer { border-top-color: #4c8f3e; color: #b7d9a5; }
 body.theme-forest .footer-links a { color: #9ade7b; }
 body.theme-forest .modal { background: linear-gradient(180deg, #1d3a26, #152a1d); }

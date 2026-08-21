@@ -2,13 +2,13 @@
 // Чистая логика: список заданий, детерминированная выдача на день, прогресс.
 
 export const DAILY_TASKS = [
-    { id: 'moves30',   icon: '🦶', name: 'Сто морских миль', desc: 'Сделай 30 ходов за день',     goal: 30,   metric: 'moves', reward: 100 },
-    { id: 'tile256',   icon: '🔑', name: 'Ключ от сундука',  desc: 'Собери плитку 256',           goal: 256,  metric: 'tile',  reward: 120 },
-    { id: 'score5000', icon: '💰', name: 'Полная казна',     desc: 'Набери 5000 очков за партию', goal: 5000, metric: 'score', reward: 150 },
-    { id: 'merges10',  icon: '✨', name: 'Десять слияний',   desc: 'Слей плитки 10 раз за день',  goal: 10,   metric: 'merges', reward: 120 },
-    { id: 'winlevel',  icon: '⚓', name: 'Победа',           desc: 'Пройди уровень',              goal: 1,    metric: 'wins',  reward: 150 },
-    { id: 'hint2',     icon: '💡', name: 'Карта капитана',  desc: 'Используй 2 подсказки',       goal: 2,    metric: 'hints', reward: 80 },
-    { id: 'max512',    icon: '💎', name: 'Сокровище глубин', desc: 'Собери плитку 512',           goal: 512,  metric: 'tile',  reward: 180 },
+    { id: 'moves30',   icon: '🌊', name: 'Тридцать волн',     desc: 'Сделай 30 ходов за день',     goal: 30,   metric: 'moves', reward: 100 },
+    { id: 'tile256',   icon: '🐠', name: 'Стайка рыбок',      desc: 'Собери плитку 256',           goal: 256,  metric: 'tile',  reward: 120 },
+    { id: 'score5000', icon: '🦪', name: 'Жемчужное дно',     desc: 'Набери 5000 очков за партию', goal: 5000, metric: 'score', reward: 150 },
+    { id: 'merges10',  icon: '✨', name: 'Десять слияний',    desc: 'Слей плитки 10 раз за день',  goal: 10,   metric: 'merges', reward: 120 },
+    { id: 'winlevel',  icon: '🐬', name: 'Победа',            desc: 'Пройди уровень',              goal: 1,    metric: 'wins',  reward: 150 },
+    { id: 'hint2',     icon: '💡', name: 'Маяк',              desc: 'Используй 2 подсказки',       goal: 2,    metric: 'hints', reward: 80 },
+    { id: 'max512',    icon: '🐋', name: 'Кит глубин',        desc: 'Собери плитку 512',           goal: 512,  metric: 'tile',  reward: 180 },
 ];
 
 /**

@@ -2,7 +2,7 @@
 // Читает store/shots/dom-{stage}.html и печатает состояние ключевых элементов.
 import { readFileSync, readdirSync } from 'node:fs';
 
-const DIR = 'D:/pirat/store/shots/';
+const DIR = 'D:/ocean-2048/store/shots/';
 
 // Открывающий тег элемента по id (возвращает класс, disabled и т.п.)
 function openTag(html, id) {
