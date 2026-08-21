@@ -9,6 +9,7 @@
     "lint": "eslint js scripts",
     "build:www": "node scripts/build-www.js",
     "build:yandex": "node scripts/build-yandex.js",
+    "build:vk": "node scripts/build-vk.js",
     "make:shots": "node scripts/make-store-shots.mjs",
     "make:trailer": "node scripts/make-trailer.mjs",
     "make:banners": "node scripts/make-banners.mjs",
