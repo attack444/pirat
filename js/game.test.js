@@ -648,3 +648,209 @@ describe('Game tide (Прилив 🌊)', () => {
         assert.equal(g.tiles.some(t => t && t.value === 8), true);
     });
 });
+
+describe('Game moves-as-resource (Ходы как ресурс 🧮)', () => {
+    function makeMovesGame(opts = {}) {
+        const board = stubBoard();
+        const addTile = Game.prototype._addNewTile;
+        const render = Game.prototype.render;
+        const animate = Game.prototype._animateMove;
+        Game.prototype._addNewTile = function () {};
+        Game.prototype.render = function () {};
+        Game.prototype._animateMove = function (moves, cb) { cb(); };
+        const game = new Game({
+            boardElement: board,
+            size: opts.size || 4,
+            target: opts.target || 2048,
+            tide: opts.tide || null,
+            moves: Object.assign(
+                { enabled: true, tideStep: 1, maxWithoutMerge: 4, depth: 1 },
+                opts.moves
+            ),
+        });
+        Game.prototype._addNewTile = addTile;
+        Game.prototype.render = render;
+        Game.prototype._animateMove = animate;
+        game.tiles = new Array(game.size * game.size).fill(null);
+        game.score = 0;
+        return game;
+    }
+
+    it('is disabled when no moves config is passed', () => {
+        const g = makeGame();
+        assert.equal(g.getMovesPenalty(), null);
+    });
+
+    it('does not advance the tide on a merging move', () => {
+        // Прилив выключен — штраф по шагам прилива не должен ничего ломать
+        const g = makeMovesGame({ moves: { tideStep: 2, maxWithoutMerge: 10 } });
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 2 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            { id: 3, value: 8 }, null, null, null,
+        ];
+        g.handleMove('left'); // слияние 2+2
+        assert.equal(g.movesWithoutMerge, 0);
+        assert.equal(g.threatSwept, 0);
+        assert.equal(g.getMovesPenalty().movesWithoutMerge, 0);
+    });
+
+    it('counts useless moves and never triggers without the threshold', () => {
+        const g = makeMovesGame({ moves: { tideStep: 0, maxWithoutMerge: 4 } });
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 4 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            { id: 3, value: 8 }, null, null, null,
+        ];
+        // Бесполезный ход вверх не трогает нижний ряд — 2 и 4 сдвигаются
+        g.handleMove('up');
+        assert.equal(g.movesWithoutMerge, 1);
+        assert.equal(g.threatSwept, 0);
+        assert.equal(g.threatStrikes, 0);
+        assert.equal(g.getMovesPenalty().movesWithoutMerge, 1);
+    });
+
+    it('triggers a whirlpool after the configured run of useless moves', () => {
+        const g = makeMovesGame({ moves: { tideStep: 0, maxWithoutMerge: 2 } });
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        let threats = [];
+        g.onThreat = (s) => { threats = s; };
+        g.tiles = [
+            { id: 1, value: 2 }, null, { id: 2, value: 4 }, null,
+            null, null, null, null,
+            null, null, null, null,
+            { id: 3, value: 8 }, null, null, null,
+        ];
+        // 1-й бесполезный ход влево: 4 сдвигается, слияний нет, нижний ряд не тронут
+        g.handleMove('left');
+        assert.equal(g.movesWithoutMerge, 1);
+        assert.equal(g.threatSwept, 0);
+        // 2-й бесполезный ход вправо: слияний нет, 8 остаётся в нижнем ряду → порог достигнут
+        g.handleMove('right');
+        assert.equal(g.threatSwept, 1);          // 8 затянута водоворотом
+        assert.equal(g.threatSweptValue, 8);
+        assert.equal(g.threatStrikes, 1);
+        assert.equal(g.movesWithoutMerge, 0);    // счётчик сброшен после водоворота
+        assert.equal(g.tiles[15], null);
+        assert.equal(threats[0].value, 8);
+        assert.equal(g.getMovesPenalty().strikes, 1);
+    });
+
+    it('useless moves advance the tide countdown when tide is enabled', () => {
+        const g = makeMovesGame({
+            tide: { enabled: true, interval: 6, depth: 1, scoreReturn: 0.5, warning: 3 },
+            moves: { tideStep: 1, maxWithoutMerge: 99 },
+        });
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 4 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            { id: 3, value: 8 }, null, null, null,
+        ];
+        // Бесполезный ход вверх: прилив 6→5 + шаг штрафа → 4
+        g.handleMove('up');
+        assert.equal(g.movesWithoutMerge, 1);
+        assert.equal(g.tideMovesUntilRise, 4);
+        assert.equal(g.tideSwept, 0); // прилив ещё не наступил
+    });
+
+    it('a merging move resets the useless-move counter', () => {
+        const g = makeMovesGame({ moves: { tideStep: 0, maxWithoutMerge: 4 } });
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 2 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            { id: 3, value: 8 }, null, null, null,
+        ];
+        g.handleMove('up');  // без слияния
+        assert.equal(g.movesWithoutMerge, 1);
+        g.handleMove('left'); // слияние 2+2
+        assert.equal(g.movesWithoutMerge, 0);
+    });
+
+    it('undo restores the whirlpool counters and the useless-move counter', () => {
+        const g = makeMovesGame({ moves: { tideStep: 0, maxWithoutMerge: 2 } });
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 4 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            { id: 3, value: 8 }, null, null, null,
+        ];
+        g.handleMove('up');   // 1 бесполезный ход
+        g.handleMove('down'); // 2-й → водоворот
+        assert.equal(g.threatStrikes, 1);
+        assert.equal(g.movesWithoutMerge, 0);
+        g.undo();
+        assert.equal(g.threatStrikes, 0);
+        assert.equal(g.threatSwept, 0);
+        assert.equal(g.movesWithoutMerge, 1);
+    });
+
+    it('resets moves-penalty counters in init', () => {
+        const g = makeMovesGame({ moves: { tideStep: 0, maxWithoutMerge: 4 } });
+        g.render = () => {};
+        g.threatStrikes = 3;
+        g.threatSwept = 5;
+        g.threatSweptValue = 40;
+        g.movesWithoutMerge = 2;
+        g.init();
+        assert.equal(g.threatStrikes, 0);
+        assert.equal(g.threatSwept, 0);
+        assert.equal(g.threatSweptValue, 0);
+        assert.equal(g.movesWithoutMerge, 0);
+    });
+
+    it('persists moves-penalty state across loadState/saveState round-trip', () => {
+        const g = makeMovesGame({ moves: { tideStep: 0, maxWithoutMerge: 4 } });
+        g.threatStrikes = 2;
+        g.threatSwept = 3;
+        g.threatSweptValue = 20;
+        g.movesWithoutMerge = 1;
+        const state = g.getState();
+        assert.equal(state.threatStrikes, 2);
+        assert.equal(state.threatSwept, 3);
+        assert.equal(state.threatSweptValue, 20);
+
+        const g2 = makeMovesGame({ moves: { tideStep: 0, maxWithoutMerge: 4 } });
+        g2.render = () => {};
+        g2.loadState(state);
+        assert.equal(g2.threatStrikes, 2);
+        assert.equal(g2.threatSwept, 3);
+        assert.equal(g2.threatSweptValue, 20);
+    });
+
+    it('respects whirlpool depth greater than 1', () => {
+        const g = makeMovesGame({ moves: { tideStep: 0, maxWithoutMerge: 2, depth: 2 } });
+        g.tiles = [
+            { id: 1, value: 2 }, null, null, null,
+            null, null, null, null,
+            { id: 2, value: 4 }, null, null, null,
+            { id: 3, value: 8 }, { id: 4, value: 16 }, null, null,
+        ];
+        g.movesWithoutMerge = 2; // уже накоплено
+        g._triggerWhirlpool();
+        // Смыты два нижних ряда (строки 2 и 3), верхний ряд (строка 0) остаётся
+        assert.equal(g.threatSwept, 3);
+        assert.equal(g.tiles.filter(Boolean).length, 1);
+        assert.equal(g.tiles[0].value, 2);
+    });
+});

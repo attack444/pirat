@@ -8,7 +8,7 @@ import { applyLevelWin, applyLevelGameOver, isLevelUnlocked } from './progress.j
 import { resolveConflict, mergeBoardSaves } from './cloud-sync.js';
 import { canRevive } from './rewards.js';
 import { comboReward, STREAK_THRESHOLD } from './combo.js';
-import { LEVELS, levelById, isLastLevel, tideConfigForLevel } from './levels.js';
+import { LEVELS, levelById, isLastLevel, tideConfigForLevel, movesConfigForLevel } from './levels.js';
 import { ACHIEVEMENTS, evaluateAchievements } from './achievements.js';
 import { DAILY_TASKS, ensureDaily as ensureDailyState, dailyMetric as dailyMetricState, checkDaily as checkDailyState } from './daily.js';
 import { claimDailyLogin, dailyLoginInfo } from './daily-login.js';
@@ -98,6 +98,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tideIndicator = $('tide-indicator');
     const tideBarFill   = $('tide-bar-fill');
     const tideCount     = $('tide-count');
+
+    // «Ходы как ресурс» 🧮 (Фаза 2.5 «Глубина ядра») — индикатор «водоворота»
+    const threatIndicator = $('threat-indicator');
+    const threatBarFill   = $('threat-bar-fill');
+    const threatCount     = $('threat-count');
 
     const gameModal      = $('game-modal');
     const modalIcon      = $('modal-icon');
@@ -407,6 +412,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         tideIndicator.classList.remove('sweep');
         void tideIndicator.offsetWidth;
         tideIndicator.classList.add('sweep');
+    }
+
+    /** Обновить индикатор «водоворота»: заполнение + сколько ходов до штрафа. */
+    function updateThreatIndicator() {
+        if (!threatIndicator) return;
+        const m = game ? game.getMovesPenalty() : null;
+        if (!m) {
+            threatIndicator.hidden = true;
+            return;
+        }
+        threatIndicator.hidden = false;
+        // Полоса растёт по мере накопления бесполезных ходов подряд
+        const ratio = Math.min(1, m.movesWithoutMerge / m.maxWithoutMerge);
+        if (threatBarFill) threatBarFill.style.width = (ratio * 100).toFixed(0) + '%';
+        if (threatCount) threatCount.textContent = String(m.maxWithoutMerge - m.movesWithoutMerge);
+        // Тревожный режим: до водоворота остался 1 ход
+        threatIndicator.classList.toggle('warning', m.movesWithoutMerge >= m.maxWithoutMerge - 1);
+    }
+
+    /** Вспышка индикатора в момент срабатывания «водоворота». */
+    function flashThreatSweep() {
+        if (!threatIndicator || threatIndicator.hidden) return;
+        threatIndicator.classList.remove('sweep');
+        void threatIndicator.offsetWidth;
+        threatIndicator.classList.add('sweep');
     }
 
     function updateHeader() {
@@ -863,6 +893,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             target:        lv.target,
             infinity:      state.infinity === true,
             tide:          tideConfigForLevel(state.currentLevel),
+            moves:         movesConfigForLevel(state.currentLevel),
             onScoreUpdate: (score) => {
                 const prev = lastScore;
                 const isNewBest = score > (state.bestTotal || 0);
@@ -894,6 +925,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (state.sound !== false) playMove();
                 state.dailyCounters.moves = (state.dailyCounters.moves || 0) + 1;
                 updateTideIndicator();
+                updateThreatIndicator();
             },
             onTide:  (swept) => {
                 // Прилив смыл нижние ряды: вспышка индикатора + уведомление о возврате очков
@@ -901,6 +933,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const total = swept.reduce((acc, s) => acc + s.gain, 0);
                 if (total > 0) showToast(`Прилив унёс плитки! +${total} очков`, '🌊');
                 else if (swept.length > 0) showToast('Прилив очистил нижний ряд', '🌊');
+            },
+            onThreat: (swept) => {
+                // «Водоворот» за серию бесполезных ходов: смыв без возврата очков
+                flashThreatSweep();
+                const total = swept.reduce((acc, s) => acc + s.value, 0);
+                if (total > 0) showToast(`Водоворот унёс плитки (−${total})`, '🌪️');
+                else if (swept.length > 0) showToast('Водоворот очистил нижний ряд', '🌪️');
             },
             onMerge: (n) => {
                 if (state.sound !== false) playMerge();
@@ -915,7 +954,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     addDoubloons(reward.doubloons, reward.mult > 1 ? `комбо ×${reward.mult}` : 'серия');
                 }
             },
-            onSave:  () => { saveBoard(); saveState(state); updateUndoState(); updateMoves(); updateTideIndicator(); updateBoostBar(); checkAchievements(); checkDaily(); pushCloudSave(); },
+            onSave:  () => { saveBoard(); saveState(state); updateUndoState(); updateMoves(); updateTideIndicator(); updateThreatIndicator(); updateBoostBar(); checkAchievements(); checkDaily(); pushCloudSave(); },
             onTarget: (score) => {
                 // Бесконечный режим: цель достигнута — празднуем и продолжаем
                 if (state.sound !== false) playWin();
@@ -982,6 +1021,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateUndoState();
         updateMoves();
         updateTideIndicator();
+        updateThreatIndicator();
         updateBoostBar();
         // П. 1.19.3: запуск уровня — начало игрового процесса.
         if (!loadingScreen || loadingScreen.classList.contains('hidden')) markGameplayStart();
@@ -1006,6 +1046,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateUndoState();
         updateMoves();
         updateTideIndicator();
+        updateThreatIndicator();
         updateBoostBar();
         checkAchievements();
         // П. 1.19.3: перезапуск партии — игровой процесс снова активен.

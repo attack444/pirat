@@ -1481,6 +1481,63 @@ body.theme-light .tide-indicator { background: linear-gradient(90deg, #cdeef7, #
 body.theme-light .tide-count     { color: #007a91; }
 
 /* ==================================================================
+   ИНДИКАТОР «ХОДЫ КАК РЕСУРС» (Фаза 2.5 «Глубина ядра»)
+   Показывает, сколько бесполезных ходов подряд осталось до «водоворота»
+   (смыв нижних рядов без возврата очков) — каждый свайп обязан давать результат.
+   ================================================================== */
+.threat-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 500px;
+    margin: 0 auto 8px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(30,20,60,.9), rgba(55,30,90,.85));
+    border: 1px solid rgba(200,160,255,.25);
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    color: var(--text-muted);
+    font-size: .82rem;
+}
+.threat-emoji { font-size: 1.05rem; }
+.threat-label { white-space: nowrap; }
+.threat-bar {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,.12);
+    overflow: hidden;
+}
+.threat-bar-fill {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #c8a0ff, #ab47bc);
+    transition: width .3s ease;
+}
+.threat-count {
+    min-width: 30px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: bold;
+    color: #ecd9ff;
+}
+/* Напряжение почти на пределе — тревожный оттенок */
+.threat-indicator.warning .threat-bar-fill { background: linear-gradient(90deg, #ffd740, #ff8a6b); }
+.threat-indicator.warning .threat-count   { color: #ffd740; }
+/* Вспышка во время водоворота (добавляется классом на время анимации) */
+.threat-indicator.sweep { animation: threat-sweep .7s ease; }
+.threat-indicator[hidden] { display: none; }
+@keyframes threat-sweep {
+    0%   { border-color: rgba(200,160,255,.25); }
+    30%  { border-color: rgba(255,215,0,.9); box-shadow: 0 0 14px rgba(255,215,0,.5); }
+    100% { border-color: rgba(200,160,255,.25); }
+}
+body.theme-light .threat-indicator { background: linear-gradient(90deg, #e9dcf7, #dcc6f2); border-color: #9c4dcc; }
+body.theme-light .threat-count     { color: #6a1b9a; }
+
+/* ==================================================================
    ПАНЕЛЬ БУСТОВ
    ================================================================== */
 .boost-bar {

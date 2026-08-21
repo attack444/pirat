@@ -125,6 +125,16 @@
                 <span class="tide-count" id="tide-count">–</span>
             </div>
 
+            <!-- Индикатор «Ходы как ресурс» 🧮 (Фаза 2.5: «Глубина ядра»).
+                 Показывает, сколько бесполезных ходов подряд осталось до «водоворота»
+                 (смыв нижних рядов без возврата очков) — каждый свайп обязан давать результат. -->
+            <div id="threat-indicator" class="threat-indicator" hidden>
+                <span class="threat-emoji" aria-hidden="true">🌪️</span>
+                <span class="threat-label">Водоворот</span>
+                <span class="threat-bar" aria-hidden="true"><span class="threat-bar-fill" id="threat-bar-fill"></span></span>
+                <span class="threat-count" id="threat-count">–</span>
+            </div>
+
             <div id="board" class="board size-4"></div>
 
             <!-- D-pad — видим только на тач-устройствах -->

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { LEVELS, levelById, isLastLevel, tideConfigForLevel } from './levels.js';
+import { LEVELS, levelById, isLastLevel, tideConfigForLevel, movesConfigForLevel } from './levels.js';
 
 test('LEVELS: 7 уровней с возрастающими требованиями', () => {
     assert.equal(LEVELS.length, 7);
@@ -45,4 +45,21 @@ test('tideConfigForLevel: ранние уровни без прилива, уг�
     assert.equal(tide6.depth, 2);
     // Чем глубже уровень, тем меньше ходов до прилива (интервал уменьшается)
     assert.ok(tideConfigForLevel(7).interval < tideConfigForLevel(4).interval);
+});
+
+test('movesConfigForLevel: ранние уровни без штрафа, наказание растёт с глубиной', () => {
+    assert.equal(movesConfigForLevel(1), null);
+    assert.equal(movesConfigForLevel(2), null);
+    assert.equal(movesConfigForLevel(3), null);
+
+    const moves4 = movesConfigForLevel(4);
+    assert.ok(moves4);
+    assert.equal(moves4.maxWithoutMerge, 6);
+    assert.equal(moves4.tideStep, 1);
+
+    // Чем глубже уровень, тем меньше порог бесполезных ходов
+    assert.ok(movesConfigForLevel(7).maxWithoutMerge < movesConfigForLevel(4).maxWithoutMerge);
+    // На финальном уровне штраф сильнее (tideStep выше и водоворот глубже)
+    assert.equal(movesConfigForLevel(7).tideStep, 2);
+    assert.equal(movesConfigForLevel(7).depth, 2);
 });

@@ -17,10 +17,14 @@ export default class Game {
         this.onSave        = config.onSave        || null;
         this.onTarget      = config.onTarget      || null;
         this.onTide        = config.onTide        || null;
+        this.onThreat      = config.onThreat      || null;
         this.infinity      = !!config.infinity;
 
         // Прилив 🌊 — конфиг механики «Глубины ядра» (null = выключено)
         this.tide          = this._normalizeTide(config.tide);
+
+        // Ходы как ресурс 🧮 — конфиг механики «Глубины ядра» (null = выключено)
+        this.movesConfig   = this._normalizeMoves(config.moves);
 
         this.tiles         = [];
         this.score         = 0;
@@ -52,6 +56,12 @@ export default class Game {
         this.tideSwept          = 0;    // сколько плиток унесено течением
         this.tideSweptValue     = 0;    // суммарное значение унесённых плиток
         this.tideActive         = false; // вспышка «прилив» для UI
+
+        // Ходы как ресурс 🧮: состояние механики
+        this.threatStrikes      = 0;    // сколько раз сработал «водоворот»
+        this.threatSwept        = 0;    // сколько плиток унёс водоворот
+        this.threatSweptValue   = 0;    // суммарное значение унесённых плиток
+        this.movesPenaltyActive = false; // вспышка «водоворот» для UI
 
         // Рендер (абсолютное позиционирование плиток)
         this._tileEls      = new Map();
@@ -97,6 +107,10 @@ export default class Game {
         this.tideSwept          = 0;
         this.tideSweptValue     = 0;
         this.tideActive         = false;
+        this.threatStrikes      = 0;
+        this.threatSwept        = 0;
+        this.threatSweptValue   = 0;
+        this.movesPenaltyActive = false;
 
         this._addNewTile();
         this._addNewTile();
@@ -127,6 +141,10 @@ export default class Game {
             tideMoves: this.tideMovesUntilRise,
             tideSwept: this.tideSwept,
             tideSweptValue: this.tideSweptValue,
+            threatStrikes: this.threatStrikes,
+            threatSwept: this.threatSwept,
+            threatSweptValue: this.threatSweptValue,
+            movesWithoutMerge: this.movesWithoutMerge,
         };
 
         const scoreBefore = this.score;
@@ -152,6 +170,8 @@ export default class Game {
         this._busy = true;
         this._animateMove(moves, () => {
             this._busy = false;
+            // Ходы как ресурс 🧮: штраф за «бесполезный» ход (до отсчёта прилива)
+            this._tickMovesPenalty();
             // Прилив 🌊: отсчёт ходов и смыв нижних рядов (до спавна новой плитки)
             this._tickTide();
             this._addNewTile();
@@ -188,7 +208,12 @@ export default class Game {
         if (typeof prev.tideMoves === 'number') this.tideMovesUntilRise = prev.tideMoves;
         if (typeof prev.tideSwept === 'number') this.tideSwept = prev.tideSwept;
         if (typeof prev.tideSweptValue === 'number') this.tideSweptValue = prev.tideSweptValue;
+        if (typeof prev.threatStrikes === 'number') this.threatStrikes = prev.threatStrikes;
+        if (typeof prev.threatSwept === 'number') this.threatSwept = prev.threatSwept;
+        if (typeof prev.threatSweptValue === 'number') this.threatSweptValue = prev.threatSweptValue;
+        if (typeof prev.movesWithoutMerge === 'number') this.movesWithoutMerge = prev.movesWithoutMerge;
         this.tideActive    = false;
+        this.movesPenaltyActive = false;
         this.won           = false;
         this.gameOver      = false;
         this.winCelebrated = false;
@@ -217,6 +242,9 @@ export default class Game {
             tideMovesUntilRise: this.tideMovesUntilRise,
             tideSwept: this.tideSwept,
             tideSweptValue: this.tideSweptValue,
+            threatStrikes: this.threatStrikes,
+            threatSwept: this.threatSwept,
+            threatSweptValue: this.threatSweptValue,
         };
     }
 
@@ -242,7 +270,11 @@ export default class Game {
             ? state.tideMovesUntilRise : (this.tide ? this.tide.interval : 0);
         if (typeof state.tideSwept === 'number') this.tideSwept = state.tideSwept;
         if (typeof state.tideSweptValue === 'number') this.tideSweptValue = state.tideSweptValue;
+        this.threatStrikes    = state.threatStrikes || 0;
+        if (typeof state.threatSwept === 'number') this.threatSwept = state.threatSwept;
+        if (typeof state.threatSweptValue === 'number') this.threatSweptValue = state.threatSweptValue;
         this.tideActive    = false;
+        this.movesPenaltyActive = false;
 
         this._updateGridCSS();
         this.render();
@@ -412,6 +444,91 @@ export default class Game {
             level: this.tideLevel,
             swept: this.tideSwept,
             sweptValue: this.tideSweptValue,
+        };
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Ходы как ресурс 🧮 (механика «Глубины ядра»)
+    // ──────────────────────────────────────────────────────────
+
+    /**
+     * Нормализация конфига «Ходы как ресурс» (null — механика выключена).
+     * - tideStep: на сколько ходов ускоряет прилив один «бесполезный» ход;
+     * - maxWithoutMerge: порог бесполезных ходов подряд, после которого
+     *   срабатывает «водоворот» (смыв нижнего ряда без возврата очков);
+     * - depth: сколько нижних рядов смывает водоворот.
+     */
+    _normalizeMoves(cfg) {
+        if (!cfg || !cfg.enabled) return null;
+        const num = (v, fallback) => {
+            const n = Number(v);
+            return Number.isFinite(n) ? n : fallback;
+        };
+        return {
+            tideStep:        Math.max(0, Math.floor(num(cfg.tideStep, 1))),
+            maxWithoutMerge: Math.max(2, Math.floor(num(cfg.maxWithoutMerge, 4))),
+            depth:           Math.min(this.size, Math.max(1, Math.floor(num(cfg.depth, 1)))),
+        };
+    }
+
+    /**
+     * Штраф за «бесполезный» ход (без единого слияния): прибавляет шаг
+     * прилива (ускоряет прилив) и/или накапливает напряжение до порога,
+     * после которого срабатывает «водоворот» (усиление угрозы).
+     * Вызывается до _tickTide(), чтобы смывы не накладывались.
+     */
+    _tickMovesPenalty() {
+        if (!this.movesConfig || this.movesWithoutMerge === 0) return;
+
+        // 1) Прибавляем шаг прилива: каждый бесполезный ход уменьшает отсчёт
+        if (this.tide && this.movesConfig.tideStep > 0) {
+            const extra = this.movesConfig.tideStep;
+            this.tideMovesUntilRise = Math.max(1, this.tideMovesUntilRise - extra);
+        }
+
+        // 2) Накопитель «напряжения»: N бесполезных ходов подряд → водоворот
+        if (this.movesWithoutMerge < this.movesConfig.maxWithoutMerge) return;
+        this._triggerWhirlpool();
+    }
+
+    /**
+     * «Водоворот» — усиление угрозы: нижние ряды затягивает без возврата очков.
+     * Наказание за серию бесполезных ходов; счётчик бесполезных ходов сбрасывается.
+     */
+    _triggerWhirlpool() {
+        const depth = this.movesConfig.depth;
+        const swept = [];
+        for (let d = 0; d < depth; d++) {
+            const row = this.size - 1 - d;
+            const rowStart = row * this.size;
+            for (let c = 0; c < this.size; c++) {
+                const idx = rowStart + c;
+                const t = this.tiles[idx];
+                if (!t) continue;
+                this.threatSwept++;
+                this.threatSweptValue += t.value;
+                swept.push({ row, col: c, value: t.value, gain: 0 });
+                this.tiles[idx] = null;
+            }
+        }
+        this.threatStrikes++;
+        this.movesPenaltyActive = true;
+        this.movesWithoutMerge  = 0;
+        if (this.onThreat) this.onThreat(swept);
+    }
+
+    /** Состояние механики «Ходы как ресурс» для UI (null — выключено). */
+    getMovesPenalty() {
+        if (!this.movesConfig) return null;
+        return {
+            enabled: true,
+            tideStep: this.movesConfig.tideStep,
+            maxWithoutMerge: this.movesConfig.maxWithoutMerge,
+            depth: this.movesConfig.depth,
+            movesWithoutMerge: this.movesWithoutMerge,
+            strikes: this.threatStrikes,
+            swept: this.threatSwept,
+            sweptValue: this.threatSweptValue,
         };
     }
 
