@@ -1756,6 +1756,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ── Старт ────────────────────────────────────────────────
 
+    // Dev-режим: выдача жемчужин для тестирования.
+    // URL-параметр `?doubloons=N` на localhost добавляет N жемчужин
+    // к личному сейву. Работает только на локальной разработке
+    // (localhost/127.0.0.1) — в проде параметр игнорируется.
+    (function applyDevGrant() {
+        const isLocal = /^localhost$|^127\.0\.0\.1$|^\[::1\]$/.test(location.hostname);
+        if (!isLocal) return;
+        const q = new URLSearchParams(location.search);
+        const amount = Math.floor(Number(q.get('doubloons')));
+        if (!Number.isFinite(amount) || amount <= 0) return;
+        state.doubloons = (state.doubloons || 0) + amount;
+        saveState(state);
+        updateDoubloons();
+        showToast(`Dev: +${amount} жемчужин 🦪`, '🦪');
+        console.log(`🦪 Dev-режим: выдано ${amount} жемчужин (итого ${state.doubloons})`);
+    })();
+
     // Фаза 1: пузырьки-фон сразу (если анимации разрешены)
     spawnBubbles();
 
