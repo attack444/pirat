@@ -835,6 +835,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 checkDaily();
                 pushCloudSave();
                 if (sdk.isPlatform()) sdk.submitScore(score, state.currentLevel);
+                // VK: запись очков идёт сервером (secure.addAppEvent, Фаза 4);
+                // на клиенте после партии показываем системную таблицу с результатом.
+                if (sdk.host === 'vk') sdk.showLeaderboard(score, state.currentLevel);
                 if (state.sound !== false) playWin();
                 const isLast = isLastLevel(state.currentLevel);
                 spawnConfetti(isLast ? 140 : 80, true);
@@ -850,6 +853,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 checkDaily();
                 pushCloudSave();
                 if (sdk.isPlatform()) sdk.submitScore(score, state.currentLevel);
+                // VK: системная таблица после партии (смотри, кого обошёл / кто впереди).
+                if (sdk.host === 'vk') sdk.showLeaderboard(score, state.currentLevel);
                 if (state.sound !== false) playGameOver();
                 showGameOverModal(score);
                 // Реклама при проигрыше (interstitial) с кулдауном 4 минуты
@@ -955,6 +960,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         addModalBtn('📣 Поделиться', 'btn-secondary', () => shareResult(score));
 
+        // VK: кнопка системной таблицы результатов (друзья/все).
+        if (sdk.host === 'vk') {
+            addModalBtn('🏆 Таблица', 'btn-secondary', () => sdk.showLeaderboard(score, state.currentLevel));
+        }
+
         showModal(gameModal);
     }
 
@@ -1013,6 +1023,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         addModalBtn('📣 Поделиться', 'btn-ghost', () => shareResult(score));
+
+        // VK: кнопка системной таблицы результатов (друзья/все).
+        if (sdk.host === 'vk') {
+            addModalBtn('🏆 Таблица', 'btn-ghost', () => sdk.showLeaderboard(score, state.currentLevel));
+        }
 
         showModal(gameModal);
     }
@@ -1290,6 +1305,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ── Лидерборды ───────────────────────────────────────────
     async function openLeaderboard() {
         if (!leaderboardModal || !leaderboardList) return;
+        // VK: клиентского чтения таблицы нет — открываем системную таблицу
+        // (друзья/все) через VKWebAppShowLeaderBoardBox с текущим результатом.
+        if (sdk.host === 'vk') {
+            sdk.showLeaderboard(state.bestTotal || 0, state.currentLevel);
+            return;
+        }
         showModal(leaderboardModal);
         leaderboardList.innerHTML = '<div class="lb-loading">⏳ Загружаем рейтинг…</div>';
         let rows = [];

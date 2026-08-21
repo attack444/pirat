@@ -3,10 +3,6 @@
 // Все методы безопасны: на вебе без SDK они «вырождаются» в локальные/пустые операции.
 
 const LB_NAME = 'ocean2048_top';
-// Уровень по умолчанию для VK-лидерборда (VKWebAppSaveToLeaderBoard.level).
-// В main.js при отправке результата передаётся текущий игровой уровень (1–7);
-// это значение — запасной вариант, если уровень не был передан.
-const VK_LEADERBOARD_LEVEL = 1;
 
 function detectHost() {
     const params = new URLSearchParams(location.search);
@@ -149,7 +145,7 @@ export const sdk = {
         if (this.host === 'vk') {
             this.vk = await ensureBridge();
             // VK Mini Apps: обязательный VKWebAppInit — инициализация моста.
-            // Без него методы (VKWebAppStorageSet/Get, VKWebAppSaveToLeaderBoard,
+            // Без него методы (VKWebAppStorageSet/Get, VKWebAppShowLeaderBoardBox,
             // VKWebAppShowNativeAds, VKWebAppShare) не работают.
             if (this.vk) {
                 try { await this.vk.send('VKWebAppInit', {}); } catch (_) {}
@@ -275,21 +271,21 @@ export const sdk = {
     },
 
     // ── Лидерборды ─────────────────────────────────────────────
-    // score — итоговые очки, level — текущий игровой уровень (1–7), опционально.
-    async submitScore(score, level) {
-        if (this.host === 'vk' && this.vk) {
-            try {
-                // VK: level — уровень игрока (1–7), score — очки для лидерборда.
-                // Лидерборд один на приложение (настраивается в кабинете VK Mini
-                // Apps → App Settings → Leaderboards); при нехватке данных берём
-                // запасной уровень VK_LEADERBOARD_LEVEL.
-                await this.vk.send('VKWebAppSaveToLeaderBoard', {
-                    level: Math.max(1, Number(level) || VK_LEADERBOARD_LEVEL),
-                    score: Math.round(score),
-                });
-                return true;
-            } catch (_) { return false; }
-        }
+    // VK: методы VKWebAppSaveToLeaderBoard / VKWebAppGetLeaderBoard УДАЛЕНЫ из
+    // vk-bridge (проверено в 3.0.2 и 2.2.2). Актуальный механизм (по документации
+    // dev.vk.com «Таблица результатов»):
+    //   1) запись — серверный secure.addAppEvent (только после публикации в каталоге,
+    //      требует сервисный ключ — реализуется в Фазе 4 на бэкенде);
+    //   2) показ — системная таблица VK через VKWebAppShowLeaderBoardBox { user_result }.
+    // Клиентского чтения записей таблицы в свою UI-таблицу НЕТ.
+    // score — итоговые очки (1–10 000 000). Уровень для VK больше не нужен:
+    // клиентской записи нет (серверный secure.addAppEvent в Фазе 4).
+    async submitScore(score) {
+        // VK: клиентского метода записи больше нет. Запись происходит на сервере
+        // через secure.addAppEvent (после каталога, Фаза 4). На клиенте только
+        // показываем системную таблицу (showLeaderboard) с текущим результатом.
+        // Возвращаем false, чтобы не вводить в заблуждение: запись НЕ выполнена.
+        if (this.host === 'vk') return false;
         if (this.host === 'yandex' && this.ya?.leaderboards) {
             try {
                 // Новый API лидербордов (см. документацию): ysdk.leaderboards.setScore().
@@ -301,17 +297,10 @@ export const sdk = {
     },
     async getLeaderboard() {
         // Возвращает [{ name, score, isMe }] или []
-        if (this.host === 'vk' && this.vk) {
-            try {
-                const res = await this.vk.send('VKWebAppGetLeaderBoard', { user_result_type: 1, global: true });
-                const rows = res?.leaderboard || [];
-                return rows.map(r => ({
-                    name: [r.first_name, r.last_name].filter(Boolean).join(' ') || 'Ныряльщик',
-                    score: Number(r.score) || 0,
-                    isMe: !!r.me,
-                })).sort((a, b) => b.score - a.score).slice(0, 50);
-            } catch (_) { return []; }
-        }
+        // VK: клиентского чтения таблицы нет — системная таблица показывается
+        // через showLeaderboard(). Для кастомной UI-таблицы возвращаем [] и
+        // main.js рисует локальный фолбэк (рекорд + рекорды уровней).
+        if (this.host === 'vk') return [];
         if (this.host === 'yandex' && this.ya?.leaderboards) {
             try {
                 // Новый API лидербордов (см. документацию): ysdk.leaderboards.getEntries().
@@ -332,6 +321,21 @@ export const sdk = {
             } catch (_) { return []; }
         }
         return [];
+    },
+    // Показ системной таблицы результатов VK с результатом игрока.
+    // score — очки партии (user_result по документации: «передайте уровень,
+    // количество очков или баллов миссии в параметр user_result»).
+    // VKWebAppShowLeaderBoardBox не проверяет user_result на ограничения.
+    // Возвращает true, если таблица открыта.
+    async showLeaderboard(score) {
+        if (this.host === 'vk' && this.vk) {
+            try {
+                const userResult = Math.max(1, Math.round(Number(score) || 0));
+                await this.vk.send('VKWebAppShowLeaderBoardBox', { user_result: userResult });
+                return true;
+            } catch (_) { return false; }
+        }
+        return false;
     },
 
     // ── Реклама ────────────────────────────────────────────────

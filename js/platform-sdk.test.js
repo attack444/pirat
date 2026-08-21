@@ -337,32 +337,18 @@ describe('sdk.saveCloud / loadCloud', () => {
 });
 
 // ── Leaderboards ─────────────────────────────────────────────────────────
-describe('sdk.submitScore / getLeaderboard', () => {
-    it('submits to VK with the player level from the game', async () => {
+// VK: VKWebAppSaveToLeaderBoard / VKWebAppGetLeaderBoard УДАЛЕНЫ из vk-bridge.
+// Актуально: запись — серверный secure.addAppEvent (Фаза 4), показ — системная
+// таблица VKWebAppShowLeaderBoardBox (showLeaderboard). Клиентского чтения нет.
+describe('sdk.submitScore / getLeaderboard / showLeaderboard', () => {
+    it('does not call removed VK methods on submitScore (VK has no client write)', async () => {
         const s = makeSdk();
         s.host = 'vk';
         const sent = [];
         s.vk = { send: async (m, p) => { sent.push([m, p]); return {}; } };
-        assert.equal(await s.submitScore(1000, 5), true);
-        assert.deepEqual(sent[0], ['VKWebAppSaveToLeaderBoard', { level: 5, score: 1000 }]);
-    });
-
-    it('falls back to VK_LEADERBOARD_LEVEL when the level is not passed', async () => {
-        const s = makeSdk();
-        s.host = 'vk';
-        const sent = [];
-        s.vk = { send: async (m, p) => { sent.push([m, p]); return {}; } };
-        await s.submitScore(5);
-        assert.equal(sent[0][1].level, 1);
-    });
-
-    it('clamps a bad VK level to a sane value', async () => {
-        const s = makeSdk();
-        s.host = 'vk';
-        const sent = [];
-        s.vk = { send: async (m, p) => { sent.push([m, p]); return {}; } };
-        await s.submitScore(500, 0);
-        assert.equal(sent[0][1].level, 1);
+        // VK: клиентской записи больше нет — возвращаем false, ничего не шлём.
+        assert.equal(await s.submitScore(1000, 5), false);
+        assert.deepEqual(sent, []);
     });
 
     it('submits to the Yandex leaderboard via ysdk.leaderboards.setScore (новый API)', async () => {
@@ -385,29 +371,11 @@ describe('sdk.submitScore / getLeaderboard', () => {
         assert.equal(await s.submitScore(500), false);
     });
 
-    it('returns false when the leaderboard submission fails', async () => {
+    it('returns empty leaderboard on VK (no client read of the table)', async () => {
         const s = makeSdk();
         s.host = 'vk';
-        s.vk = { send: async () => { throw new Error('x'); } };
-        assert.equal(await s.submitScore(10), false);
-    });
-
-    it('maps VK leaderboard rows', async () => {
-        const s = makeSdk();
-        s.host = 'vk';
-        s.vk = {
-            send: async () => ({
-                leaderboard: [
-                    { first_name: 'Иван', last_name: 'П', score: '500', me: false },
-                    { first_name: '', last_name: '', score: '300', me: true },
-                ],
-            }),
-        };
-        const lb = await s.getLeaderboard();
-        assert.deepEqual(lb, [
-            { name: 'Иван П', score: 500, isMe: false },
-            { name: 'Ныряльщик', score: 300, isMe: true },
-        ]);
+        s.vk = { send: async () => { throw new Error('must not be called'); } };
+        assert.deepEqual(await s.getLeaderboard(), []);
     });
 
     it('parses the Yandex leaderboard via ysdk.leaderboards.getEntries and marks my row by uniqueID', async () => {
@@ -473,6 +441,39 @@ describe('sdk.submitScore / getLeaderboard', () => {
         const s = makeSdk();
         s.host = 'web';
         assert.deepEqual(await s.getLeaderboard(), []);
+    });
+
+    it('shows the VK system leaderboard box with user_result', async () => {
+        const s = makeSdk();
+        s.host = 'vk';
+        const sent = [];
+        s.vk = { send: async (m, p) => { sent.push([m, p]); return {}; } };
+        assert.equal(await s.showLeaderboard(12345, 3), true);
+        assert.deepEqual(sent[0], ['VKWebAppShowLeaderBoardBox', { user_result: 12345 }]);
+    });
+
+    it('clamps showLeaderboard user_result to a positive integer', async () => {
+        const s = makeSdk();
+        s.host = 'vk';
+        const sent = [];
+        s.vk = { send: async (m, p) => { sent.push([m, p]); return {}; } };
+        await s.showLeaderboard(0);
+        assert.equal(sent[0][1].user_result, 1);
+        await s.showLeaderboard(NaN);
+        assert.equal(sent[1][1].user_result, 1);
+    });
+
+    it('returns false when VKWebAppShowLeaderBoardBox fails', async () => {
+        const s = makeSdk();
+        s.host = 'vk';
+        s.vk = { send: async () => { throw new Error('x'); } };
+        assert.equal(await s.showLeaderboard(500), false);
+    });
+
+    it('does nothing on web for showLeaderboard', async () => {
+        const s = makeSdk();
+        s.host = 'web';
+        assert.equal(await s.showLeaderboard(500), false);
     });
 });
 
