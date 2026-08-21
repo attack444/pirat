@@ -457,11 +457,29 @@ export default class Game {
         const MIN_SWIPE = 40;
 
         if (Math.abs(dx) > Math.abs(dy)) {
-            if (Math.abs(dx) >= MIN_SWIPE) this.handleMove(dx > 0 ? 'right' : 'left');
+            if (Math.abs(dx) >= MIN_SWIPE) {
+                // Фаза 1: визуальный отклик тача (микропульс доски)
+                this._flashBoardTap();
+                this.handleMove(dx > 0 ? 'right' : 'left');
+            }
         } else {
-            if (Math.abs(dy) >= MIN_SWIPE) this.handleMove(dy > 0 ? 'down' : 'up');
+            if (Math.abs(dy) >= MIN_SWIPE) {
+                this._flashBoardTap();
+                this.handleMove(dy > 0 ? 'down' : 'up');
+            }
         }
         e.preventDefault();
+    }
+
+    /** Фаза 1: короткий «микропульс» доски при свайпе (тач-отклик). */
+    _flashBoardTap() {
+        if (!this.boardElement) return;
+        if (typeof window !== 'undefined'
+            && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const el = this.boardElement;
+        el.classList.remove('tap');
+        void el.offsetWidth; // перезапуск анимации
+        el.classList.add('tap');
     }
 
     // ──────────────────────────────────────────────────────────
@@ -635,7 +653,11 @@ export default class Game {
         el.className = 'tile' + (appear ? ' new' : '');
         el.dataset.value = tile.value;
         el.dataset.id = tile.id;
-        el.textContent = tile.value;
+        el.dataset.glyph = this._tileGlyph(tile.value);
+
+        // Обитатель (глиф) крупным + компактное значение под ним.
+        el.innerHTML = '<span class="tile-glyph">' + this._tileGlyph(tile.value) + '</span>'
+            + '<span class="tile-num">' + tile.value + '</span>';
 
         const { x, y } = this._posForIndex(i);
         el.style.width  = this._cell + 'px';
@@ -646,6 +668,16 @@ export default class Game {
         this._tileEls.set(tile.id, el);
         this.boardElement.appendChild(el);
         return el;
+    }
+
+    /** Обитатель океана для значения плитки (сложность растёт с числом). */
+    _tileGlyph(value) {
+        const GLYPHS = {
+            2: '🐟', 4: '🐠', 8: '🐡', 16: '🐙', 32: '🦑', 64: '🦀',
+            128: '🐚', 256: '🐢', 512: '🐬', 1024: '🦈', 2048: '🐉',
+            4096: '👑', 8192: '🌋',
+        };
+        return GLYPHS[value] || '🌊';
     }
 
     /** Анимация скольжения + «отскок» слитых плиток, затем финальный рендер. */
@@ -671,8 +703,13 @@ export default class Game {
             if (m.consumed) {
                 el.style.opacity = '0';
             } else if (m.merge) {
-                el.textContent  = m.value;
+                const numEl = el.querySelector('.tile-num');
+                const glyEl = el.querySelector('.tile-glyph');
+                if (numEl) numEl.textContent = m.value;
                 el.dataset.value = m.value;
+                el.dataset.glyph = this._tileGlyph(m.value);
+                if (glyEl) glyEl.textContent = this._tileGlyph(m.value);
+                this._spawnMergeParticles(p.x, p.y, m.value);
                 el.style.transform = `translate(${p.x}px, ${p.y}px) scale(1.18)`;
             } else {
                 el.style.transform = `translate(${p.x}px, ${p.y}px)`;
@@ -693,5 +730,47 @@ export default class Game {
             for (const { el } of affected) el.remove();
             cb();
         }, 220);
+    }
+
+    /** Всплеск / брызги при слиянии плиток. GPU-анимация (transform/opacity),
+     *  максимум 40 частиц на доску, отключается при prefers-reduced-motion. */
+    _spawnMergeParticles(x, y, value) {
+        if (!this.boardElement || !this.boardElement.isConnected) return;
+        if (typeof window === 'undefined') return;
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        // Переиспользуем один слой частиц на доску
+        let layer = this.boardElement.querySelector(':scope > .particles-layer');
+        if (!layer) {
+            layer = document.createElement('div');
+            layer.className = 'particles-layer';
+            this.boardElement.appendChild(layer);
+        }
+        // Лимит: не больше 40 частиц в слое (GPU-дружелюбно)
+        if (layer.querySelectorAll('.merge-particle').length >= 40) return;
+
+        const count = value >= 1024 ? 12 : value >= 128 ? 8 : 5;
+        const colors = ['#4af7ff', '#ffd700', '#ff8a6b', '#8ee7f7'];
+        const frag = document.createDocumentFragment();
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement('i');
+            p.className = 'merge-particle';
+            const size = 4 + Math.random() * 6;
+            const ang  = Math.random() * Math.PI * 2;
+            const dist = 18 + Math.random() * 26;
+            p.style.left   = (x + this._cell / 2) + 'px';
+            p.style.top    = (y + this._cell / 2) + 'px';
+            p.style.width  = size + 'px';
+            p.style.height = size + 'px';
+            p.style.background = colors[i % colors.length];
+            p.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(1) + 'px');
+            p.style.setProperty('--dy', (Math.sin(ang) * dist).toFixed(1) + 'px');
+            frag.appendChild(p);
+        }
+        layer.appendChild(frag);
+        // Убираем отжившие частицы после анимации (900мс)
+        setTimeout(() => {
+            if (layer.isConnected) layer.querySelectorAll('.merge-particle').forEach(el => el.remove());
+        }, 950);
     }
 }

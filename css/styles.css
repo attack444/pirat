@@ -229,6 +229,18 @@ header h1 {
     100% { transform: scale(1); }
 }
 
+/* Пульс рекорда при его обновлении (Фаза 1) */
+.stat .value.best-pulse {
+    color: var(--gold-bright);
+    text-shadow: 0 0 14px rgba(255, 215, 0, .95);
+    animation: best-pulse .55s ease;
+}
+@keyframes best-pulse {
+    0%   { transform: scale(1.35); }
+    60%  { transform: scale(.95); }
+    100% { transform: scale(1); }
+}
+
 .level-info {
     display: flex;
     justify-content: center;
@@ -315,15 +327,35 @@ main {
     position: absolute;
     top: 0; left: 0;
     z-index: 1;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 2.2rem;
-    font-weight: bold;
-    border-radius: 6px;
-    text-shadow: 1px 1px 3px rgba(0,0,0,.5);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    line-height: 1;
+    gap: 2px;
+    border-radius: 8px;
     background: var(--t0-bg, linear-gradient(135deg, #4a8bab, #2b6c8f));
     color: var(--t0-c, var(--white));
+    /* Глубина/тень: внутренний блик сверху + внешняя тень, подложка-подъём */
+    box-shadow: inset 0 2px 4px rgba(255,255,255,.28),
+                inset 0 -3px 6px rgba(0,0,0,.28),
+                0 4px 10px rgba(0,0,0,.45);
     will-change: transform, opacity;
     transform: translate(var(--tx, 0), var(--ty, 0));
+}
+
+/* Обитатель (глиф) — крупный, с лёгкой тенью для читаемости */
+.tile .tile-glyph {
+    font-size: 1.5em;
+    line-height: 1;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.45));
+    pointer-events: none;
+}
+/* Значение — компактное, полупрозрачное */
+.tile .tile-num {
+    font-size: .8em;
+    font-weight: bold;
+    text-shadow: 1px 1px 3px rgba(0,0,0,.5);
+    opacity: .92;
+    letter-spacing: .5px;
 }
 
 .tile.new { animation: tileAppear .22s ease; }
@@ -365,6 +397,27 @@ main {
 .tile[data-value="4096"] { background: var(--t4096-bg); color: var(--t4096-c); }
 .tile[data-value="8192"] { background: var(--t8192-bg); color: var(--t8192-c); }
 
+/* ======================== Частицы слияния (Фаза 1) ======================== */
+.particles-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
+.merge-particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 1;
+    animation: mergeBurst .85s ease-out forwards;
+    will-change: transform, opacity;
+}
+@keyframes mergeBurst {
+    0%   { transform: translate3d(0,0,0) scale(1);    opacity: 1; }
+    100% { transform: translate3d(var(--dx,0), var(--dy,0),0) scale(.1); opacity: 0; }
+}
+
 /* ======================== Анимации доски ======================== */
 @keyframes pulse {
     0%,100% { box-shadow: 0 0 0 0 rgba(255,215,0,.7); }
@@ -380,6 +433,14 @@ main {
 }
 
 .board.shake { animation: shake .4s; }
+
+/* Визуальный отклик тача/свайпа (Фаза 1): лёгкий микропульс доски */
+.board.tap { animation: tapPulse .18s ease; }
+@keyframes tapPulse {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(.985); }
+    100% { transform: scale(1); }
+}
 
 /* ======================== D-pad (тач-кнопки) ======================== */
 .dpad {
@@ -855,6 +916,32 @@ body.theme-light .setting-option,
 body.theme-light .achievement        { background: rgba(0,0,0,.05); }
 
 /* ==================================================================
+   ФОН: ПУЗЫРЬКИ (Фаза 1 — глубины океана за доской)
+   ================================================================== */
+.bubbles {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+/* Каждый пузырёк задаётся CSS-переменными (размер, позиция, длительность) */
+.bubbles .bub {
+    position: absolute;
+    bottom: -60px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), rgba(255,255,255,.06) 60%, transparent 70%);
+    box-shadow: inset 0 0 8px rgba(255,255,255,.18);
+    animation: bubbleRise linear infinite;
+}
+@keyframes bubbleRise {
+    0%   { transform: translate3d(0, 0, 0); opacity: 0; }
+    10%  { opacity: var(--bo, .55); }
+    90%  { opacity: var(--bo, .55); }
+    100% { transform: translate3d(var(--sway, 30px), -110vh, 0); opacity: 0; }
+}
+
+/* ==================================================================
    КОНФЕТТИ (победа / достижения)
    ================================================================== */
 .confetti-layer {
@@ -1284,6 +1371,10 @@ body.theme-light .lb-name { color: #1a5a76; }
 body.reduce-motion .confetti-layer { display: none; }
 body.reduce-motion .board.shake { animation: none; }
 body.reduce-motion .stat .value.active { animation: none; }
+body.reduce-motion .stat .value.best-pulse { animation: none; }
+/* Фаза 1: пузырьки-фон и частицы слияния отключаются при reduce-motion */
+body.reduce-motion .bubbles { display: none; }
+body.reduce-motion .particles-layer { display: none; }
 
 /* ==================================================================
    ЕЖЕДНЕВНЫЙ ВХОД (панель награды за визит)

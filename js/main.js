@@ -186,6 +186,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Доступность: пользователь просит меньше анимаций
     const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
+    // Фаза 1: пузырьки-фон за доской (создаются один раз, GPU-анимация)
+    const bubblesEl = $('bubbles');
+    const BUBBLE_COUNT = 14;
+    function spawnBubbles() {
+        if (!bubblesEl || reduceMotion) return;
+        if (bubblesEl.children.length) return; // уже созданы
+        const frag = document.createDocumentFragment();
+        for (let i = 0; i < BUBBLE_COUNT; i++) {
+            const b = document.createElement('i');
+            b.className = 'bub';
+            const size = 10 + Math.random() * 34;
+            b.style.width  = size + 'px';
+            b.style.height = size + 'px';
+            b.style.left   = (Math.random() * 100) + '%';
+            b.style.setProperty('--bo', (0.25 + Math.random() * 0.4).toFixed(2));
+            b.style.setProperty('--sway', (Math.random() * 60 - 30).toFixed(0) + 'px');
+            b.style.animationDuration = (7 + Math.random() * 9) + 's';
+            b.style.animationDelay    = (-Math.random() * 12) + 's'; // сразу «в полёте»
+            frag.appendChild(b);
+        }
+        bubblesEl.appendChild(frag);
+    }
+
+    // Фаза 1: счёт-вверх (count-up). Плавно «докручивает» число от prev до score,
+    // при reduce-motion или нулевой разнице сразу ставит итог.
+    let scoreAnimTimer = null;
+    function animateScore(prev, next) {
+        const from = Number(prev) || 0;
+        const to   = Number(next) || 0;
+        if (reduceMotion || to <= from || !scoreEl) {
+            scoreEl.textContent = to.toLocaleString('ru');
+            return;
+        }
+        clearTimeout(scoreAnimTimer);
+        const dur = Math.min(450, 120 + (to - from) * 0.6);
+        const start = performance.now();
+        const step = (now) => {
+            const t = Math.min(1, (now - start) / dur);
+            const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+            const val = Math.round(from + (to - from) * eased);
+            scoreEl.textContent = val.toLocaleString('ru');
+            if (t < 1) scoreAnimTimer = requestAnimationFrame(step);
+        };
+        scoreAnimTimer = requestAnimationFrame(step);
+    }
+
     // Подтверждение перезапуска: откуда вызвано (из паузы или с кнопки «Новая игра»)
     let confirmRestartFromPause = false;
 
@@ -782,11 +828,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             infinity:      state.infinity === true,
             onScoreUpdate: (score) => {
                 const prev = lastScore;
+                const isNewBest = score > (state.bestTotal || 0);
                 lastScore = score;
-                scoreEl.textContent = score.toLocaleString('ru');
-                if (score > (state.bestTotal || 0)) {
+                // Фаза 1: счёт-вверх (count-up)
+                animateScore(prev, score);
+                if (isNewBest) {
                     state.bestTotal = score;
                     saveState(state);
+                    // Пульс рекорда при обновлении
+                    if (bestEl) {
+                        bestEl.classList.remove('best-pulse');
+                        void bestEl.offsetWidth;
+                        bestEl.classList.add('best-pulse');
+                    }
                 }
                 if (game) {
                     const mt = game.getMaxTile();
@@ -1528,6 +1582,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ── Старт ────────────────────────────────────────────────
+
+    // Фаза 1: пузырьки-фон сразу (если анимации разрешены)
+    spawnBubbles();
 
     applyAppearance();
     updateHeader();
