@@ -1,6 +1,11 @@
 # 🌊 Океан 2048
 
-Классическая головоломка 2048 в подводном стиле — **три версии**: веб, iOS и Android.
+Классическая головоломка 2048 в подводном стиле — **три версии**: веб/PWA, iOS и Android,
+плюс сборки под **VK Mini Apps** и **Яндекс Игры**.
+
+> Цель проекта — **retention** (время в игре + возврат на следующий день). Каждая фича
+> оценивается через удержание. Подробный план развития: [`ROADMAP.md`](ROADMAP.md)
+> и [`store/DEV_PLAN.md`](store/DEV_PLAN.md).
 
 ## Версии
 
@@ -9,17 +14,37 @@
 | **Веб / PWA** | Подводная рамка-«окошко», кнопка fullscreen | Открыть `index.html` или задеплоить статику |
 | **Android** | Без рамки, safe-area, D-pad, вибрация | `npm run android` |
 | **iOS** | Без рамки, safe-area, D-pad, вибрация | На Mac: `npm run ios` |
+| **VK Mini Apps** | Платформенный SDK (соцмеханики, лидерборд, облако) | `npm run build:vk` |
+| **Яндекс Игры** | Платформенный SDK (лидерборд, облако) | `npm run build:yandex` |
 
 Предпросмотр нативного UI в браузере: `?platform=ios` или `?platform=android`.
 
 ## Возможности
 
+### Геймплей
 - Свайпы + экранный D-pad + стрелки / WASD
 - 7 уровней (ранги от Ракушки до Хозяина Моря), поля 4×4 → 6×6
-- Прогресс в `localStorage`
-- Полный экран (веб)
-- PWA offline (веб)
-- Capacitor: StatusBar, SplashScreen, Haptics, Android back button
+- Бесконечный режим (играть дальше после цели)
+- Прогресс в `localStorage` + облачные сохранения с разрешением конфликтов
+
+### Визуал (Фаза 1 — «Визуальное сияние»)
+- Плитки-обитатели: глиф растёт с числом (2=🐟 … 2048=🐉), цвет меняется
+- Частицы при слиянии (всплеск воды, GPU, выкл. в reduce-motion)
+- Пузырьки-фон за доской
+- Пульс рекорда + счёт-вверх (count-up)
+- Тени/глубина, тач-отклик, reduce-motion
+
+### Экономика и прогрессия
+- Магазин «Рынок у рифа»: бусты (shuffle/bomb/x2), перки, скины, темы
+- Валюта — жемчужины 🦪
+- Ежедневный вход (серия наград) + ежедневные задания
+- Достижения, комбо/серии, подсказки, отмена хода
+
+### Соцмеханики VK (Фаза 2)
+- Приглашение друзей, вызов друга, истории
+- Добавление в избранное / на главный экран (+50 🦪)
+- Таблица лидеров (системная `VKWebAppShowLeaderBoardBox` на VK, своя — на вебе/Яндексе)
+- Облако VK/Яндекс, реклама (interstitial + rewarded revive), звук
 
 ## Быстрый старт (веб)
 
@@ -32,9 +57,13 @@ npx serve . -p 4173
 
 ```bash
 npm install
-npm run sync          # www/ + cap sync android/ios
-npm run android       # Android Studio → Generate Signed Bundle (AAB)
-npm run ios           # только macOS + Xcode → Archive
+npm run test           # 216 юнит-тестов (node:test)
+npm run lint           # eslint js scripts
+npm run sync           # www/ + cap sync android/ios
+npm run build:vk       # build/vk/ — VK Mini Apps
+npm run build:yandex   # build/yandex/ — Яндекс Игры
+npm run android        # Android Studio → Generate Signed Bundle (AAB)
+npm run ios            # только macOS + Xcode → Archive
 ```
 
 Package / Bundle ID: `com.ocean2048.game`
@@ -45,6 +74,20 @@ Package / Bundle ID: `com.ocean2048.game`
 - [`store/README.md`](store/README.md) — обзор публикации
 - [`privacy-policy.html`](privacy-policy.html) — **обязательно задеплоить на HTTPS**
 
+## Статус фаз (дорожная карта)
+
+| Фаза | Содержание | Статус |
+|------|-----------|--------|
+| 0 | Фундамент: база 2048, 7 глубин, магазин, экономика, облако, реклама | ✅ |
+| 0.5 | Критичные гэпы VK: замена удалённых методов лидерборда на `VKWebAppShowLeaderBoardBox` | ✅ |
+| 1 | «Визуальное сияние»: глифы-обитатели, частицы, пузырьки, count-up, тени | ✅ |
+| 2 | Соцмеханики VK (клиентские): приглашения, запросы, истории, избранное, главный экран | ✅ |
+| 3 | Публикация в каталог VK (модерация) | ⬜ план |
+| 4 | Серверные механики VK: лента, миссии, уведомления (после каталога) | ⬜ план |
+| 5 | Рост retention: сюжетные миссии, модификаторы, события, режимы | ⬜ план |
+| 6 | Прогрессия и монетизация: прокачка ныряльщика, покупки, баннеры | ⬜ план |
+| 7 | Своя 24/7-экосистема: свой хостинг, бэкенд, аналитика | ⬜ план |
+
 ## Структура
 
 ```
@@ -54,25 +97,27 @@ ocean-2048/
 ├── manifest.json / sw.js   # PWA (только веб)
 ├── css/styles.css          # Веб + нативные стили (body.is-native)
 ├── js/
-│   ├── main.js             # Оркестрация: DOM, UI, игровой цикл
-│   ├── game.js             # Логика 2048
+│   ├── main.js             # Оркестрация: DOM, UI, игровой цикл (~1700 строк)
+│   ├── game.js             # Логика 2048 (движение, слияния, статистика)
 │   ├── levels.js           # Уровни (данные + levelById/isLastLevel)
+│   ├── progress.js         # Разблокировка уровней/рекорды (нормализация state)
 │   ├── achievements.js     # Достижения (данные + evaluateAchievements)
 │   ├── daily.js            # Ежедневные задания (roll/ensure/metric/check)
+│   ├── daily-login.js      # Ежедневный вход (серия наград)
 │   ├── rewards.js          # Наградная реклама (rewarded revive)
 │   ├── combo.js            # Серии/комбо (streak/combo)
+│   ├── shop.js             # Магазин: бусты/перки/скины/темы, экономика
 │   ├── cloud-sync.js       # Конфликт облачных/локальных сохранений
-│   ├── progress.js         # Разблокировка уровней/рекорды
 │   ├── platform.js         # web / ios / android
-│   ├── platform-sdk.js     # Адаптер VK Mini Apps / Яндекс Игры / Web
+│   ├── platform-sdk.js     # Адаптер VK Mini Apps / Яндекс Игры / Web (вкл. соцмеханики)
 │   ├── sound.js            # Звуки (Web Audio)
 │   ├── native-entry.js     # Бандл для Capacitor
-│   └── native-plugins.js
-├── js/*.test.js            # Юнит-тесты (node:test): 128/128
-├── scripts/build-www.js    # Сборка www/
+│   └── native-plugins.js   # Haptics/StatusBar/etc для нативных сборок
+├── js/*.test.js            # Юнит-тесты (node:test): 216
+├── scripts/                # Сборки www/vk/yandex, генерация графики, чекеры
 ├── android/                # Capacitor Android
 ├── ios/                    # Capacitor iOS (сборка на Mac)
-├── store/                  # Чеклист, гайды и графика для магазинов
+├── store/                  # Чеклист, гайды и графика для магазинов + DEV_PLAN
 └── capacitor.config.json
 ```
 
