@@ -16,7 +16,11 @@ export default class Game {
         this.onMerge       = config.onMerge       || null;
         this.onSave        = config.onSave        || null;
         this.onTarget      = config.onTarget      || null;
+        this.onTide        = config.onTide        || null;
         this.infinity      = !!config.infinity;
+
+        // Прилив 🌊 — конфиг механики «Глубины ядра» (null = выключено)
+        this.tide          = this._normalizeTide(config.tide);
 
         this.tiles         = [];
         this.score         = 0;
@@ -41,6 +45,13 @@ export default class Game {
         this.streak            = 0;
         // Буст «Двойные очки»: сколько ходов со слиянием осталось с ×2
         this.multiplierMoves   = 0;
+
+        // Прилив 🌊: состояние механики
+        this.tideLevel          = 0;    // высота воды 0..depth (растёт перед приливом)
+        this.tideMovesUntilRise = 0;    // сколько ходов осталось до прилива
+        this.tideSwept          = 0;    // сколько плиток унесено течением
+        this.tideSweptValue     = 0;    // суммарное значение унесённых плиток
+        this.tideActive         = false; // вспышка «прилив» для UI
 
         // Рендер (абсолютное позиционирование плиток)
         this._tileEls      = new Map();
@@ -81,6 +92,11 @@ export default class Game {
         this.movesWithoutMerge = 0;
         this.streak            = 0;
         this.multiplierMoves   = 0;
+        this.tideLevel          = 0;
+        this.tideMovesUntilRise = this.tide ? this.tide.interval : 0;
+        this.tideSwept          = 0;
+        this.tideSweptValue     = 0;
+        this.tideActive         = false;
 
         this._addNewTile();
         this._addNewTile();
@@ -108,6 +124,9 @@ export default class Game {
             tiles: this.tiles.map(t => (t ? { id: t.id, value: t.value } : null)),
             score: this.score,
             streak: this.streak,
+            tideMoves: this.tideMovesUntilRise,
+            tideSwept: this.tideSwept,
+            tideSweptValue: this.tideSweptValue,
         };
 
         const scoreBefore = this.score;
@@ -133,6 +152,8 @@ export default class Game {
         this._busy = true;
         this._animateMove(moves, () => {
             this._busy = false;
+            // Прилив 🌊: отсчёт ходов и смыв нижних рядов (до спавна новой плитки)
+            this._tickTide();
             this._addNewTile();
             this.render();
             this.onScoreUpdate(this.score);
@@ -164,6 +185,10 @@ export default class Game {
         this.tiles         = prev.tiles;
         this.score         = prev.score;
         this.streak        = prev.streak || 0;
+        if (typeof prev.tideMoves === 'number') this.tideMovesUntilRise = prev.tideMoves;
+        if (typeof prev.tideSwept === 'number') this.tideSwept = prev.tideSwept;
+        if (typeof prev.tideSweptValue === 'number') this.tideSweptValue = prev.tideSweptValue;
+        this.tideActive    = false;
         this.won           = false;
         this.gameOver      = false;
         this.winCelebrated = false;
@@ -189,6 +214,9 @@ export default class Game {
             score: this.score,
             nextTileId: this._nextTileId,
             moves: this.movesCount,
+            tideMovesUntilRise: this.tideMovesUntilRise,
+            tideSwept: this.tideSwept,
+            tideSweptValue: this.tideSweptValue,
         };
     }
 
@@ -210,6 +238,11 @@ export default class Game {
         this._history      = [];
         this._nextTileId   = Math.max(this._nextTileId, state.nextTileId || this.tiles.length + 1);
         this.movesCount    = state.moves || 0;
+        this.tideMovesUntilRise = (this.tide && typeof state.tideMovesUntilRise === 'number')
+            ? state.tideMovesUntilRise : (this.tide ? this.tide.interval : 0);
+        if (typeof state.tideSwept === 'number') this.tideSwept = state.tideSwept;
+        if (typeof state.tideSweptValue === 'number') this.tideSweptValue = state.tideSweptValue;
+        this.tideActive    = false;
 
         this._updateGridCSS();
         this.render();
@@ -310,6 +343,75 @@ export default class Game {
             maxMerge:    this.maxMerge,
             movesWithoutMerge: this.movesWithoutMerge,
             streak:      this.streak,
+        };
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // Прилив 🌊 (механика «Глубины ядра»)
+    // ──────────────────────────────────────────────────────────
+
+    /** Нормализация конфига прилива (null — механика выключена). */
+    _normalizeTide(cfg) {
+        if (!cfg || !cfg.enabled) return null;
+        const num = (v, fallback) => {
+            const n = Number(v);
+            return Number.isFinite(n) ? n : fallback;
+        };
+        return {
+            interval:    Math.max(1, Math.floor(num(cfg.interval, 8))),
+            depth:       Math.min(this.size, Math.max(1, Math.floor(num(cfg.depth, 1)))),
+            scoreReturn: Math.min(1, Math.max(0, num(cfg.scoreReturn, 0.5))),
+            warning:     Math.max(1, Math.floor(num(cfg.warning, 3))),
+        };
+    }
+
+    /** Отсчёт ходов до прилива; при достижении 0 — смыв нижних рядов. */
+    _tickTide() {
+        if (!this.tide) return;
+        this.tideMovesUntilRise--;
+        this.tideLevel = this.tide.depth * (1 - this.tideMovesUntilRise / this.tide.interval);
+        if (this.tideMovesUntilRise > 0) return;
+
+        this.tideMovesUntilRise = this.tide.interval;
+        this.tideLevel = 0;
+        this._triggerTide();
+    }
+
+    /** Смыв: плитки нижних рядов «уносит течением», за них возвращается доля очков. */
+    _triggerTide() {
+        const depth = Math.min(this.tide.depth, this.size);
+        const swept = [];
+        for (let d = 0; d < depth; d++) {
+            const row = this.size - 1 - d;
+            const rowStart = row * this.size;
+            for (let c = 0; c < this.size; c++) {
+                const idx = rowStart + c;
+                const t = this.tiles[idx];
+                if (!t) continue;
+                const gain = Math.floor(t.value * this.tide.scoreReturn);
+                if (gain > 0) this.score += gain;
+                this.tideSwept++;
+                this.tideSweptValue += t.value;
+                swept.push({ row, col: c, value: t.value, gain });
+                this.tiles[idx] = null;
+            }
+        }
+        this.tideActive = true;
+        if (this.onTide) this.onTide(swept);
+    }
+
+    /** Состояние прилива для UI (null — механика выключена). */
+    getTide() {
+        if (!this.tide) return null;
+        return {
+            enabled: true,
+            interval: this.tide.interval,
+            depth: this.tide.depth,
+            warning: this.tide.warning,
+            movesUntilRise: this.tideMovesUntilRise,
+            level: this.tideLevel,
+            swept: this.tideSwept,
+            sweptValue: this.tideSweptValue,
         };
     }
 

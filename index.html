@@ -116,6 +116,15 @@
 
         <!-- ── Игровое поле ────────────────────────────────── -->
         <main>
+            <!-- Индикатор прилива 🌊 (Фаза 2.5: «Глубина ядра»).
+                 Показывает, через сколько ходов вода поднимется и смоет нижний ряд. -->
+            <div id="tide-indicator" class="tide-indicator" hidden>
+                <span class="tide-emoji" aria-hidden="true">🌊</span>
+                <span class="tide-label">Прилив</span>
+                <span class="tide-bar" aria-hidden="true"><span class="tide-bar-fill" id="tide-bar-fill"></span></span>
+                <span class="tide-count" id="tide-count">–</span>
+            </div>
+
             <div id="board" class="board size-4"></div>
 
             <!-- D-pad — видим только на тач-устройствах -->

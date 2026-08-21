@@ -1425,6 +1425,62 @@ body.theme-light .dl-day { background: rgba(0,0,0,.05); border-color: rgba(0,0,0
 body.theme-light .dl-day.filled { border-color: #00b8d4; background: rgba(0,184,212,.18); color: #007a91; }
 
 /* ==================================================================
+   ИНДИКАТОР ПРИЛИВА (Фаза 2.5 «Глубина ядра»)
+   Показывает, через сколько ходов вода поднимется и смоет нижний ряд.
+   ================================================================== */
+.tide-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 500px;
+    margin: 0 auto 8px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(9,45,80,.9), rgba(14,62,105,.85));
+    border: 1px solid rgba(74,247,255,.25);
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    color: var(--text-muted);
+    font-size: .82rem;
+}
+.tide-emoji { font-size: 1.05rem; }
+.tide-label { white-space: nowrap; }
+.tide-bar {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,.12);
+    overflow: hidden;
+}
+.tide-bar-fill {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #4af7ff, #29b6f6);
+    transition: width .3s ease;
+}
+.tide-count {
+    min-width: 30px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: bold;
+    color: #cfe9ff;
+}
+/* Уровень воды вырос — бар почти полный: тревожный оттенок */
+.tide-indicator.warning .tide-bar-fill { background: linear-gradient(90deg, #ffd740, #ff8a6b); }
+.tide-indicator.warning .tide-count   { color: #ffd740; }
+/* Вспышка во время смыва (добавляется классом на время анимации) */
+.tide-indicator.sweep { animation: tide-sweep .7s ease; }
+.tide-indicator[hidden] { display: none; }
+@keyframes tide-sweep {
+    0%   { border-color: rgba(74,247,255,.25); }
+    30%  { border-color: rgba(255,215,0,.9); box-shadow: 0 0 14px rgba(255,215,0,.5); }
+    100% { border-color: rgba(74,247,255,.25); }
+}
+body.theme-light .tide-indicator { background: linear-gradient(90deg, #cdeef7, #bfe6f2); border-color: #00b8d4; }
+body.theme-light .tide-count     { color: #007a91; }
+
+/* ==================================================================
    ПАНЕЛЬ БУСТОВ
    ================================================================== */
 .boost-bar {

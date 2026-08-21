@@ -471,3 +471,180 @@ describe('Game score multiplier boost (x2)', () => {
         assert.equal(g.getScoreMultiplierMoves(), 0);
     });
 });
+
+describe('Game tide (Прилив 🌊)', () => {
+    function makeTideGame(opts = {}) {
+        const board = stubBoard();
+        const addTile = Game.prototype._addNewTile;
+        const render = Game.prototype.render;
+        const animate = Game.prototype._animateMove;
+        Game.prototype._addNewTile = function () {};
+        Game.prototype.render = function () {};
+        Game.prototype._animateMove = function (moves, cb) { cb(); };
+        const game = new Game({
+            boardElement: board,
+            size: opts.size || 4,
+            target: opts.target || 2048,
+            tide: Object.assign({ enabled: true, interval: 3, depth: 1, scoreReturn: 0.5, warning: 2 }, opts.tide),
+        });
+        Game.prototype._addNewTile = addTile;
+        Game.prototype.render = render;
+        Game.prototype._animateMove = animate;
+        game.tiles = new Array(game.size * game.size).fill(null);
+        game.score = 0;
+        return game;
+    }
+
+    it('is disabled when no tide config is passed', () => {
+        const g = makeGame();
+        assert.equal(g.getTide(), null);
+    });
+
+    it('initializes the countdown to the configured interval', () => {
+        const g = makeTideGame({ tide: { interval: 5, depth: 1 } });
+        assert.equal(g.tideMovesUntilRise, 5);
+        assert.equal(g.getTide().movesUntilRise, 5);
+    });
+
+    it('sweeps the bottom row and returns half the value as score on tide', () => {
+        const g = makeTideGame({ tide: { interval: 1, depth: 1, scoreReturn: 0.5 } });
+        let swept = null;
+        g.onTide = (s) => { swept = s; };
+        g.tiles = [
+            null, null, null, null,
+            { id: 1, value: 4 }, null, null, null,
+            null, null, null, null,
+            { id: 2, value: 8 }, { id: 3, value: 2 }, null, null,
+        ];
+        // Счёт до смыва (добавлен вручную, чтобы проверить прибавку)
+        g.score = 0;
+        g._triggerTide();
+        // Нижний ряд (индексы 12..15): 8 и 2 унесены, 4 на втором ряду остаётся
+        assert.deepEqual(g.tiles.map(t => (t ? t.value : null)), [
+            null, null, null, null,
+            { id: 1, value: 4 }, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ].map(t => (t ? t.value : null)));
+        assert.equal(g.tideSwept, 2);
+        assert.equal(g.tideSweptValue, 10);
+        // 8*0.5 + 2*0.5 = 5
+        assert.equal(g.score, 5);
+        assert.equal(g.tideActive, true);
+        assert.deepEqual(swept.map(s => ({ value: s.value, gain: s.gain })),
+            [{ value: 8, gain: 4 }, { value: 2, gain: 1 }]);
+    });
+
+    it('counts down every move and sweeps when the interval elapses', () => {
+        const g = makeTideGame({ tide: { interval: 2, depth: 1, scoreReturn: 0 } });
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        // Горизонтальные ходы оставляют плитку в нижнем ряду — её и смывает прилив.
+        g.tiles = [
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, { id: 2, value: 8 }, null, null,
+        ];
+        g.handleMove('left'); // ход 1: 8 → нижний левый угол; отсчёт 2→1, прилива нет
+        assert.equal(g.tideMovesUntilRise, 1);
+        assert.equal(g.tideSwept, 0);
+
+        g.handleMove('right'); // ход 2: 8 → нижний правый угол; отсчёт 1→0 → прилив
+        assert.equal(g.tideMovesUntilRise, 2); // счётчик сброшен на интервал
+        assert.equal(g.tideSwept, 1);          // плитка 8 унесена течением
+        assert.equal(g.tiles[15], null);       // нижний ряд пуст после смыва
+    });
+
+    it('respects tide depth greater than 1', () => {
+        const g = makeTideGame({ tide: { interval: 1, depth: 2, scoreReturn: 0 } });
+        g.tiles = [
+            null, null, null, null,
+            null, null, null, null,
+            { id: 1, value: 4 }, null, null, null,
+            { id: 2, value: 8 }, { id: 3, value: 2 }, null, null,
+        ];
+        g._triggerTide();
+        // Смыты два нижних ряда (строки 2 и 3)
+        assert.equal(g.tideSwept, 3);
+        assert.equal(g.tiles.filter(Boolean).length, 0);
+    });
+
+    it('caps tide depth to the board size', () => {
+        const g = makeTideGame({ tide: { interval: 1, depth: 99, scoreReturn: 0 } });
+        g.tiles = [
+            { id: 1, value: 2 }, null, null, null,
+            { id: 2, value: 4 }, null, null, null,
+            { id: 3, value: 8 }, null, null, null,
+            { id: 4, value: 16 }, null, null, null,
+        ];
+        g._triggerTide();
+        assert.equal(g.tideSwept, 4); // не больше, чем 4 плитки на доске 4×4
+    });
+
+    it('undo restores the tide countdown and swept counters', () => {
+        const g = makeTideGame({ tide: { interval: 2, depth: 1, scoreReturn: 0 } });
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            { id: 2, value: 8 }, null, null, null,
+        ];
+        g.handleMove('up');
+        assert.equal(g.tideMovesUntilRise, 1);
+        g.undo();
+        assert.equal(g.tideMovesUntilRise, 2);
+    });
+
+    it('resets tide counters in init', () => {
+        const g = makeTideGame({ tide: { interval: 3, depth: 1, scoreReturn: 0 } });
+        g.render = () => {};
+        g.tideMovesUntilRise = 0;
+        g.tideSwept = 5;
+        g.tideSweptValue = 40;
+        g.init();
+        assert.equal(g.tideMovesUntilRise, 3);
+        assert.equal(g.tideSwept, 0);
+        assert.equal(g.tideSweptValue, 0);
+    });
+
+    it('persists tide state across loadState/saveState round-trip', () => {
+        const g = makeTideGame({ tide: { interval: 3, depth: 1, scoreReturn: 0 } });
+        g.tideMovesUntilRise = 1;
+        g.tideSwept = 4;
+        g.tideSweptValue = 30;
+        const state = g.getState();
+        assert.equal(state.tideMovesUntilRise, 1);
+        assert.equal(state.tideSwept, 4);
+        assert.equal(state.tideSweptValue, 30);
+
+        const g2 = makeTideGame({ tide: { interval: 3, depth: 1, scoreReturn: 0 } });
+        g2.render = () => {};
+        g2.loadState(state);
+        assert.equal(g2.tideMovesUntilRise, 1);
+        assert.equal(g2.tideSwept, 4);
+        assert.equal(g2.tideSweptValue, 30);
+    });
+
+    it('is unaffected by a non-tide game (regression check)', () => {
+        const g = makeGame();
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            { id: 2, value: 8 }, null, null, null,
+        ];
+        g.handleMove('up');
+        assert.equal(g.tideSwept, 0);
+        assert.equal(g.getTide(), null);
+        // Плитка 8 не унесена течением — она просто сдвинулась ходом «вверх»
+        assert.equal(g.tiles.some(t => t && t.value === 8), true);
+    });
+});

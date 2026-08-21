@@ -8,7 +8,7 @@ import { applyLevelWin, applyLevelGameOver, isLevelUnlocked } from './progress.j
 import { resolveConflict, mergeBoardSaves } from './cloud-sync.js';
 import { canRevive } from './rewards.js';
 import { comboReward, STREAK_THRESHOLD } from './combo.js';
-import { LEVELS, levelById, isLastLevel } from './levels.js';
+import { LEVELS, levelById, isLastLevel, tideConfigForLevel } from './levels.js';
 import { ACHIEVEMENTS, evaluateAchievements } from './achievements.js';
 import { DAILY_TASKS, ensureDaily as ensureDailyState, dailyMetric as dailyMetricState, checkDaily as checkDailyState } from './daily.js';
 import { claimDailyLogin, dailyLoginInfo } from './daily-login.js';
@@ -93,6 +93,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const settingsBtn    = $('settings-btn');
     const hintBtn        = $('hint-btn');
     const movesEl        = $('moves');
+
+    // Прилив 🌊 (Фаза 2.5 «Глубина ядра») — индикатор и счётчик
+    const tideIndicator = $('tide-indicator');
+    const tideBarFill   = $('tide-bar-fill');
+    const tideCount     = $('tide-count');
 
     const gameModal      = $('game-modal');
     const modalIcon      = $('modal-icon');
@@ -379,6 +384,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateMoves() {
         if (movesEl) movesEl.textContent = (game ? game.getMoves() : 0).toLocaleString('ru');
         renderCombo();
+    }
+
+    /** Обновить индикатор прилива: высота воды + сколько ходов до смыва. */
+    function updateTideIndicator() {
+        if (!tideIndicator) return;
+        const t = game ? game.getTide() : null;
+        if (!t) {
+            tideIndicator.hidden = true;
+            return;
+        }
+        tideIndicator.hidden = false;
+        if (tideBarFill) tideBarFill.style.width = (t.level * 100).toFixed(0) + '%';
+        if (tideCount) tideCount.textContent = String(t.movesUntilRise);
+        // Тревожный режим: осталось меньше warning ходов
+        tideIndicator.classList.toggle('warning', t.movesUntilRise <= t.warning);
+    }
+
+    /** Вспышка индикатора в момент смыва нижних рядов. */
+    function flashTideSweep() {
+        if (!tideIndicator || tideIndicator.hidden) return;
+        tideIndicator.classList.remove('sweep');
+        void tideIndicator.offsetWidth;
+        tideIndicator.classList.add('sweep');
     }
 
     function updateHeader() {
@@ -834,6 +862,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             size:          lv.size,
             target:        lv.target,
             infinity:      state.infinity === true,
+            tide:          tideConfigForLevel(state.currentLevel),
             onScoreUpdate: (score) => {
                 const prev = lastScore;
                 const isNewBest = score > (state.bestTotal || 0);
@@ -864,6 +893,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             onMove:  () => {
                 if (state.sound !== false) playMove();
                 state.dailyCounters.moves = (state.dailyCounters.moves || 0) + 1;
+                updateTideIndicator();
+            },
+            onTide:  (swept) => {
+                // Прилив смыл нижние ряды: вспышка индикатора + уведомление о возврате очков
+                flashTideSweep();
+                const total = swept.reduce((acc, s) => acc + s.gain, 0);
+                if (total > 0) showToast(`Прилив унёс плитки! +${total} очков`, '🌊');
+                else if (swept.length > 0) showToast('Прилив очистил нижний ряд', '🌊');
             },
             onMerge: (n) => {
                 if (state.sound !== false) playMerge();
@@ -878,7 +915,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     addDoubloons(reward.doubloons, reward.mult > 1 ? `комбо ×${reward.mult}` : 'серия');
                 }
             },
-            onSave:  () => { saveBoard(); saveState(state); updateUndoState(); updateMoves(); updateBoostBar(); checkAchievements(); checkDaily(); pushCloudSave(); },
+            onSave:  () => { saveBoard(); saveState(state); updateUndoState(); updateMoves(); updateTideIndicator(); updateBoostBar(); checkAchievements(); checkDaily(); pushCloudSave(); },
             onTarget: (score) => {
                 // Бесконечный режим: цель достигнута — празднуем и продолжаем
                 if (state.sound !== false) playWin();
@@ -944,6 +981,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         updateUndoState();
         updateMoves();
+        updateTideIndicator();
         updateBoostBar();
         // П. 1.19.3: запуск уровня — начало игрового процесса.
         if (!loadingScreen || loadingScreen.classList.contains('hidden')) markGameplayStart();
@@ -967,6 +1005,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateStats();
         updateUndoState();
         updateMoves();
+        updateTideIndicator();
         updateBoostBar();
         checkAchievements();
         // П. 1.19.3: перезапуск партии — игровой процесс снова активен.
