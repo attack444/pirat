@@ -1743,6 +1743,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // и service worker в iframe не нужен.
 
     if (platform.isWeb && sdk.host === 'web' && 'serviceWorker' in navigator) {
+        // Авто-перезагрузка при смене активного service worker: новый SW
+        // (свежий кэш) активируется → controllerchange → страница обновляется,
+        // чтобы пользователь сразу получил новые файлы вместо устаревшего кэша.
+        let swRefreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (swRefreshing) return;
+            swRefreshing = true;
+            window.location.reload();
+        });
         navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
 
@@ -1760,13 +1769,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // URL-параметр `?doubloons=N` на localhost добавляет N жемчужин
     // к личному сейву. Работает только на локальной разработке
     // (localhost/127.0.0.1) — в проде параметр игнорируется.
+    // Выдача идемпотентна: state.devGranted помнит последний выданный
+    // объём, повторное открытие той же ссылки не даёт двойную выдачу.
     (function applyDevGrant() {
         const isLocal = /^localhost$|^127\.0\.0\.1$|^\[::1\]$/.test(location.hostname);
         if (!isLocal) return;
         const q = new URLSearchParams(location.search);
         const amount = Math.floor(Number(q.get('doubloons')));
         if (!Number.isFinite(amount) || amount <= 0) return;
+        if ((state.devGranted || 0) >= amount) return;
         state.doubloons = (state.doubloons || 0) + amount;
+        state.devGranted = amount;
         saveState(state);
         updateDoubloons();
         showToast(`Dev: +${amount} жемчужин 🦪`, '🦪');
