@@ -242,6 +242,17 @@
             </div>
 
             <div class="setting-group">
+                <div class="setting-label">♿ Доступность</div>
+                <div class="setting-options">
+                    <button class="btn btn-ghost setting-btn" id="settings-animspeed">⚡ Быстрые анимации</button>
+                </div>
+                <label class="setting-toggle">
+                    <input type="checkbox" id="settings-large-text">
+                    <span>🔍 Крупный текст</span>
+                </label>
+            </div>
+
+            <div class="setting-group">
                 <div class="setting-label">Сохранения</div>
                 <div class="setting-options">
                     <button class="btn btn-ghost" id="export-btn">💾 Экспорт</button>
@@ -376,15 +387,15 @@
     <!-- ── Модальное окно: онбординг (первый запуск) ─────────── -->
     <div id="tutorial-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal tutorial-modal">
-            <div class="modal-icon">🐬</div>
-            <h2 class="modal-title">Добро пожаловать в океан!</h2>
-            <ul class="tutorial-list">
-                <li><span class="t-ico">👆</span><span>Свайпай пальцем по доске или жми стрелки на клавиатуре, чтобы двигать плитки</span></li>
-                <li><span class="t-ico">🔗</span><span>Одинаковые плитки сливаются в одну — значение удваивается</span></li>
-                <li><span class="t-ico">🎯</span><span>Собери целевую плитку и переходи на следующий уровень</span></li>
-            </ul>
-            <div class="modal-actions">
-                <button class="btn btn-primary" id="tutorial-ok">Понятно, в путь! ⛵</button>
+            <button class="tutorial-skip" id="tutorial-skip" aria-label="Пропустить обучение">Пропустить ✕</button>
+            <div class="modal-icon" id="tutorial-icon">🐬</div>
+            <h2 class="modal-title" id="tutorial-title">Добро пожаловать в океан!</h2>
+            <div class="tutorial-body" id="tutorial-body"></div>
+            <div class="tutorial-dots" id="tutorial-dots"></div>
+            <div class="modal-actions tutorial-actions">
+                <button class="btn btn-ghost" id="tutorial-back" hidden>← Назад</button>
+                <button class="btn btn-primary" id="tutorial-next">Далее →</button>
+                <button class="btn btn-primary" id="tutorial-ok" hidden>Понятно, в путь! ⛵</button>
             </div>
         </div>
     </div>

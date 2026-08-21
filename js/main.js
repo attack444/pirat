@@ -39,6 +39,9 @@ function loadState() {
         theme: 'dark',
         skin: 'gold',
         infinity: false,
+        // Фаза 5 «Полировка»: доступность — скорость анимаций и крупный текст
+        animSpeed: 'normal',   // 'normal' | 'fast'
+        largeText: false,
         achievements: {},
         hintsUsed: 0,
         undoCount: 0,
@@ -133,6 +136,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const skinOptions       = $('skin-options');
     const settingsSound     = $('settings-sound');
     const settingsInfinity  = $('settings-infinity');
+    const settingsAnimSpeed = $('settings-animspeed');
+    const settingsLargeText = $('settings-large-text');
     const exportBtn         = $('export-btn');
     const importBtn         = $('import-btn');
     const importFile        = $('import-file');
@@ -153,8 +158,62 @@ document.addEventListener('DOMContentLoaded', async () => {
     const confirmRestartYes  = $('confirm-restart-yes');
     const confirmRestartNo   = $('confirm-restart-no');
     // Онбординг
-    const tutorialModal      = $('tutorial-modal');
-    const tutorialOk         = $('tutorial-ok');
+    const tutorialModal   = $('tutorial-modal');
+    const tutorialTitle   = $('tutorial-title');
+    const tutorialIcon    = $('tutorial-icon');
+    const tutorialBody    = $('tutorial-body');
+    const tutorialDots    = $('tutorial-dots');
+    const tutorialSkip    = $('tutorial-skip');
+    const tutorialBack    = $('tutorial-back');
+    const tutorialNext    = $('tutorial-next');
+    const tutorialOk      = $('tutorial-ok');
+    const tutorialSteps   = [
+        {
+            icon: '👆',
+            title: 'Управление',
+            body: 'Свайпай пальцем по доске или жми <b>стрелки</b> на клавиатуре, чтобы двигать плитки. Четыре плитки в ряд — уже достижение!'
+        },
+        {
+            icon: '🔗',
+            title: 'Слияние',
+            body: 'Одинаковые плитки сливаются в одну — их значение <b>удваивается</b>. Планируй ходы так, чтобы большие числа оставались в углу.'
+        },
+        {
+            icon: '🎯',
+            title: 'Цель и уровни',
+            body: 'Собери <b>целевую плитку</b>, чтобы перейти на следующий уровень. У каждого уровня своя цель и морская тематика.'
+        },
+        {
+            icon: '💣',
+            title: 'Бусты',
+            body: 'Внизу экрана есть бусты: <b>💣 бомба</b> убирает самую маленькую плитку, <b>⚡ молния</b> — три плитки, <b>💫 x2</b> удваивает очки за слияния. Получай их в сундуке 🎁.'
+        },
+        {
+            icon: '🛒',
+            title: 'Магазин',
+            body: 'В магазине 🛒 можно купить бусты, перки и <b>скины</b> с бонусами к очкам. Жемчужины 🦪 зарабатывай игрой и заданиями.'
+        },
+        {
+            icon: '🌊',
+            title: 'В путь!',
+            body: 'Всё готово! Собери 2048 и покажи, кто тут король океана. Удачи!'
+        }
+    ];
+    let tutorialIndex = 0;
+    function renderTutorial() {
+        if (!tutorialModal) return;
+        const step = tutorialSteps[tutorialIndex];
+        tutorialTitle.textContent = step.title;
+        tutorialIcon.textContent = step.icon;
+        tutorialBody.innerHTML = step.body;
+        tutorialBack.hidden = tutorialIndex === 0;
+        const isLast = tutorialIndex === tutorialSteps.length - 1;
+        tutorialNext.hidden = isLast;
+        tutorialOk.hidden = !isLast;
+        tutorialDots.innerHTML = tutorialSteps.map((_, i) =>
+            `<button class="tutorial-dot${i === tutorialIndex ? ' active' : ''}" data-i="${i}" aria-label="Шаг ${i + 1}"></button>`
+        ).join('');
+    }
     // Жемчужины / ежедневные задания / сообщество
     const doubloonsEl      = $('doubloons');
     const comboEl          = $('combo');
@@ -517,9 +576,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         return btn.dataset.orig || (btn.dataset.orig = btn.textContent.trim().replace(/\s*🔒\s*$/, ''));
     }
 
+    // Фаза 5: применение настроек доступности на body (скорость анимаций, крупный текст)
+    function applyAccessibility() {
+        document.body.classList.toggle('anim-fast', state.animSpeed === 'fast');
+        document.body.classList.toggle('large-text', !!state.largeText);
+    }
+
     function updateSettingsUI() {
         if (settingsSound)    settingsSound.checked    = state.sound !== false;
         if (settingsInfinity) settingsInfinity.checked = !!state.infinity;
+        if (settingsLargeText) settingsLargeText.checked = !!state.largeText;
+        if (settingsAnimSpeed) {
+            settingsAnimSpeed.classList.toggle('active', state.animSpeed === 'fast');
+        }
+        applyAccessibility();
         if (themeOptions) themeOptions.querySelectorAll('.setting-btn').forEach(b => {
             const price = Number(b.dataset.price) || 0;
             const unlocked = price === 0 || (state.unlockedThemes || []).includes(b.dataset.theme);
@@ -1567,6 +1637,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateSettingsUI();
     });
 
+    // Фаза 5: скорость анимаций (переключатель «быстрые анимации»)
+    if (settingsAnimSpeed) {
+        settingsAnimSpeed.addEventListener('click', () => {
+            state.animSpeed = state.animSpeed === 'fast' ? 'normal' : 'fast';
+            saveState(state);
+            updateSettingsUI();
+        });
+    }
+
+    // Фаза 5: крупный текст
+    if (settingsLargeText) {
+        settingsLargeText.addEventListener('change', () => {
+            state.largeText = settingsLargeText.checked;
+            saveState(state);
+            updateSettingsUI();
+        });
+    }
+
     // Экспорт / импорт
     exportBtn.addEventListener('click', exportData);
     importBtn.addEventListener('click', () => importFile && importFile.click());
@@ -1927,17 +2015,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ── Онбординг (первый запуск) ────────────────────────────
+    function closeTutorial() {
+        hideModal(tutorialModal);
+        // П. 1.19.3: после онбординга игровой процесс возобновляется.
+        if (game) setPaused(false);
+    }
+
     function showTutorial() {
         if (!tutorialModal) return;
+        // Всегда начинаем с первого шага.
+        tutorialIndex = 0;
+        renderTutorial();
         // П. 1.19.3: онбординг приостанавливает игровой процесс.
         if (game) setPaused(true);
         showModal(tutorialModal);
     }
 
-    tutorialOk.addEventListener('click', () => {
-        hideModal(tutorialModal);
-        // П. 1.19.3: после онбординга игровой процесс возобновляется.
-        if (game) setPaused(false);
+    tutorialNext.addEventListener('click', () => {
+        if (tutorialIndex < tutorialSteps.length - 1) {
+            tutorialIndex++;
+            renderTutorial();
+        }
+    });
+    tutorialBack.addEventListener('click', () => {
+        if (tutorialIndex > 0) {
+            tutorialIndex--;
+            renderTutorial();
+        }
+    });
+    tutorialSkip.addEventListener('click', closeTutorial);
+    tutorialOk.addEventListener('click', closeTutorial);
+    tutorialDots.addEventListener('click', (e) => {
+        const dot = e.target.closest('.tutorial-dot');
+        if (!dot) return;
+        tutorialIndex = Number(dot.dataset.i);
+        renderTutorial();
+    });
+    tutorialModal.addEventListener('click', (e) => {
+        if (e.target === tutorialModal) closeTutorial();
     });
 
     // ── D-pad (кнопки-стрелки на экране) ────────────────────
