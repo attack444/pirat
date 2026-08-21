@@ -61,6 +61,8 @@ function makeGame(opts = {}) {
         onWin: opts.onWin || (() => {}),
         onGameOver: opts.onGameOver || (() => {}),
         onScoreUpdate: opts.onScoreUpdate || (() => {}),
+        appearanceMultiplier: opts.appearanceMultiplier,
+        fourChance: opts.fourChance,
     });
     Game.prototype._addNewTile = addTile;
     Game.prototype.render = render;
@@ -354,8 +356,8 @@ describe('Game shuffle boost', () => {
     });
 });
 
-describe('Game bomb boost (removeHighestTile)', () => {
-    it('removes the highest-value tile and returns its value', () => {
+describe('Game bomb boost (removeLowestTile)', () => {
+    it('removes the lowest-value tile (clears space, keeps progress) and returns its value', () => {
         const g = makeGame();
         g.render = () => {};
         g.tiles = [
@@ -364,13 +366,14 @@ describe('Game bomb boost (removeHighestTile)', () => {
             null, null, null, null,
             null, null, null, null,
         ];
-        assert.equal(g.removeHighestTile(), 16);
+        assert.equal(g.removeLowestTile(), 2);
         const remaining = g.tiles.filter(Boolean).map(t => t.value);
-        assert.ok(!remaining.includes(16));
+        assert.ok(!remaining.includes(2));
+        assert.ok(remaining.includes(16)); // большая плитка сохраняется
         assert.equal(remaining.length, 2);
     });
 
-    it('removes a single tile when the maximum value appears twice', () => {
+    it('removes a single tile when the minimum value appears twice', () => {
         const g = makeGame();
         g.render = () => {};
         g.tiles = [
@@ -379,14 +382,49 @@ describe('Game bomb boost (removeHighestTile)', () => {
             null, null, null, null,
             null, null, null, null,
         ];
-        assert.equal(g.removeHighestTile(), 8);
+        assert.equal(g.removeLowestTile(), 8);
         assert.equal(g.tiles.filter(Boolean).length, 1);
     });
 
     it('returns null when the board is empty', () => {
         const g = makeGame();
         g.tiles = Array(16).fill(null);
-        assert.equal(g.removeHighestTile(), null);
+        assert.equal(g.removeLowestTile(), null);
+    });
+});
+
+describe('Game lightning boost (removeLowestTiles)', () => {
+    it('removes the n lowest tiles at once and returns their values', () => {
+        const g = makeGame();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 16 }, { id: 3, value: 4 }, { id: 4, value: 8 }, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        assert.deepEqual(g.removeLowestTiles(3), [2, 4, 8]);
+        const remaining = g.tiles.filter(Boolean).map(t => t.value);
+        assert.deepEqual(remaining, [16]);
+    });
+
+    it('removes fewer than n when the board has fewer tiles', () => {
+        const g = makeGame();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 4 }, { id: 2, value: 8 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        assert.deepEqual(g.removeLowestTiles(3), [4, 8]);
+        assert.equal(g.tiles.filter(Boolean).length, 0);
+    });
+
+    it('returns an empty array on an empty board', () => {
+        const g = makeGame();
+        g.tiles = Array(16).fill(null);
+        assert.deepEqual(g.removeLowestTiles(3), []);
     });
 });
 
@@ -469,6 +507,109 @@ describe('Game score multiplier boost (x2)', () => {
         g.activateScoreMultiplier(2);
         g.loadState({ tiles: Array(16).fill(null), score: 0, moves: 0, nextTileId: 1 });
         assert.equal(g.getScoreMultiplierMoves(), 0);
+    });
+
+    it('triples merge-gained score when mult is 3 (x2 boost)', () => {
+        const g = makeGame();
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 2 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        g.activateScoreMultiplier(1, 3); // ×3 на 1 ход со слиянием
+        g.handleMove('left'); // слияние 2+2 → +4, ×3 → +12
+        assert.equal(g.score, 12);
+        assert.equal(g.getScoreMultiplierMoves(), 0);
+    });
+
+    it('getScoreMultiplierMult returns 2 by default and the updated mult', () => {
+        const g = makeGame();
+        g.render = () => {};
+        assert.equal(g.getScoreMultiplierMult(), 2);
+        g.activateScoreMultiplier(2, 3);
+        assert.equal(g.getScoreMultiplierMult(), 3);
+        g.activateScoreMultiplier(0, 1); // множитель не опускается ниже 2
+        assert.equal(g.getScoreMultiplierMult(), 2);
+    });
+});
+
+describe('Game appearance bonus and four-chance perks', () => {
+    it('applies the skin/theme score bonus (+30%) on a merge', () => {
+        const g = makeGame({ appearanceMultiplier: 1.3 });
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 2 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        g.handleMove('left'); // слияние 2+2 → +4, +30% → +round(4*0.3)=+1 → 5
+        assert.equal(g.score, 5);
+    });
+
+    it('adds no bonus when appearanceMultiplier is 1 (base skin)', () => {
+        const g = makeGame();
+        g._addNewTile = () => {};
+        g._animateMove = (moves, cb) => cb();
+        g.render = () => {};
+        g.tiles = [
+            { id: 1, value: 2 }, { id: 2, value: 2 }, null, null,
+            null, null, null, null,
+            null, null, null, null,
+            null, null, null, null,
+        ];
+        g.handleMove('left'); // слияние 2+2 → +4, без бонуса → 4
+        assert.equal(g.score, 4);
+    });
+
+    it('spawns 4 when random is below fourChance', () => {
+        const g = makeGame({ fourChance: 0.3 });
+        g.tiles = Array(16).fill(null);
+        const orig = Math.random;
+        try {
+            Math.random = () => 0; // idx 0 и 0 < 0.3 → 4
+            g._addNewTile();
+        } finally {
+            Math.random = orig;
+        }
+        const filled = g.tiles.filter(Boolean);
+        assert.equal(filled.length, 1);
+        assert.equal(filled[0].value, 4);
+    });
+
+    it('spawns 2 when random is above fourChance', () => {
+        const g = makeGame({ fourChance: 0.3 });
+        g.tiles = Array(16).fill(null);
+        const orig = Math.random;
+        try {
+            Math.random = () => 0.9; // 0.9 >= 0.3 → 2
+            g._addNewTile();
+        } finally {
+            Math.random = orig;
+        }
+        const filled = g.tiles.filter(Boolean);
+        assert.equal(filled.length, 1);
+        assert.equal(filled[0].value, 2);
+    });
+
+    it('default four chance is 10%', () => {
+        const g = makeGame();
+        g.tiles = Array(16).fill(null);
+        const orig = Math.random;
+        try {
+            Math.random = () => 0.05; // < 0.1 → 4
+            g._addNewTile();
+        } finally {
+            Math.random = orig;
+        }
+        const filled = g.tiles.filter(Boolean);
+        assert.equal(filled[0].value, 4);
     });
 });
 

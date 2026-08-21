@@ -26,6 +26,11 @@ export default class Game {
         // Ходы как ресурс 🧮 — конфиг механики «Глубины ядра» (null = выключено)
         this.movesConfig   = this._normalizeMoves(config.moves);
 
+        // Множитель очков от скина/темы (+% за косметику, «Ценность покупок»)
+        this.appearanceMultiplier = Math.max(1, Number(config.appearanceMultiplier) || 1);
+        // Шанс выпадения плитки 4 вместо 2 (перк «Дух четвёрки», по умолчанию 10%)
+        this.fourChance           = Math.min(1, Math.max(0, Number(config.fourChance) || 0.1));
+
         this.tiles         = [];
         this.score         = 0;
         this.won           = false;
@@ -47,8 +52,9 @@ export default class Game {
         this.movesWithoutMerge = 0;
         // Серия: ходы подряд, каждый из которых содержит хотя бы одно слияние
         this.streak            = 0;
-        // Буст «Двойные очки»: сколько ходов со слиянием осталось с ×2
+        // Буст «Тройные очки»: сколько ходов со слиянием осталось и множитель (×2/×3)
         this.multiplierMoves   = 0;
+        this.multiplierMult    = 2;
 
         // Прилив 🌊: состояние механики
         this.tideLevel          = 0;    // высота воды 0..depth (растёт перед приливом)
@@ -102,6 +108,7 @@ export default class Game {
         this.movesWithoutMerge = 0;
         this.streak            = 0;
         this.multiplierMoves   = 0;
+        this.multiplierMult    = 2;
         this.tideLevel          = 0;
         this.tideMovesUntilRise = this.tide ? this.tide.interval : 0;
         this.tideSwept          = 0;
@@ -151,10 +158,15 @@ export default class Game {
         const { moved, moves, merges } = this._move(direction);
         if (!moved) return;
 
-        // Буст «Двойные очки»: ходы со слиянием дают ×2 к набранным очкам
-        if (this.multiplierMoves > 0 && this.score > scoreBefore) {
-            this.score += (this.score - scoreBefore);
+        // Буст «Тройные очки»: ходы со слиянием дают ×mult (по умолчанию ×3)
+        const gained = this.score - scoreBefore;
+        if (this.multiplierMoves > 0 && gained > 0) {
+            this.score += Math.round(gained * (this.multiplierMult - 1));
             this.multiplierMoves--;
+        }
+        // Бонус скина/темы: +% очков за слияния (косметика теперь даёт эффект)
+        if (this.appearanceMultiplier > 1 && gained > 0) {
+            this.score += Math.round(gained * (this.appearanceMultiplier - 1));
         }
 
         this.movesCount++;
@@ -260,6 +272,7 @@ export default class Game {
         this.score         = state.score || 0;
         this.streak        = 0;
         this.multiplierMoves   = 0;
+        this.multiplierMult    = 2;
         this.won           = false;
         this.gameOver      = false;
         this.winCelebrated = false;
@@ -326,20 +339,38 @@ export default class Game {
         return true;
     }
 
-    /** Буст «Бомба»: удаляет самую большую плитку с доски. */
-    removeHighestTile() {
+    /** Буст «Бомба»: удаляет наименьшую плитку с доски (расчищает место, не трогая прогресс). */
+    removeLowestTile() {
         if (this._busy) return null;
-        let maxIdx = -1;
-        let maxVal = 0;
+        let minIdx = -1;
+        let minVal = Infinity;
         for (let i = 0; i < this.tiles.length; i++) {
             const t = this.tiles[i];
-            if (t && t.value > maxVal) { maxVal = t.value; maxIdx = i; }
+            if (t && t.value < minVal) { minVal = t.value; minIdx = i; }
         }
-        if (maxIdx === -1) return null;
-        this.tiles[maxIdx] = null;
+        if (minIdx === -1) return null;
+        this.tiles[minIdx] = null;
         this.render();
         if (this.onSave) this.onSave();
-        return maxVal;
+        return minVal;
+    }
+
+    /** Буст «Молния»: удаляет n наименьших плиток разом. Возвращает массив удалённых значений. */
+    removeLowestTiles(n = 3) {
+        if (this._busy) return [];
+        const filled = [];
+        for (let i = 0; i < this.tiles.length; i++) {
+            const t = this.tiles[i];
+            if (t) filled.push({ idx: i, value: t.value });
+        }
+        filled.sort((a, b) => a.value - b.value);
+        const removed = filled.slice(0, Math.max(0, Math.floor(Number(n) || 0)));
+        for (const r of removed) this.tiles[r.idx] = null;
+        if (removed.length > 0) {
+            this.render();
+            if (this.onSave) this.onSave();
+        }
+        return removed.map(r => r.value);
     }
 
     /** Перк «Бонусная плитка»: добавляет плитку value на случайную свободную клетку. */
@@ -355,16 +386,22 @@ export default class Game {
         return true;
     }
 
-    /** Буст «Двойные очки»: включает ×2 к очкам на N следующих ходов со слиянием. */
-    activateScoreMultiplier(moves = 3) {
+    /** Буст «Тройные очки»: включает ×mult к очкам на N следующих ходов со слиянием. */
+    activateScoreMultiplier(moves = 3, mult = 2) {
         this.multiplierMoves = Math.max(0, Math.floor(Number(moves)) || 0);
+        this.multiplierMult  = Math.max(2, Math.floor(Number(mult)) || 2);
         this.render();
         if (this.onSave) this.onSave();
     }
 
-    /** Сколько ходов со слиянием осталось с бонусом ×2. */
+    /** Сколько ходов со слиянием осталось с бонусом очков. */
     getScoreMultiplierMoves() {
         return this.multiplierMoves || 0;
+    }
+
+    /** Текущий множитель буста очков (×2/×3). */
+    getScoreMultiplierMult() {
+        return this.multiplierMult || 2;
     }
 
     /** Статистика партии для достижений. */
@@ -789,7 +826,9 @@ export default class Game {
         for (let i = 0; i < this.tiles.length; i++) if (this.tiles[i] === null) empty.push(i);
         if (empty.length === 0) return;
         const idx = empty[Math.floor(Math.random() * empty.length)];
-        this.tiles[idx] = { id: this._nextTileId++, value: Math.random() < 0.9 ? 2 : 4, justSpawned: true };
+        // Перк «Дух четвёрки»: шанс плитки 4 выше стандартных 10% (fourChance)
+        const chance = Math.min(1, Math.max(0, Number(this.fourChance) || 0.1));
+        this.tiles[idx] = { id: this._nextTileId++, value: Math.random() < chance ? 4 : 2, justSpawned: true };
     }
 
     // ──────────────────────────────────────────────────────────

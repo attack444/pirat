@@ -17,6 +17,11 @@ import {
     coinMultiplier,
     applyCoinReward,
     effectiveUndoLimit,
+    itemByKey,
+    skinBonus,
+    themeBonus,
+    appearanceScoreMultiplier,
+    appearanceBonusPercent,
 } from './shop.js';
 
 function baseState(overrides = {}) {
@@ -40,9 +45,27 @@ describe('shop.catalog', () => {
             assert.ok(itemsByType(type).length > 0, `category ${type} empty`);
         }
     });
-    it('covers the three in-game boosts and three perks', () => {
-        assert.deepEqual(itemsByType('boost').map(i => i.key), ['shuffle', 'bomb', 'x2']);
-        assert.deepEqual(itemsByType('perk').map(i => i.key), ['coinBonus', 'bonusTile', 'extraUndos']);
+    it('covers the four in-game boosts and six perks', () => {
+        assert.deepEqual(itemsByType('boost').map(i => i.key), ['shuffle', 'bomb', 'x2', 'lightning']);
+        assert.deepEqual(itemsByType('perk').map(i => i.key), ['coinBonus', 'bonusTile', 'bonusTile8', 'fourChance', 'tideSlow', 'extraUndos']);
+    });
+    it('every skin and theme declares a non-negative bonus and a base one exists', () => {
+        for (const i of itemsByType('skin')) {
+            assert.ok(Number.isFinite(i.bonus) && i.bonus >= 0, `skin ${i.key} bonus`);
+        }
+        for (const i of itemsByType('theme')) {
+            assert.ok(Number.isFinite(i.bonus) && i.bonus >= 0, `theme ${i.key} bonus`);
+        }
+        assert.ok(itemsByType('skin').some(i => i.base === true));
+        assert.ok(itemsByType('theme').some(i => i.base === true));
+    });
+    it('legendary skins have higher bonuses than standard ones', () => {
+        const legendary = itemsByType('skin').filter(i => i.legendary);
+        const standard  = itemsByType('skin').filter(i => !i.legendary);
+        assert.ok(legendary.length >= 3);
+        for (const l of legendary) {
+            assert.ok(standard.every(s => l.bonus > s.bonus), `legendary ${l.key} bonus ${l.bonus}`);
+        }
     });
     it('getShopItem returns null for unknown ids', () => {
         assert.equal(getShopItem('nope'), null);
@@ -159,5 +182,33 @@ describe('shop.perks (economy)', () => {
     it('ownsPerk mirrors perk flags', () => {
         assert.equal(ownsPerk(baseState(), 'bonusTile'), false);
         assert.equal(ownsPerk(baseState({ perks: { bonusTile: true } }), 'bonusTile'), true);
+    });
+});
+
+describe('shop.appearance bonuses (skins & themes)', () => {
+    it('itemByKey finds skins and themes by key', () => {
+        assert.equal(itemByKey('skin', 'kraken').name, 'Кракен');
+        assert.equal(itemByKey('theme', 'sunset').name, 'Закат');
+        assert.equal(itemByKey('skin', 'nope'), null);
+    });
+    it('bonus is 0 when the active skin/theme is not owned', () => {
+        const st = baseState({ skin: 'kraken', theme: 'abyss' });
+        assert.equal(skinBonus(st), 0);
+        assert.equal(themeBonus(st), 0);
+    });
+    it('bonus sums from owned active skin and theme', () => {
+        const st = baseState({
+            skin: 'storm', theme: 'forest',
+            unlockedSkins: ['gold', 'storm'],
+            unlockedThemes: ['dark', 'forest'],
+        });
+        assert.equal(skinBonus(st), 20);
+        assert.equal(themeBonus(st), 10);
+        assert.equal(appearanceBonusPercent(st), 30);
+        assert.equal(appearanceScoreMultiplier(st), 1.30);
+    });
+    it('base skin/theme (gold + dark) give zero bonus but multiplier stays 1', () => {
+        const st = baseState();
+        assert.equal(appearanceScoreMultiplier(st), 1);
     });
 });

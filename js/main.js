@@ -12,7 +12,14 @@ import { LEVELS, levelById, isLastLevel, tideConfigForLevel, movesConfigForLevel
 import { ACHIEVEMENTS, evaluateAchievements } from './achievements.js';
 import { DAILY_TASKS, ensureDaily as ensureDailyState, dailyMetric as dailyMetricState, checkDaily as checkDailyState } from './daily.js';
 import { claimDailyLogin, dailyLoginInfo } from './daily-login.js';
-import { getShopItem, itemsByType, ownsItem, buyItem, useBoost, boostCount, ownsPerk, applyCoinReward, effectiveUndoLimit } from './shop.js';
+import {
+    getShopItem, itemsByType, ownsItem, buyItem, useBoost, boostCount, ownsPerk,
+    applyCoinReward, effectiveUndoLimit,
+    appearanceScoreMultiplier, appearanceBonusPercent,
+} from './shop.js';
+import {
+    openChest, exchangePointsForDoubloons, exchangeUsedToday, todayKey, DONATE_PACKS,
+} from './chest.js';
 
 const STORAGE_KEY = 'ocean2048_v1';
 const SAVE_KEY    = 'ocean2048_saves';
@@ -43,6 +50,11 @@ function loadState() {
         inventory: {},
         perks: {},
         dailyStreak: { days: 0, lastClaim: '' },
+        // Сокровищница: сундук, обмен очков и донат
+        pointsBalance: 0,
+        exchangeDaily: {},
+        chestGuaranteed: 0,
+        chestOpened: 0,
         // Ежедневные задания
         daily: { date: '', tasks: [], claimed: {} },
         dailyCounters: { moves: 0, merges: 0, wins: 0, hints: 0, undos: 0 },
@@ -178,6 +190,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const boostBombCount   = $('boost-bomb-count');
     const boostX2Btn       = $('boost-x2');
     const boostX2Count     = $('boost-x2-count');
+    const boostLightningBtn  = $('boost-lightning');
+    const boostLightningCount = $('boost-lightning-count');
+
+    // Сокровищница: сундук, обмен очков и донат
+    const chestBtn        = $('chest-btn');
+    const chestModal      = $('chest-modal');
+    const chestCloseBtn   = $('close-chest-btn');
+    const chestCostEl     = $('chest-cost');
+    const chestGuaranteeEl = $('chest-guarantee');
+    const chestOpenBtn    = $('open-chest-btn');
+    const chestRewardEl   = $('chest-reward');
+    const chestOpenedEl   = $('chest-opened');
+    const exchangeScoreEl = $('exchange-score');
+    const exchangeRateEl  = $('exchange-rate');
+    const exchangeUsedEl  = $('exchange-used');
+    const exchangeBtn     = $('exchange-btn');
+    const donateGrid      = $('donate-grid');
+    const donateInfo      = $('donate-info');
 
     const confettiEl    = $('confetti');
     const toastContainer = $('toast-container');
@@ -453,10 +483,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Внешний вид: тема и скин
+    const THEME_CLASSES = ['theme-dark', 'theme-light', 'theme-forest', 'theme-sunset', 'theme-abyss'];
+    const SKIN_CLASSES  = ['skin-gold', 'skin-wood', 'skin-gem', 'skin-ice', 'skin-fire', 'skin-storm', 'skin-pearl', 'skin-abyss', 'skin-kraken'];
     function applyAppearance() {
-        document.body.classList.remove('theme-dark', 'theme-light', 'theme-forest', 'skin-gold', 'skin-wood', 'skin-gem', 'skin-ice', 'skin-fire', 'skin-storm');
+        document.body.classList.remove(...THEME_CLASSES, ...SKIN_CLASSES);
         document.body.classList.add('theme-' + (state.theme || 'dark'));
         document.body.classList.add('skin-' + (state.skin || 'gold'));
+    }
+
+    /** Стартовая плитка новой партии с учётом перков «Бонусная плитка» / «Глубокий старт». */
+    function startingBonusTile() {
+        if (ownsPerk(state, 'bonusTile8')) return 8;
+        if (ownsPerk(state, 'bonusTile'))  return 4;
+        return 0;
+    }
+
+    /** Текущий суммарный бонус скина + темы в процентах. */
+    function currentAppearanceBonus() {
+        return appearanceBonusPercent(state);
+    }
+
+    /** Конфиг прилива с учётом перка «Спокойные воды»: прилив наступает на 1 ход позже. */
+    function tideConfigWithPerks(id) {
+        const cfg = tideConfigForLevel(id);
+        if (!cfg) return null;
+        if (ownsPerk(state, 'tideSlow')) {
+            return { ...cfg, interval: (cfg.interval || 10) + 1 };
+        }
+        return cfg;
     }
 
     function settingLabel(btn) {
@@ -649,13 +703,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             const el = document.createElement('div');
             el.className = 'shop-item' + (owned ? ' owned' : '');
             let badge = '';
-            if (item.type === 'boost') badge = `В запасе: ${boostCount(state, item.key)}`;
-            else if (owned) badge = item.type === 'perk' ? '✓ Куплен' : '✓ Открыт';
+            let desc = item.desc || '';
+            if (item.type === 'boost') {
+                badge = `В запасе: ${boostCount(state, item.key)}`;
+            } else if (item.type === 'perk') {
+                if (owned) badge = '✓ Куплен';
+            } else if (item.type === 'skin' || item.type === 'theme') {
+                desc = item.desc || `+${item.bonus || 0}% очков за слияния`;
+                const active = item.type === 'skin'
+                    ? (state.skin || 'gold') === item.key
+                    : (state.theme || 'dark') === item.key;
+                if (owned) {
+                    const total = currentAppearanceBonus();
+                    badge = active
+                        ? `✓ Активен · +${item.bonus || 0}% очков${total > (item.bonus || 0) ? ` (всего +${total}%)` : ''}`
+                        : `✓ Открыт · +${item.bonus || 0}% очков`;
+                }
+            }
             el.innerHTML = `
                 <div class="shop-icon">${item.icon}</div>
                 <div class="shop-info">
                     <div class="shop-name">${item.name}</div>
-                    <div class="shop-desc">${item.desc}</div>
+                    <div class="shop-desc">${desc}</div>
                     ${badge ? `<div class="shop-base">${badge}</div>` : ''}
                 </div>
                 ${owned && item.type !== 'boost'
@@ -701,9 +770,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ── Панель бустов ─────────────────────────────────────────
     function updateBoostBar() {
         const defs = [
-            ['shuffle', boostShuffleBtn, boostShuffleCount],
-            ['bomb',    boostBombBtn,    boostBombCount],
-            ['x2',      boostX2Btn,      boostX2Count],
+            ['shuffle',   boostShuffleBtn,   boostShuffleCount],
+            ['bomb',      boostBombBtn,      boostBombCount],
+            ['x2',        boostX2Btn,        boostX2Count],
+            ['lightning', boostLightningBtn, boostLightningCount],
         ];
         for (const [key, btn, cntEl] of defs) {
             const c = boostCount(state, key);
@@ -726,9 +796,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (key === 'shuffle') {
             ok = game.shuffle() === true;
         } else if (key === 'bomb') {
-            ok = game.removeHighestTile() !== null;
+            ok = game.removeLowestTile() !== null;
+        } else if (key === 'lightning') {
+            ok = game.removeLowestTiles(3).length > 0;
         } else if (key === 'x2') {
-            game.activateScoreMultiplier(3);
+            game.activateScoreMultiplier(3, 3);
             ok = true;
         }
         if (!ok) {
@@ -744,12 +816,141 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateDoubloons();
         pushCloudSave();
         const msgs = {
-            shuffle: 'Плитки перемешаны!',
-            bomb:    'Самая большая плитка убрана!',
-            x2:      'Двойные очки на 3 хода со слиянием!',
+            shuffle:   'Плитки перемешаны!',
+            bomb:      'Наименьшая плитка убрана!',
+            lightning: 'Молния убрала 3 плитки!',
+            x2:        'Тройные очки на 3 хода со слиянием!',
         };
-        showToast(msgs[key], { shuffle: '🔄', bomb: '💣', x2: '⚡' }[key]);
+        showToast(msgs[key], { shuffle: '🔄', bomb: '💣', lightning: '💫', x2: '⚡' }[key]);
         if (state.sound !== false) playMove();
+    }
+
+    // ── Сокровищница: сундук, обмен очков, донат ─────────────
+    const CHEST_CONFIG = {
+        price: 1500,
+        legendaryChance: 0.06,
+        legendaryGuaranteeStep: 0.02,
+        tiers: [
+            { tier: 'common',    kind: 'doubloons', amount: 600,  name: '600 жемчужин',        icon: '🦪' },
+            { tier: 'common',    kind: 'boost',     key: 'shuffle', amount: 3, name: '3× Перемешать', icon: '🔄' },
+            { tier: 'common',    kind: 'boost',     key: 'bomb',    amount: 2, name: '2× Бомба',       icon: '💣' },
+            { tier: 'uncommon',  kind: 'doubloons', amount: 1200, name: '1200 жемчужин',       icon: '💰' },
+            { tier: 'uncommon',  kind: 'boost',     key: 'x2',      amount: 2, name: '2× Тройные очки', icon: '⚡' },
+            { tier: 'uncommon',  kind: 'perk',      key: 'bonusTile', name: 'Перк: Бонусная плитка', icon: '📦' },
+            { tier: 'rare',      kind: 'perk',      key: 'fourChance', name: 'Перк: Дух четвёрки',   icon: '🎲' },
+            { tier: 'rare',      kind: 'boost',     key: 'lightning', amount: 2, name: '2× Молния',    icon: '💫' },
+            { tier: 'epic',      kind: 'theme',     key: 'sunset', name: 'Тема: Закат',             icon: '🌅' },
+            { tier: 'epic',      kind: 'skin',      key: 'pearl',  name: 'Скин: Жемчужина глубин',  icon: '🐚' },
+            { tier: 'legendary', kind: 'skin',      key: 'abyss',  name: 'Скин: Бездна',            icon: '🕳️' },
+            { tier: 'legendary', kind: 'skin',      key: 'kraken', name: 'Скин: Кракен',            icon: '🐙' },
+            { tier: 'legendary', kind: 'theme',     key: 'abyss',  name: 'Тема: Глубина',           icon: '🌌' },
+        ],
+    };
+
+    function renderChest() {
+        if (!chestCostEl) return;
+        chestCostEl.textContent = CHEST_CONFIG.price.toLocaleString('ru');
+        if (chestGuaranteeEl) {
+            const g = state.chestGuaranteed || 0;
+            const chance = Math.min(1, CHEST_CONFIG.legendaryChance + g * CHEST_CONFIG.legendaryGuaranteeStep);
+            chestGuaranteeEl.textContent = `Легендарка: ${Math.round(chance * 100)}%`;
+        }
+        if (chestOpenedEl) chestOpenedEl.textContent = (state.chestOpened || 0).toLocaleString('ru');
+        if (chestOpenBtn) chestOpenBtn.disabled = (state.doubloons || 0) < CHEST_CONFIG.price;
+        if (exchangeScoreEl) exchangeScoreEl.textContent = (state.pointsBalance || 0).toLocaleString('ru');
+        if (exchangeRateEl) exchangeRateEl.textContent = '500 очков = 1 жемчужина';
+        if (exchangeUsedEl) {
+            const limit = 3;
+            const used = exchangeUsedToday(state, todayKey());
+            exchangeUsedEl.textContent = `Сегодня: ${used} из ${limit}`;
+        }
+        if (exchangeBtn) exchangeBtn.disabled = usedTodayExceeded();
+        renderDonate();
+    }
+
+    function usedTodayExceeded() {
+        return exchangeUsedToday(state, todayKey()) >= 3;
+    }
+
+    function openChestModal() {
+        renderChest();
+        showModal(chestModal);
+    }
+
+    function handleOpenChest() {
+        const res = openChest(state, { chest: CHEST_CONFIG });
+        if (!res.ok) {
+            showToast('Не хватает жемчужин для сундука', '🦪');
+            return;
+        }
+        state.chestOpened = (state.chestOpened || 0) + 1;
+        saveState(state);
+        updateDoubloons();
+        updateShopBalance();
+        updateBoostBar();
+        pushCloudSave();
+        const label = res.reward.icon + ' ' + res.reward.name + (res.reward.amount ? ` ×${res.reward.amount}` : '');
+        if (chestRewardEl) {
+            chestRewardEl.textContent = res.legendary
+                ? `✨ Легендарный сундук: ${label}!`
+                : `Сундук: ${label}`;
+            chestRewardEl.classList.add('show');
+            setTimeout(() => chestRewardEl.classList.remove('show'), 4500);
+        }
+        if (res.legendary) spawnConfetti(90, true);
+        renderChest();
+        showToast(res.legendary ? `✨ Легендарка: ${res.reward.name}!` : `Сундук: ${res.reward.name}`, res.reward.icon || '🎁');
+    }
+
+    function handleExchange() {
+        const rate = 500;
+        const res = exchangePointsForDoubloons(state, 1, { rate, limit: 3, day: todayKey() });
+        if (!res.ok) {
+            if (res.reason === 'limit') showToast('Дневной лимит обмена исчерпан', '⏳');
+            else showToast('Не хватает очков для обмена', '🏅');
+            return;
+        }
+        saveState(state);
+        updateDoubloons();
+        renderChest();
+        updateStats();
+        pushCloudSave();
+        showToast(`Обмен: −${res.spent} очков → +${res.gained} жемчужина`, '🔄');
+    }
+
+    function renderDonate() {
+        if (!donateGrid) return;
+        donateGrid.innerHTML = '';
+        const canDonate = sdk.isPlatform();
+        if (donateInfo) {
+            donateInfo.textContent = canDonate
+                ? 'Донат активируется после публикации на платформе'
+                : 'Покупка жемчужин за деньги станет доступна на платформах VK / Яндекс';
+        }
+        for (const pack of DONATE_PACKS) {
+            const el = document.createElement('div');
+            el.className = 'donate-item';
+            el.innerHTML = `
+                <div class="donate-icon">${pack.icon}</div>
+                <div class="donate-info2">
+                    <div class="donate-name">${pack.name}</div>
+                    <div class="donate-desc">${pack.pearls.toLocaleString('ru')} жемчужин</div>
+                </div>
+                <button class="btn btn-small shop-buy${canDonate ? '' : ' disabled'}" data-donate-id="${pack.id}">
+                    ${pack.priceRub} ₽
+                </button>
+            `;
+            el.querySelector('.shop-buy[data-donate-id]').addEventListener('click', () => {
+                if (!canDonate) {
+                    showToast('Донат станет доступен на платформе', '💬');
+                    return;
+                }
+                // Здесь будет реальный платёж платформы (VKWebAppShowOrderBox / Purchase API).
+                // Заглушка: демо-выдача, чтобы проверить механику экономики.
+                if (pack.id === 'donate_small') { state.doubloons = (state.doubloons || 0) + pack.pearls; saveState(state); updateDoubloons(); renderChest(); showToast(`Демо-донат: +${pack.pearls} жемчужин`, pack.icon); }
+            });
+            donateGrid.appendChild(el);
+        }
     }
 
     // ── Уведомления (тосты) ──────────────────────────────────
@@ -892,8 +1093,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             size:          lv.size,
             target:        lv.target,
             infinity:      state.infinity === true,
-            tide:          tideConfigForLevel(state.currentLevel),
+            tide:          tideConfigWithPerks(state.currentLevel),
             moves:         movesConfigForLevel(state.currentLevel),
+            // Ценность покупок: скин+тема дают +% очков, перк «Дух четвёрки» повышает шанс 4,
+            // перк «Спокойные воды» отодвигает прилив на 1 ход.
+            appearanceMultiplier: appearanceScoreMultiplier(state),
+            fourChance:     ownsPerk(state, 'fourChance') ? 0.3 : 0.1,
             onScoreUpdate: (score) => {
                 const prev = lastScore;
                 const isNewBest = score > (state.bestTotal || 0);
@@ -1012,9 +1217,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             state.gamesPlayed = (state.gamesPlayed || 0) + 1;
             saveState(state);
             updateStats();
-            // Перк «Бонусная плитка»: новая партия начинается с плиткой 4
-            if (ownsPerk(state, 'bonusTile')) {
-                game.addBonusTile(4);
+            // Перки «Бонусная плитка» / «Глубокий старт»: новая партия начинается с плиткой 4 или 8
+            const startTile = startingBonusTile();
+            if (startTile > 0) {
+                game.addBonusTile(startTile);
                 saveBoard();
             }
         }
@@ -1600,10 +1806,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         shopTabs.querySelectorAll('.shop-tab').forEach(b => b.classList.toggle('active', b === btn));
         renderShop();
     });
-    if (boostShuffleBtn) boostShuffleBtn.addEventListener('click', () => useBoostFromBar('shuffle'));
-    if (boostBombBtn)    boostBombBtn.addEventListener('click', () => useBoostFromBar('bomb'));
-    if (boostX2Btn)      boostX2Btn.addEventListener('click', () => useBoostFromBar('x2'));
-    if (dlClaimBtn)      dlClaimBtn.addEventListener('click', claimDailyLoginReward);
+    if (boostShuffleBtn)   boostShuffleBtn.addEventListener('click', () => useBoostFromBar('shuffle'));
+    if (boostBombBtn)      boostBombBtn.addEventListener('click', () => useBoostFromBar('bomb'));
+    if (boostX2Btn)        boostX2Btn.addEventListener('click', () => useBoostFromBar('x2'));
+    if (boostLightningBtn) boostLightningBtn.addEventListener('click', () => useBoostFromBar('lightning'));
+    if (chestBtn)          chestBtn.addEventListener('click', openChestModal);
+    if (chestCloseBtn)     chestCloseBtn.addEventListener('click', () => hideModal(chestModal));
+    if (chestModal)        chestModal.addEventListener('click', (e) => {
+        if (e.target === chestModal) hideModal(chestModal);
+    });
+    if (chestOpenBtn)      chestOpenBtn.addEventListener('click', handleOpenChest);
+    if (exchangeBtn)       exchangeBtn.addEventListener('click', handleExchange);
+    if (dlClaimBtn)        dlClaimBtn.addEventListener('click', claimDailyLoginReward);
     if (dlClose) dlClose.addEventListener('click', () => {
         if (dailyLoginEl) dailyLoginEl.hidden = true;
     });

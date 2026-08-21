@@ -125,6 +125,60 @@ body.skin-storm {
     --t8192-bg: linear-gradient(135deg, #081a2b, #030a12);  --t8192-c: var(--gold-bright);
 }
 
+/* Легендарный скин «Жемчужина глубин» (pearl) — перламутровые переливы */
+body.skin-pearl {
+    --t0-bg:   linear-gradient(135deg, #4a5f7a, #26374e);   --t0-c:   var(--white);
+    --t2-bg:   linear-gradient(135deg, #fdfbf6, #f3ecdd);   --t2-c:   #4a3f63;
+    --t4-bg:   linear-gradient(135deg, #f6eef7, #e4d6ef);   --t4-c:   #6b4f9e;
+    --t8-bg:   linear-gradient(135deg, #e4d6ef, #c9b2e4);   --t8-c:   #3d2a6b;
+    --t16-bg:  linear-gradient(135deg, #c9b2e4, #a685d6);   --t16-c:  var(--white);
+    --t32-bg:  linear-gradient(135deg, #a685d6, #8358c4);   --t32-c:  var(--white);
+    --t64-bg:  linear-gradient(135deg, #8358c4, #6a3fb0);   --t64-c:  var(--white);
+    --t128-bg: linear-gradient(135deg, #6a3fb0, #8f5fc0);   --t128-c: var(--white);
+    --t256-bg: linear-gradient(135deg, #b085d8, #9355cf);   --t256-c: #241139;
+    --t512-bg: linear-gradient(135deg, #9355cf, #7a2fb8);   --t512-c: var(--white);
+    --t1024-bg: linear-gradient(135deg, #7a2fb8, #5c1d96);  --t1024-c: var(--white);
+    --t2048-bg: linear-gradient(135deg, #ffd6f2, #e08ae0);  --t2048-c: #3b0f3b;
+    --t4096-bg: linear-gradient(135deg, #c06ad0, #7a2a8f);  --t4096-c: var(--white);
+    --t8192-bg: linear-gradient(135deg, #5a1a6b, #2a0a33);  --t8192-c: var(--gold-bright);
+}
+
+/* Легендарный скин «Бездна» (abyss) — холодные глубины */
+body.skin-abyss {
+    --t0-bg:   linear-gradient(135deg, #123a4d, #061d2b);   --t0-c:   var(--white);
+    --t2-bg:   linear-gradient(135deg, #d5eef7, #a7d6ea);   --t2-c:   #0a3a52;
+    --t4-bg:   linear-gradient(135deg, #a7d6ea, #69b4d8);   --t4-c:   #06304a;
+    --t8-bg:   linear-gradient(135deg, #69b4d8, #3b8fbc);   --t8-c:   var(--white);
+    --t16-bg:  linear-gradient(135deg, #3b8fbc, #1f6b9e);   --t16-c:  var(--white);
+    --t32-bg:  linear-gradient(135deg, #1f6b9e, #0e4c80);   --t32-c:  var(--white);
+    --t64-bg:  linear-gradient(135deg, #0e4c80, #123a6e);   --t64-c:  var(--white);
+    --t128-bg: linear-gradient(135deg, #123a6e, #0c2a58);   --t128-c: var(--white);
+    --t256-bg: linear-gradient(135deg, #0c2a58, #071c40);   --t256-c: var(--white);
+    --t512-bg: linear-gradient(135deg, #071c40, #040f2a);   --t512-c: var(--white);
+    --t1024-bg: linear-gradient(135deg, #040f2a, #02081a);  --t1024-c: var(--gold-light);
+    --t2048-bg: linear-gradient(135deg, #00c6ff, #005f9e);  --t2048-c: #001a2e;
+    --t4096-bg: linear-gradient(135deg, #003052, #00182c);  --t4096-c: var(--gold-light);
+    --t8192-bg: linear-gradient(135deg, #00101f, #00050c);  --t8192-c: var(--gold-bright);
+}
+
+/* Легендарный скин «Кракен» (kraken) — чернила и золото */
+body.skin-kraken {
+    --t0-bg:   linear-gradient(135deg, #2b2b3a, #12121d);   --t0-c:   var(--white);
+    --t2-bg:   linear-gradient(135deg, #f4f2ec, #e2ded2);   --t2-c:   #3a3a2a;
+    --t4-bg:   linear-gradient(135deg, #e6e9cf, #c6cd9e);   --t4-c:   #2f3a14;
+    --t8-bg:   linear-gradient(135deg, #c6cd9e, #9eaa66);   --t8-c:   #1f2609;
+    --t16-bg:  linear-gradient(135deg, #9eaa66, #7a883f);   --t16-c:  var(--white);
+    --t32-bg:  linear-gradient(135deg, #7a883f, #57652a);   --t32-c:  var(--white);
+    --t64-bg:  linear-gradient(135deg, #57652a, #3b481d);   --t64-c:  var(--white);
+    --t128-bg: linear-gradient(135deg, #3b481d, #8f6b1f);   --t128-c: var(--white);
+    --t256-bg: linear-gradient(135deg, #8f6b1f, #c99a2e);   --t256-c: #241a05;
+    --t512-bg: linear-gradient(135deg, #c99a2e, #e0b83f);   --t512-c: #241a05;
+    --t1024-bg: linear-gradient(135deg, #e0b83f, #ffd700);  --t1024-c: #241a05;
+    --t2048-bg: linear-gradient(135deg, #ffd700, #b8860b);  --t2048-c: #241a05;
+    --t4096-bg: linear-gradient(135deg, #b8860b, #6e4a08);  --t4096-c: var(--white);
+    --t8192-bg: linear-gradient(135deg, #3b2a06, #140f02);  --t8192-c: var(--gold-bright);
+}
+
 html, body {
     height: 100%;
     overflow: hidden;              /* п. 1.10.2: нет браузерной прокрутки страницы */
@@ -1696,3 +1750,174 @@ body.theme-forest .boost-count { background: rgba(0,0,0,.35); }
 body.theme-forest .shop-tab { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.14); }
 body.theme-forest .shop-item { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.12); }
 body.theme-forest .shop-name { color: #9ade7b; }
+
+/* ==================================================================
+   ТЕМА «ЗАКАТ» (body.theme-sunset)
+   ================================================================== */
+body.theme-sunset {
+    background: linear-gradient(135deg, #4a1f3d 0%, #8b3a4e 100%);
+}
+body.theme-sunset .container {
+    background: linear-gradient(180deg, #5b2647 0%, #7a3550 100%);
+    border-color: #e89a6b;
+    box-shadow: 0 20px 40px rgba(0,0,0,.6), inset 0 0 20px rgba(232,154,107,.15);
+}
+body.theme-sunset header { border-bottom-color: #e89a6b; }
+body.theme-sunset header h1 { color: #ffd9b0; }
+body.theme-sunset .stat { border-color: #e89a6b; }
+body.theme-sunset .stat .label { color: #f0b08a; }
+body.theme-sunset .stat .value { color: #ffd9b0; }
+body.theme-sunset .level-name { color: #ffd9b0; }
+body.theme-sunset .level-target-wrap strong { color: #ffd9b0; }
+body.theme-sunset .btn-icon { background: rgba(0,0,0,.3); border-color: #e89a6b; }
+body.theme-sunset .btn-secondary { background: rgba(0,0,0,.3); border-color: #e89a6b; }
+body.theme-sunset .btn-ghost { border-color: rgba(255,255,255,.2); }
+body.theme-sunset .board { border-color: #e89a6b; background: #5a2440; box-shadow: inset 0 0 30px rgba(0,0,0,.4), 0 8px 20px rgba(0,0,0,.35); }
+body.theme-sunset .board .cell { background: rgba(255,255,255,.06); }
+body.theme-sunset footer { border-top-color: #e89a6b; color: #ffd9b0; }
+body.theme-sunset .footer-links a { color: #ffd9b0; }
+body.theme-sunset .modal { background: linear-gradient(180deg, #5b2647, #3e1830); }
+body.theme-sunset .modal-title { color: #ffd9b0; }
+body.theme-sunset .modal-message { color: #f7cdb4; }
+body.theme-sunset .modal-score { background: rgba(0,0,0,.25); border-color: #e89a6b; color: #ffd9b0; }
+body.theme-sunset .level-card { background: rgba(0,0,0,.25); }
+body.theme-sunset .level-card.unlocked:hover { background: rgba(232,154,107,.25); }
+body.theme-sunset .lc-num, body.theme-sunset .lc-target { color: #ffd9b0; }
+body.theme-sunset .lc-name { color: #f7cdb4; }
+body.theme-sunset .setting-option, body.theme-sunset .achievement { background: rgba(0,0,0,.25); }
+body.theme-sunset .setting-btn { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.15); color: #f7cdb4; }
+body.theme-sunset .setting-btn.active { border-color: #ffd9b0; background: rgba(255,217,176,.15); }
+body.theme-sunset .daily-task { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.12); }
+body.theme-sunset .daily-name { color: #f7cdb4; }
+body.theme-sunset .leaderboard-row { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.12); }
+body.theme-sunset .lb-name { color: #f7cdb4; }
+body.theme-sunset .daily-login { border-color: #e89a6b; }
+body.theme-sunset .dl-day { background: rgba(0,0,0,.3); border-color: rgba(255,255,255,.12); }
+body.theme-sunset .boost-count { background: rgba(0,0,0,.35); }
+body.theme-sunset .shop-tab { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.14); }
+body.theme-sunset .shop-item { background: rgba(0,0,0,.25); border-color: rgba(255,255,255,.12); }
+body.theme-sunset .shop-name { color: #ffd9b0; }
+
+/* ==================================================================
+   ТЕМА «ГЛУБИНА» (body.theme-abyss)
+   ================================================================== */
+body.theme-abyss {
+    background: linear-gradient(135deg, #050b18 0%, #0b1f3a 100%);
+}
+body.theme-abyss .container {
+    background: linear-gradient(180deg, #081426 0%, #0d2138 100%);
+    border-color: #1f6f9e;
+    box-shadow: 0 20px 40px rgba(0,0,0,.7), inset 0 0 24px rgba(31,111,158,.2);
+}
+body.theme-abyss header { border-bottom-color: #1f6f9e; }
+body.theme-abyss header h1 { color: #7fd4ff; }
+body.theme-abyss .stat { border-color: #1f6f9e; }
+body.theme-abyss .stat .label { color: #5eaedc; }
+body.theme-abyss .stat .value { color: #7fd4ff; }
+body.theme-abyss .level-name { color: #7fd4ff; }
+body.theme-abyss .level-target-wrap strong { color: #7fd4ff; }
+body.theme-abyss .btn-icon { background: rgba(0,0,0,.4); border-color: #1f6f9e; }
+body.theme-abyss .btn-secondary { background: rgba(0,0,0,.4); border-color: #1f6f9e; }
+body.theme-abyss .btn-ghost { border-color: rgba(255,255,255,.18); }
+body.theme-abyss .board { border-color: #1f6f9e; background: #061120; box-shadow: inset 0 0 30px rgba(0,0,0,.55), 0 8px 20px rgba(0,0,0,.5); }
+body.theme-abyss .board .cell { background: rgba(255,255,255,.05); }
+body.theme-abyss footer { border-top-color: #1f6f9e; color: #7fd4ff; }
+body.theme-abyss .footer-links a { color: #7fd4ff; }
+body.theme-abyss .modal { background: linear-gradient(180deg, #081426, #040a16); }
+body.theme-abyss .modal-title { color: #7fd4ff; }
+body.theme-abyss .modal-message { color: #b5dbf2; }
+body.theme-abyss .modal-score { background: rgba(0,0,0,.3); border-color: #1f6f9e; color: #7fd4ff; }
+body.theme-abyss .level-card { background: rgba(0,0,0,.3); }
+body.theme-abyss .level-card.unlocked:hover { background: rgba(31,111,158,.25); }
+body.theme-abyss .lc-num, body.theme-abyss .lc-target { color: #7fd4ff; }
+body.theme-abyss .lc-name { color: #b5dbf2; }
+body.theme-abyss .setting-option, body.theme-abyss .achievement { background: rgba(0,0,0,.3); }
+body.theme-abyss .setting-btn { background: rgba(0,0,0,.3); border-color: rgba(255,255,255,.14); color: #b5dbf2; }
+body.theme-abyss .setting-btn.active { border-color: #7fd4ff; background: rgba(127,212,255,.15); }
+body.theme-abyss .daily-task { background: rgba(0,0,0,.3); border-color: rgba(255,255,255,.12); }
+body.theme-abyss .daily-name { color: #b5dbf2; }
+body.theme-abyss .leaderboard-row { background: rgba(0,0,0,.3); border-color: rgba(255,255,255,.12); }
+body.theme-abyss .lb-name { color: #b5dbf2; }
+body.theme-abyss .daily-login { border-color: #1f6f9e; }
+body.theme-abyss .dl-day { background: rgba(0,0,0,.35); border-color: rgba(255,255,255,.12); }
+body.theme-abyss .boost-count { background: rgba(0,0,0,.4); }
+body.theme-abyss .shop-tab { background: rgba(0,0,0,.3); border-color: rgba(255,255,255,.14); }
+body.theme-abyss .shop-item { background: rgba(0,0,0,.3); border-color: rgba(255,255,255,.12); }
+body.theme-abyss .shop-name { color: #7fd4ff; }
+
+/* ==================================================================
+   СОКРОВИЩНИЦА (сундук, обмен, донат)
+   ================================================================== */
+.chest-modal .modal {
+    max-width: 420px;
+    max-height: 88vh;
+    overflow-y: auto;
+}
+.chest-section {
+    margin: 0 0 14px;
+    padding: 12px;
+    border: 1px solid rgba(0,184,212,.3);
+    border-radius: 12px;
+    background: rgba(0,0,0,.18);
+}
+.chest-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-weight: bold;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+}
+.chest-cost { font-size: 1.05rem; }
+.chest-guarantee { font-size: .82rem; color: var(--text-muted); margin-bottom: 6px; }
+.chest-opened { font-size: .82rem; color: var(--text-muted); margin-bottom: 8px; }
+.chest-reward {
+    font-size: .9rem;
+    color: var(--gold-bright);
+    min-height: 1.1em;
+    margin-bottom: 8px;
+    opacity: 0;
+    transition: opacity .3s;
+}
+.chest-reward.show { opacity: 1; }
+.chest-modal .btn-primary { width: 100%; }
+.exchange-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: .9rem;
+    margin-bottom: 6px;
+}
+.exchange-rate { color: var(--text-muted); }
+.donate-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.donate-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px;
+    border: 1px solid rgba(0,184,212,.25);
+    border-radius: 10px;
+    background: rgba(0,0,0,.15);
+    text-align: center;
+}
+.donate-icon { font-size: 1.6rem; }
+.donate-name { font-size: .82rem; font-weight: bold; color: var(--gold-light); }
+.donate-desc { font-size: .75rem; color: var(--text-muted); }
+.donate-item .shop-buy { margin-top: 4px; }
+.donate-info { font-size: .78rem; color: var(--text-muted); text-align: center; }
+body.theme-light .chest-section { background: rgba(0,0,0,.05); border-color: #00b8d4; }
+body.theme-light .chest-head { color: #007a91; }
+body.theme-light .chest-guarantee,
+body.theme-light .chest-opened,
+body.theme-light .exchange-rate,
+body.theme-light .donate-info { color: #1a5a76; }
+body.theme-light .chest-reward { color: #ff6a3d; }
+body.theme-light .donate-item { background: rgba(0,0,0,.05); border-color: #00b8d4; }
+body.theme-light .donate-name { color: #007a91; }

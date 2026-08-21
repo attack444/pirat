@@ -56,6 +56,7 @@
                 <div class="header-actions">
                     <button id="pause-btn" class="btn btn-icon" title="Пауза" aria-label="Пауза">⏸️</button>
                     <button id="sound-btn" class="btn btn-icon" title="Звук вкл/выкл" aria-label="Звук вкл/выкл">🔊</button>
+                    <button id="chest-btn" class="btn btn-icon" title="Сокровищница: сундук и обмен очков" aria-label="Сокровищница">🎁</button>
                     <button id="shop-btn" class="btn btn-icon" title="Рынок у рифа" aria-label="Магазин">🛒</button>
                     <button id="settings-btn" class="btn btn-icon" title="Настройки и достижения" aria-label="Настройки">⚙️</button>
                     <button id="fullscreen-btn" class="btn btn-icon" title="Полный экран" aria-label="Полный экран">⛶</button>
@@ -158,9 +159,10 @@
 
             <!-- Бусты из лавки -->
             <div class="boost-bar" aria-label="Бусты">
-                <button id="boost-shuffle" class="btn btn-ghost boost-btn" disabled title="Перемешать плитки">🔄 <span class="boost-count" id="boost-shuffle-count">0</span></button>
-                <button id="boost-bomb"    class="btn btn-ghost boost-btn" disabled title="Убрать самую большую плитку">💣 <span class="boost-count" id="boost-bomb-count">0</span></button>
-                <button id="boost-x2"      class="btn btn-ghost boost-btn" disabled title="Двойные очки: ×2 на 3 хода со слиянием">⚡ <span class="boost-count" id="boost-x2-count">0</span></button>
+                <button id="boost-shuffle"   class="btn btn-ghost boost-btn" disabled title="Перемешать плитки">🔄 <span class="boost-count" id="boost-shuffle-count">0</span></button>
+                <button id="boost-bomb"      class="btn btn-ghost boost-btn" disabled title="Убрать наименьшую плитку — расчистить место">💣 <span class="boost-count" id="boost-bomb-count">0</span></button>
+                <button id="boost-x2"        class="btn btn-ghost boost-btn" disabled title="Тройные очки: ×3 на 3 хода со слиянием">⚡ <span class="boost-count" id="boost-x2-count">0</span></button>
+                <button id="boost-lightning" class="btn btn-ghost boost-btn" disabled title="Молния: убрать 3 наименьшие плитки разом">💫 <span class="boost-count" id="boost-lightning-count">0</span></button>
             </div>
 
         </main>
@@ -208,6 +210,8 @@
                     <button class="btn btn-ghost setting-btn" data-theme="dark" data-price="0">🌙 Тёмная</button>
                     <button class="btn btn-ghost setting-btn" data-theme="light" data-price="250">☀️ Светлая</button>
                     <button class="btn btn-ghost setting-btn" data-theme="forest" data-price="450">🌲 Лес</button>
+                    <button class="btn btn-ghost setting-btn" data-theme="sunset" data-price="1500">🌅 Закат</button>
+                    <button class="btn btn-ghost setting-btn" data-theme="abyss" data-price="5000">🌌 Глубина</button>
                 </div>
             </div>
 
@@ -220,6 +224,9 @@
                     <button class="btn btn-ghost setting-btn" data-skin="ice" data-price="800">🧊 Лёд</button>
                     <button class="btn btn-ghost setting-btn" data-skin="fire" data-price="800">🔥 Пламя</button>
                     <button class="btn btn-ghost setting-btn" data-skin="storm" data-price="800">🌊 Шторм</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="pearl" data-price="10000">🐚 Жемчужина глубин</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="abyss" data-price="25000">🕳️ Бездна</button>
+                    <button class="btn btn-ghost setting-btn" data-skin="kraken" data-price="50000">🐙 Кракен</button>
                 </div>
             </div>
 
@@ -321,6 +328,48 @@
             </div>
             <div class="shop-grid" id="shop-grid"></div>
             <button class="btn btn-ghost" id="close-shop-btn">✕ Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ── Модальное окно: сокровищница (сундук, обмен, донат) ─ -->
+    <div id="chest-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal chest-modal">
+            <h2>🎁 Сокровищница</h2>
+
+            <div class="chest-section">
+                <div class="chest-head">
+                    <span class="chest-title">🗝️ Сундук глубин</span>
+                    <span class="chest-cost" id="chest-cost">1500</span> 🦪
+                </div>
+                <div class="chest-guarantee" id="chest-guarantee">Легендарка: 6%</div>
+                <div class="chest-reward" id="chest-reward"></div>
+                <div class="chest-opened">Открыто: <strong id="chest-opened">0</strong></div>
+                <button class="btn btn-primary" id="open-chest-btn">🎲 Открыть сундук</button>
+            </div>
+
+            <div class="chest-section">
+                <div class="chest-head">
+                    <span class="chest-title">🔄 Обмен очков</span>
+                </div>
+                <div class="exchange-row">
+                    <span>Очки: <strong id="exchange-score">0</strong></span>
+                    <span class="exchange-rate" id="exchange-rate">500 очков = 1 🦪</span>
+                </div>
+                <div class="exchange-row">
+                    <span>Обменов сегодня: <strong id="exchange-used">0 из 3</strong></span>
+                </div>
+                <button class="btn btn-primary" id="exchange-btn">🔄 Обменять 500 очков → 1 жемчужина</button>
+            </div>
+
+            <div class="chest-section">
+                <div class="chest-head">
+                    <span class="chest-title">💎 Донат</span>
+                </div>
+                <div class="donate-grid" id="donate-grid"></div>
+                <div class="donate-info" id="donate-info"></div>
+            </div>
+
+            <button class="btn btn-ghost" id="close-chest-btn">✕ Закрыть</button>
         </div>
     </div>
 

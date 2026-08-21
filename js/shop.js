@@ -4,32 +4,41 @@
 // Категории предметов:
 //   boost — расходник (копятся в state.inventory[ключ] = число),
 //   perk  — одноразовый (state.perks[ключ] = true),
-//   skin  — скин плиток (state.unlockedSkins),
-//   theme — тема оформления (state.unlockedThemes).
+//   skin  — скин плиток (state.unlockedSkins), у скинов есть игровой бонус (+% очков),
+//   theme — тема оформления (state.unlockedThemes), у тем тоже есть бонус (+% очков).
 
 export const SHOP_ITEMS = [
     // ── Бусты (расходники) ──
-    { id: 'boost_shuffle', type: 'boost', key: 'shuffle', icon: '🔄', name: 'Перемешать',   desc: 'Перемешивает плитки на доске — новый шанс на ход', price: 30 },
-    { id: 'boost_bomb',    type: 'boost', key: 'bomb',    icon: '💣', name: 'Бомба',        desc: 'Убирает самую большую плитку с доски',               price: 60 },
-    { id: 'boost_x2',      type: 'boost', key: 'x2',      icon: '⚡', name: 'Двойные очки', desc: 'Следующие 3 хода со слиянием дают ×2 очков',        price: 90 },
+    { id: 'boost_shuffle', type: 'boost', key: 'shuffle',   icon: '🔄', name: 'Перемешать',    desc: 'Перемешивает плитки на доске — новый шанс на ход',           price: 30 },
+    { id: 'boost_bomb',    type: 'boost', key: 'bomb',      icon: '💣', name: 'Бомба',         desc: 'Убирает наименьшую плитку — расчищает место для роста',     price: 60 },
+    { id: 'boost_x2',      type: 'boost', key: 'x2',        icon: '⚡', name: 'Тройные очки',  desc: 'Следующие 3 хода со слиянием дают ×3 очков',                price: 120, mult: 3 },
+    { id: 'boost_lightning', type: 'boost', key: 'lightning', icon: '💫', name: 'Молния',      desc: 'Убирает 3 наименьшие плитки разом — мощная расчистка',        price: 150 },
 
     // ── Перки (одноразовые) ──
-    { id: 'perk_coinBonus',  type: 'perk', key: 'coinBonus',  icon: '🦪', name: 'Жемчужная жила', desc: '+50% жемчужин за все награды',                  price: 800 },
-    { id: 'perk_bonusTile',  type: 'perk', key: 'bonusTile',  icon: '📦', name: 'Бонусная плитка', desc: 'Каждая новая партия начинается с плиткой 4', price: 600 },
-    { id: 'perk_extraUndos', type: 'perk', key: 'extraUndos', icon: '♻️', name: 'Доп. отмены',     desc: '+3 бесплатных отмены хода в день',             price: 500 },
+    { id: 'perk_coinBonus',  type: 'perk', key: 'coinBonus',  icon: '🦪', name: 'Жемчужная жила', desc: '+50% жемчужин за все награды',                            price: 800 },
+    { id: 'perk_bonusTile',  type: 'perk', key: 'bonusTile',  icon: '📦', name: 'Бонусная плитка', desc: 'Новая партия начинается с плиткой 4',                      price: 600 },
+    { id: 'perk_bonusTile8', type: 'perk', key: 'bonusTile8', icon: '🐚', name: 'Глубокий старт', desc: 'Новая партия начинается с плиткой 8 (заменяет плитку 4)',    price: 1200 },
+    { id: 'perk_fourChance', type: 'perk', key: 'fourChance', icon: '🎲', name: 'Дух четвёрки',   desc: 'Шанс выпадения плитки 4 вырастает до 30%',                    price: 1500 },
+    { id: 'perk_tideSlow',   type: 'perk', key: 'tideSlow',   icon: '🧘', name: 'Спокойные воды', desc: 'Прилив наступает на 1 ход позже',                           price: 2000 },
+    { id: 'perk_extraUndos', type: 'perk', key: 'extraUndos', icon: '♻️', name: 'Доп. отмены',     desc: '+3 бесплатных отмены хода в день',                           price: 500 },
 
-    // ── Скины плиток ──
-    { id: 'skin_gold',  type: 'skin',  key: 'gold',  icon: '🦪', name: 'Жемчуг',     price: 0,   base: true },
-    { id: 'skin_wood',  type: 'skin',  key: 'wood',  icon: '🪵', name: 'Коралл',     price: 300 },
-    { id: 'skin_gem',   type: 'skin',  key: 'gem',   icon: '💎', name: 'Кристаллы',  price: 600 },
-    { id: 'skin_ice',   type: 'skin',  key: 'ice',   icon: '🧊', name: 'Айсберг',    price: 800 },
-    { id: 'skin_fire',  type: 'skin',  key: 'fire',  icon: '🔥', name: 'Вулкан',     price: 800 },
-    { id: 'skin_storm', type: 'skin',  key: 'storm', icon: '🌊', name: 'Буря',       price: 800 },
+    // ── Скины плиток (дарят +% очков) ──
+    { id: 'skin_gold',   type: 'skin', key: 'gold',   icon: '🦪', name: 'Жемчуг',           price: 0,    base: true, bonus: 0 },
+    { id: 'skin_wood',   type: 'skin', key: 'wood',   icon: '🪵', name: 'Коралл',           price: 300,  bonus: 5 },
+    { id: 'skin_gem',    type: 'skin', key: 'gem',    icon: '💎', name: 'Кристаллы',        price: 600,  bonus: 10 },
+    { id: 'skin_ice',    type: 'skin', key: 'ice',    icon: '🧊', name: 'Айсберг',          price: 800,  bonus: 15 },
+    { id: 'skin_fire',   type: 'skin', key: 'fire',   icon: '🔥', name: 'Вулкан',           price: 800,  bonus: 15 },
+    { id: 'skin_storm',  type: 'skin', key: 'storm',  icon: '🌊', name: 'Буря',             price: 800,  bonus: 20 },
+    { id: 'skin_pearl',  type: 'skin', key: 'pearl',  icon: '🐚', name: 'Жемчужина глубин', price: 10000, bonus: 25, legendary: true },
+    { id: 'skin_abyss',  type: 'skin', key: 'abyss',  icon: '🕳️', name: 'Бездна',           price: 25000, bonus: 30, legendary: true },
+    { id: 'skin_kraken', type: 'skin', key: 'kraken', icon: '🐙', name: 'Кракен',           price: 50000, bonus: 50, legendary: true },
 
-    // ── Темы оформления ──
-    { id: 'theme_dark',   type: 'theme', key: 'dark',   icon: '🌙', name: 'Бездна',  price: 0,   base: true },
-    { id: 'theme_light',  type: 'theme', key: 'light',  icon: '☀️', name: 'Лагуна',  price: 250 },
-    { id: 'theme_forest', type: 'theme', key: 'forest', icon: '🌲', name: 'Лес',     price: 450 },
+    // ── Темы оформления (тоже дают +% очков) ──
+    { id: 'theme_dark',   type: 'theme', key: 'dark',   icon: '🌙', name: 'Бездна',   price: 0,    base: true, bonus: 0 },
+    { id: 'theme_light',  type: 'theme', key: 'light',  icon: '☀️', name: 'Лагуна',   price: 250,  bonus: 5 },
+    { id: 'theme_forest', type: 'theme', key: 'forest', icon: '🌲', name: 'Лес',      price: 450,  bonus: 10 },
+    { id: 'theme_sunset', type: 'theme', key: 'sunset', icon: '🌅', name: 'Закат',    price: 1500, bonus: 15 },
+    { id: 'theme_abyss',  type: 'theme', key: 'abyss',  icon: '🌌', name: 'Глубина',  price: 5000, bonus: 20 },
 ];
 
 /** Предмет по id (или null). */
@@ -128,4 +137,43 @@ export function applyCoinReward(state, n) {
 /** Дневной лимит бесплатных отмен хода с учётом перка «Доп. отмены» (+3). */
 export function effectiveUndoLimit(state, baseLimit) {
     return (Number(baseLimit) || 0) + (ownsPerk(state, 'extraUndos') ? 3 : 0);
+}
+
+// ──────────────────────────────────────────────────────────────
+// Бонусы скинов и тем: косметика теперь даёт реальный игровой эффект
+// (+% очков за слияния). Чистые функции — тестируемые.
+// ──────────────────────────────────────────────────────────────
+
+/** Предмет (скин/тема) по ключу, активный у игрока. */
+export function itemByKey(type, key) {
+    return SHOP_ITEMS.find(i => i.type === type && i.key === key) || null;
+}
+
+/** Бонус активного скина в процентах (0, если скин не найден/не куплен). */
+export function skinBonus(state) {
+    if (!state) return 0;
+    const skin = itemByKey('skin', state.skin);
+    if (!skin || !(state.unlockedSkins || []).includes(skin.key)) return 0;
+    return skin.bonus || 0;
+}
+
+/** Бонус активной темы в процентах (0, если тема не найдена/не куплена). */
+export function themeBonus(state) {
+    if (!state) return 0;
+    const theme = itemByKey('theme', state.theme);
+    if (!theme || !(state.unlockedThemes || []).includes(theme.key)) return 0;
+    return theme.bonus || 0;
+}
+
+/**
+ * Итоговый множитель очков от скина + темы.
+ * Например, скин +20% и тема +10% → множитель 1.30.
+ */
+export function appearanceScoreMultiplier(state) {
+    return 1 + (skinBonus(state) + themeBonus(state)) / 100;
+}
+
+/** Суммарный бонус скина + темы в процентах (для подсказок в UI). */
+export function appearanceBonusPercent(state) {
+    return skinBonus(state) + themeBonus(state);
 }
