@@ -1,0 +1,122 @@
+LINKS (24):
+/ru/mini-apps/benefits
+/ru/mini-apps/catalog/advice
+/ru/mini-apps/catalog/moderation
+/ru/mini-apps/development/debugging#%D0%9E%D1%82%D0%BB%D0%B0%D0%B4%D0%BA%D0%B0%20%D0%BF%D1%80%D0%B8%20%D0%BF%D0%BE%D0%BC%D0%BE%D1%89%D0%B8%20vk-bridge-mock
+/ru/mini-apps/development/hosting/config-file
+/ru/mini-apps/development/hosting/overview
+/ru/mini-apps/getting-started
+/ru/mini-apps/getting-started/create-vk-mini-app
+/ru/mini-apps/glossary
+/ru/mini-apps/learning/course
+/ru/mini-apps/overview
+/ru/mini-apps/settings/general/information
+/ru/mini-apps/settings/general/other-sites
+/ru/mini-apps/settings/general/placement
+/ru/mini-apps/settings/general/placement#%D0%A1%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B5%20%D0%B4%D0%BB%D1%8F%20%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D0%B5%D0%B9
+/ru/mini-apps/settings/general/placement#URL
+/ru/mini-apps/settings/managers
+/ru/mini-apps/settings/managers#%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%B0%D0%B4%D0%BC%D0%B8%D0%BD%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%82%D0%BE%D1%80%D0%B0
+/ru/mini-apps/settings/moderation
+/ru/mini-apps/settings/overview
+/ru/mini-apps/settings/overview#%D0%93%D0%B4%D0%B5%20%D0%BD%D0%B0%D0%B9%D1%82%D0%B8%20ID%20%D0%BC%D0%B8%D0%BD%D0%B8-%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F
+/ru/mini-apps/settings/overview#%D0%93%D0%B4%D0%B5%20%D0%BD%D0%B0%D0%B9%D1%82%D0%B8%20ID%20%D0%BC%D0%B8%D0%BD%D0%B8-%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F?
+/ru/mini-apps/settings/test-groups
+/ru/mini-apps/software-installation#%D0%9A%D0%B0%D0%BA%20%D1%81%D0%BC%D0%B5%D0%BD%D0%B8%D1%82%D1%8C%20%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8E%20Node.js?
+================
+ALL_HREFS:
+#%D0%9A%D0%B0%D0%BA%20%D0%BF%D0%BE%D0%B4%D0%B5%D0%BB%D0%B8%D1%82%D1%8C%D1%81%D1%8F%20%D0%BC%D0%B8%D0%BD%D0%B8-%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%D0%BC%20%D1%81%20%D0%B4%D1%80%D1%83%D0%B7%D1%8C%D1%8F%D0%BC%D0%B8?
+#%D0%9F%D0%BE%D0%BB%D1%83%D1%87%D0%B0%D1%8E%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D1%83%20Error:%20%D0%9F%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%20%D0%BD%D0%B5%20%D1%8F%D0%B2%D0%BB%D1%8F%D0%B5%D1%82%D1%81%D1%8F%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D1%82%D0%B5%D0%BB%D0%B5%D0%BC%20%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F.%20%D0%A7%D1%82%D0%BE%20%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C?
+#%D0%9F%D0%BE%D0%BB%D1%83%D1%87%D0%B0%D1%8E%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D1%83%20Error:%20connect%20ECONNREFUSED%20127.0.0.1:10888.%20%D0%A7%D1%82%D0%BE%20%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C?
+#%D0%9F%D0%BE%D0%BB%D1%83%D1%87%D0%B0%D1%8E%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D1%83%20sh:%201:%20vk-tunnel:%20Permission%20denied.%20%D0%A7%D1%82%D0%BE%20%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C?
+#%D0%9F%D0%BE%D1%81%D0%BB%D0%B5%20%D0%B2%D1%8B%D0%BF%D0%BE%D0%BB%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D1%8B%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D1%8F%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0%20%D0%BC%D0%B8%D0%BD%D0%B8-%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BD%D0%B0%20Windows%2010%20Pro%20%D0%BF%D0%BE%D0%BB%D1%83%D1%87%D0%B0%D1%8E%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D1%83.%20%D0%A7%D1%82%D0%BE%20%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C?
+#%D0%9F%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%BD%D0%B5%20%D0%B3%D1%80%D1%83%D0%B7%D0%B8%D1%82%D1%81%D1%8F%20%D0%B4%D0%BE%20%D0%BA%D0%BE%D0%BD%D1%86%D0%B0%20%D0%BF%D1%80%D0%B8%20%D0%BB%D0%BE%D0%BA%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D0%BC%20%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D0%BA%D0%B5.%20%D0%9F%D0%BE%D1%87%D0%B5%D0%BC%D1%83?
+#1. Создайте проект мини-приложения
+#2. Зарегистрируйте мини-приложение
+#3. Запустите мини-приложение через туннель
+#3.1. Подготовьте проект
+#3.2. Запустите мини-приложение локально
+#3.3. Запустите VK Tunnel
+#3.4. Обновите настройки мини-приложения
+#3.5. Запустите мини-приложение ВКонтакте
+#4. Разместите мини-приложение на хостинге
+#4.1. Настройте проект для работы с хостингом
+#4.2. Выложите файлы
+#4.3 Запустите мини-приложение
+#FAQ
+#Включена ли поддержка VK Bridge в VKUI?
+#Замечания
+#Как запустить мини-приложение в мобильной версии сайта
+#Как запустить мини-приложение в мобильном приложении ВКонтакте
+#Как поделиться мини-приложением с друзьями?
+#Как подключить стили CSS в мини-приложении?
+#Как сделать работу мини-приложения корректной на обоих доменах ВКонтакте — vk.com и vk.ru?
+#Какие библиотеки используются для создания мини-приложений?
+#Краткая инструкция
+#Не удалось выполнить инструкцию, получаю ошибки. Что делать?
+#О мини-приложениях
+#Получаю ошибку Error: 5: User authorization failed: invalid session. Что делать?
+#Получаю ошибку Error: connect ECONNREFUSED 127.0.0.1:10888. Что делать?
+#Получаю ошибку Error: Пользователь не является создателем приложения. Что делать?
+#Получаю ошибку sh: 1: vk-tunnel: Permission denied. Что делать?
+#После выполнения команды создания проекта мини-приложения на Windows 10 Pro получаю ошибку. Что делать?
+#Приложение не грузится до конца при локальном запуске. Почему?
+#У меня возникли проблемы при разработке мини-приложения в режиме инкогнито
+#Что дальше
+#Что потребуется
+/ru
+/ru/bridge/VKWebAppInit
+/ru/bridge/VKWebAppStorageGet
+/ru/bridge/VKWebAppStorageGetKeys
+/ru/bridge/VKWebAppStorageSet
+/ru/bridge/getting-started
+/ru/bridge/overview
+/ru/community
+/ru/general/long-id
+/ru/guide
+/ru/libraries/router
+/ru/libraries/tunnel
+/ru/libraries/vkui
+/ru/mini-apps/benefits
+/ru/mini-apps/catalog/advice
+/ru/mini-apps/catalog/moderation
+/ru/mini-apps/development/debugging#%D0%9E%D1%82%D0%BB%D0%B0%D0%B4%D0%BA%D0%B0%20%D0%BF%D1%80%D0%B8%20%D0%BF%D0%BE%D0%BC%D0%BE%D1%89%D0%B8%20vk-bridge-mock
+/ru/mini-apps/development/hosting/config-file
+/ru/mini-apps/development/hosting/overview
+/ru/mini-apps/getting-started
+/ru/mini-apps/getting-started/create-vk-mini-app
+/ru/mini-apps/glossary
+/ru/mini-apps/learning/course
+/ru/mini-apps/overview
+/ru/mini-apps/settings/general/information
+/ru/mini-apps/settings/general/other-sites
+/ru/mini-apps/settings/general/placement
+/ru/mini-apps/settings/general/placement#%D0%A1%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B5%20%D0%B4%D0%BB%D1%8F%20%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D0%B5%D0%B9
+/ru/mini-apps/settings/general/placement#URL
+/ru/mini-apps/settings/managers
+/ru/mini-apps/settings/managers#%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%B0%D0%B4%D0%BC%D0%B8%D0%BD%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%82%D0%BE%D1%80%D0%B0
+/ru/mini-apps/settings/moderation
+/ru/mini-apps/settings/overview
+/ru/mini-apps/settings/overview#%D0%93%D0%B4%D0%B5%20%D0%BD%D0%B0%D0%B9%D1%82%D0%B8%20ID%20%D0%BC%D0%B8%D0%BD%D0%B8-%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F
+/ru/mini-apps/settings/overview#%D0%93%D0%B4%D0%B5%20%D0%BD%D0%B0%D0%B9%D1%82%D0%B8%20ID%20%D0%BC%D0%B8%D0%BD%D0%B8-%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F?
+/ru/mini-apps/settings/test-groups
+/ru/mini-apps/software-installation#%D0%9A%D0%B0%D0%BA%20%D1%81%D0%BC%D0%B5%D0%BD%D0%B8%D1%82%D1%8C%20%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8E%20Node.js?
+/ru/ok/publishing#%D0%A8%D0%B0%D0%B3%202.%20%D0%9F%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D0%B5%20%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%BA%20%D0%9E%D0%B4%D0%BD%D0%BE%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%BD%D0%B8%D0%BA%D0%B0%D0%BC
+/ru/reference
+/ru/rules
+/ru/support
+/ru/vkid
+https://vk.com/away.php?to=https%3A%2F%2Faka.ms%2Fvs%2F17%2Frelease%2Fvs_BuildTools.exe
+https://vk.com/away.php?to=https%3A%2F%2Fcloud.vk.com%2Fdocs%2Fru%2Fadditionals%2Fstart
+https://vk.com/away.php?to=https%3A%2F%2Fcode.visualstudio.com%2F
+https://vk.com/away.php?to=https%3A%2F%2Fdev.vk.com
+https://vk.com/away.php?to=https%3A%2F%2Fdev.vk.com%2Fru%2Fadmin%2Fapps-list
+https://vk.com/away.php?to=https%3A%2F%2Fdeveloper.mozilla.org%2Fen-US%2Fdocs%2FWeb%2FHTTP%2FHeaders%2FX-Frame-Options
+https://vk.com/away.php?to=https%3A%2F%2Fgithub.com%2FVKCOM%2Fvk-miniapps-deploy
+https://vk.com/away.php?to=https%3A%2F%2Fnodejs.org
+https://vk.com/away.php?to=https%3A%2F%2Fru.react.dev%2Flearn
+https://vk.com/away.php?to=https%3A%2F%2Fvk.com
+https://vk.com/away.php?to=https%3A%2F%2Fvk.com%2Feditapp%3Fact%3Dcreate
+https://vk.com/away.php?to=https%3A%2F%2Fvk.com%2Fvkappsdev
+https://vk.com/away.php?to=https%3A%2F%2Fvkcom.github.io%2Ficons%2F
+https://vk.com/away.php?to=https%3A%2F%2Fvkui.io%2Fintegrations%2Fvk-mini-apps

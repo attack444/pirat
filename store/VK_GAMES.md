@@ -22,8 +22,8 @@
 | Автоопределение хоста | `detectHost()`: `vkBridge` / `VKWebApp` / `vk_app_id` / `vk_platform` / `vk_user_id` → `'vk'` | ✅ |
 | Подключение VK Bridge | динамически `https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js` (`ensureBridge()`) | ✅ |
 | Облачные сохранения | `VKWebAppStorageSet` / `VKWebAppStorageGet` (ключ `ocean2048_save`) | ✅ |
-| Лидерборд | `VKWebAppSaveToLeaderBoard` (`ocean2048_top`, уровень 1–7) | ✅ |
-| Чтение лидерборда | `VKWebAppGetLeaderBoard` (`user_result_type: 1`, `global: true`) | ✅ |
+| Лидерборд (запись) | ~~`VKWebAppSaveToLeaderBoard`~~ — **удалён из vk-bridge**; актуально: `secure.addAppEvent` (сервер, после каталога) | ❌ см. Фазу 0.5 |
+| Лидерборд (показ) | `VKWebAppShowLeaderBoardBox` (`user_result`) — системная таблица | ❌ добавить (Фаза 0.5) |
 | Реклама interstitial | `VKWebAppShowNativeAds` (`ad_format: 'interstitial'`) | ✅ |
 | Реклама rewarded | `VKWebAppShowNativeAds` (`ad_format: 'reward'`) | ✅ |
 | Поделиться | `VKWebAppShare` | ✅ |
@@ -31,9 +31,15 @@
 Все методы безопасны: вне VK (web/standalone) возвращают `false`/пустые данные,
 игра продолжает работать без VK Bridge.
 
-> ⚠️ На VK облачные сохранения и лидерборд работают **без авторизации** — это
-> платформенное хранилище VK (в отличие от Яндекс Игр). Ключ облака `ocean2048_save`
-> отличается от ключа Яндекса `ocean2048` — конфликтов между платформами нет.
+> ⚠️ **КРИТИЧНО:** методы `VKWebAppSaveToLeaderBoard` / `VKWebAppGetLeaderBoard`
+> **удалены из vk-bridge** (проверено в 3.0.2 и 2.2.2). Актуальный механизм VK —
+> серверный `secure.addAppEvent` (запись, после каталога) + `VKWebAppShowLeaderBoardBox`
+> (показ системной таблицы с друзьями). Подробности и план замены — в
+> [`store/DEV_PLAN.md`](DEV_PLAN.md) §2.1 и Фазе 0.5.
+
+> ⚠️ На VK облачные сохранения работают **без авторизации** — это платформенное
+> хранилище VK (в отличие от Яндекс Игр). Ключ облака `ocean2048_save` отличается
+> от ключа Яндекса `ocean2048` — конфликтов между платформами нет.
 
 ## Ключевое отличие: публикация по HTTPS-URL, а не архивом
 
@@ -122,7 +128,8 @@ URL для VK: **https://5mb2.ru/static/games/ocean-2048/index.html**
 2. Убедиться, что игра грузится **внутри VK** (без белого экрана — это
    свидетельствует о блокировке `X-Frame-Options`).
 3. Проверить консоль (F12): нет ошибок загрузки ресурсов, `VKWebAppInit`
-   отработал, облако/лидерборд отвечают.
+   отработал, облако отвечает; кнопка «Таблица» открывает системную
+   `VKWebAppShowLeaderBoardBox` без ошибок в консоли.
 
 ### Шаг 4. Сделать игру доступной
 1. В настройках приложения выставить статус **«Включено»** — после этого игра
@@ -236,8 +243,9 @@ npx @vkontakte/vk-miniapps-deploy                  # загружает build/vk
 1. Задеплоить `build/vk/` на свой 24/7-сервер по HTTPS (как уже сделано на 5mb2.ru).
 2. Проверить, что сервер не шлёт `X-Frame-Options`/`CSP frame-ancestors`, блокирующие VK.
 3. В кабинете VK (раздел «Размещение») заменить URL на свой.
-4. Убедиться, что облачные сохранения (`ocean2048_save`) и лидерборд продолжают работать
-   (они на стороне VK и от смены URL не зависят).
+4. Убедиться, что облачные сохранения (`ocean2048_save`) продолжают работать
+   (они на стороне VK и от смены URL не зависят); таблица — системная
+   `VKWebAppShowLeaderBoardBox`, показ не зависит от URL.
 
 **Параллельно (не мешает VK-хостингу):** игра уже развёрнута на 5mb2.ru
 (https://5mb2.ru/games/game/ocean-2048) — это наш «запасной» URL и плейграунд
@@ -251,7 +259,7 @@ npx @vkontakte/vk-miniapps-deploy                  # загружает build/vk
 - [ ] Кнопка звука: выключение/включение работает и запоминается.
 - [ ] «Как играть» (режим обучения) открывается из меню.
 - [ ] Облачное сохранение: прогресс переживает перезагрузку (ключ `ocean2048_save`).
-- [ ] Лидерборд: очки записываются в `ocean2048_top`, таблица читается.
+- [ ] Кнопка «Таблица» открывает системную `VKWebAppShowLeaderBoardBox` (без ошибок в консоли).
 - [ ] Реклама (если разрешена VK): interstitial между партиями, rewarded — за награду.
 - [ ] Кнопка «Поделиться» открывает VKWebAppShare.
 - [ ] Никаких консольных ошибок и сетевых 404.
@@ -261,7 +269,9 @@ npx @vkontakte/vk-miniapps-deploy                  # загружает build/vk
 
 - [x] VK-сборка `scripts/build-vk.js` + npm-скрипт `build:vk` (без тега `/sdk.js`)
 - [x] Сборка `build/vk/` актуальна (14 модулей js, build.json `platform: 'vk'`)
-- [x] VK SDK-адаптер: `VKWebAppInit`, облако `ocean2048_save`, лидерборд `ocean2048_top` (level 1–7), реклама, шаринг
+- [x] VK SDK-адаптер: `VKWebAppInit`, облако `ocean2048_save`, реклама, шаринг
+- [ ] VK SDK-адаптер: лидерборд через `VKWebAppShowLeaderBoardBox` (замена удалённых
+      `VKWebAppSaveToLeaderBoard`/`VKWebAppGetLeaderBoard`) — **Фаза 0.5** в `store/DEV_PLAN.md`
 - [x] Деплой статики на HTTPS: https://5mb2.ru/static/games/ocean-2048/index.html
 - [x] Политика конфиденциальности на HTTPS: `privacy-policy.html`
 - [x] Автоопределение хоста VK (`detectHost()`) + загрузка VK Bridge

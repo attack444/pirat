@@ -1,0 +1,24 @@
+GAMES_LINKS (23):
+Игровая платформа  =>  /ru/games/overview
+Преимущества для разработчиков и издателей  =>  /ru/games/benefits
+Советы по созданию и продвижению  =>  /ru/games/catalog/advice
+Первые шаги  =>  /ru/games/getting-started
+Запуск игры  =>  /ru/games/launch-game
+Частые вопросы  =>  /ru/games/faq
+Техническая поддержка  =>  /ru/games/support
+Добавление игры на экран  =>  /ru/games/promotion/game-mechanics/add-to-home-screen
+Добавление игры в левое меню  =>  /ru/games/promotion/game-mechanics/add-to-menu
+Приглашение друзей  =>  /ru/games/promotion/game-mechanics/invites
+Запросы  =>  /ru/games/promotion/game-mechanics/requests
+Истории в профиле пользователя  =>  /ru/games/promotion/game-mechanics/stories
+Личные сообщения от игры  =>  /ru/games/promotion/game-mechanics/messages
+Уведомления  =>  /ru/games/promotion/game-mechanics/notifications/overview
+Лента активности друзей  =>  /ru/games/promotion/game-mechanics/feed
+Уровни  =>  /ru/games/promotion/game-mechanics/feed#%D0%A3%D1%80%D0%BE%D0%B2%D0%BD%D0%B8
+Очки  =>  /ru/games/promotion/game-mechanics/feed#%D0%9E%D1%87%D0%BA%D0%B8
+Миссии  =>  /ru/games/promotion/game-mechanics/missions
+Таблица результатов  =>  /ru/games/promotion/game-mechanics/leaderboards
+сниппет игры  =>  /ru/games/promotion/game-mechanics/snippets
+Сниппеты игр  =>  /ru/games/promotion/game-mechanics/snippets
+Рекламные объявления  =>  /ru/games/promotion/ad
+Коллекции в каталоге  =>  /ru/games/promotion/featured

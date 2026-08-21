@@ -1,0 +1,6 @@
+/ru/bridge/VKWebAppInit
+/ru/bridge/VKWebAppStorageGet
+/ru/bridge/VKWebAppStorageGetKeys
+/ru/bridge/VKWebAppStorageSet
+/ru/bridge/getting-started
+/ru/bridge/overview
